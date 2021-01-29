@@ -1,0 +1,3 @@
+add_executable(test_program test_program.cc)
+target_compile_features(test_program PRIVATE cxx_std_14)
+target_link_libraries(test_program PRIVATE flyft)
