@@ -2,10 +2,12 @@
 
 namespace flyft
 {
-FourierTransform::FourierTransform(int N, double step)
+FourierTransform::FourierTransform(int N)
     : N_(N), step_(step)
     {
     space_ = RealSpace;
+
+    // size of the data buffer required by fftw for r2c and c2r transforms
     data_ = std::shared_ptr<double>(fftw_alloc_real(2*(N_/2+1)),
                                     [](double* p)
                                         {
@@ -30,31 +32,47 @@ FourierTransform::~FourierTransform()
     fftw_destroy_plan(c2r_plan_);
     }
 
-// FourierTransform::coordinate(int i) const
-//     {
-//     if ((N_ % 2 == 0 && i < N_/2) || (N_ % 2 == 1 && i <= N_/2))
-//         {
-//         return i/(N_*step_);
-//         }
-//     else
-//         {
-//         return -(N_-i)/(N_*step);
-//         }
-//     }
-
-std::shared_ptr<double> FourierTransform::getData()
-	{
-	return data_;
-	}
-
-void FourierTransform::setData(const void* data, Space space)
+int FourierTransform::getRealSize() const
     {
-    size_t count = (space == RealSpace) ? N_*sizeof(double) : (N_/2+1)*sizeof(Complex);
-    memcpy(data_.get(), data, count);
-    space_ = space;
+    return N_;
     }
 
-FourierTransform::Space FourierTransform::getSpace() const
+const double* FourierTransform::getRealData() const
+	{
+	if (space_ != RealSpace)
+	    {
+	    // raise error, buffer not valid
+	    }
+	return static_cast<const double*>(data_.get());
+	}
+
+void FourierTransform::setRealData(const double* data)
+    {
+    memcpy(data_.get(), data, getRealSize()*sizeof(double));
+    space_ = RealSpace;
+    }
+
+int FourierTransform::getReciprocalSize() const
+    {
+    return (N_/2+1);
+    }
+
+const FourierTransform::Complex* FourierTransform::getReciprocalData() const
+	{
+	if (space_ != ReciprocalSpace)
+	    {
+	    // raise error, buffer not valid
+	    }
+	return reinterpret_cast<const Complex*>(data_.get());
+	}
+
+void FourierTransform::setReciprocalData(const FourierTransform::Complex* data)
+    {
+    memcpy(data_.get(), data, getReciprocalSize()*sizeof(Complex));
+    space_ = ReciprocalSpace;
+    }
+
+FourierTransform::Space FourierTransform::getActiveSpace() const
     {
     return space_;
     }

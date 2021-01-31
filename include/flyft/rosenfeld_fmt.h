@@ -26,7 +26,6 @@ class RosenfeldFMT : public FreeEnergyFunctional
 
     protected:
         std::vector<double> diameters_;
-        std::vector<std::unique_ptr<double>> kfields_;
 
         bool check_diameters_;
         bool checkDiameters() const;
