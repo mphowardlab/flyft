@@ -14,7 +14,7 @@ class State
     {
     public:
         State() = delete;
-        State(std::shared_ptr<Mesh> mesh, int num_fields);
+        State(std::shared_ptr<const Mesh> mesh, int num_fields);
 
         // noncopyable / nonmovable
         State(const State&) = delete;
@@ -22,7 +22,7 @@ class State
         State& operator=(const State&) = delete;
         State& operator=(State&&) = delete;
 
-        std::shared_ptr<Mesh> getMesh();
+        std::shared_ptr<const Mesh> getMesh() const;
 
         int getNumFields() const;
         const std::vector<std::shared_ptr<Field>>& getFields();
@@ -31,7 +31,7 @@ class State
         void setField(int idx, std::shared_ptr<Field> field);
 
     private:
-        std::shared_ptr<Mesh> mesh_;
+        std::shared_ptr<const Mesh> mesh_;
 
         int num_fields_;
         std::vector<std::shared_ptr<Field>> fields_;

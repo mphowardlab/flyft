@@ -1,9 +1,10 @@
 #ifndef FLYFT_FOURIER_TRANSFORM_H_
 #define FLYFT_FOURIER_TRANSFORM_H_
 
-// use native C complex type to get complex math
-#include <complex.h>
+// need to include <complex> before <fftw.h>
+#include <complex>
 #include <fftw3.h>
+
 #include <memory>
 
 namespace flyft
@@ -23,7 +24,6 @@ class FourierTransform
 
         ~FourierTransform();
 
-        typedef fftw_complex Complex;
         enum Space
             {
             RealSpace,
@@ -35,8 +35,8 @@ class FourierTransform
         void setRealData(const double* data);
 
         int getReciprocalSize() const;
-        const Complex* getReciprocalData() const;
-        void setReciprocalData(const Complex* data);
+        const std::complex<double>* getReciprocalData() const;
+        void setReciprocalData(const std::complex<double>* data);
 
         Space getActiveSpace() const;
 
@@ -45,7 +45,7 @@ class FourierTransform
     private:
         int N_;
         Space space_;
-        std::shared_ptr<double> data_;
+        double* data_;
         fftw_plan r2c_plan_;
         fftw_plan c2r_plan_;
     };

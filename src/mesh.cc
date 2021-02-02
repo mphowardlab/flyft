@@ -16,7 +16,12 @@ double Mesh::coordinate(int i) const
 
 int Mesh::bin(double x) const
     {
-    return static_cast<int>((x-0.5*L_)/step_);
+    return static_cast<int>(x/step_);
+    }
+
+double Mesh::L() const
+    {
+    return L_;
     }
 
 int Mesh::shape() const

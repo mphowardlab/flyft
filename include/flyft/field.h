@@ -1,40 +1,67 @@
 #ifndef FLYFT_FIELD_H_
 #define FLYFT_FIELD_H_
 
-#include "flyft/mesh.h"
-
-#include <memory>
+#include <algorithm>
+#include <complex>
 
 namespace flyft
 {
 
-class Field
+template<typename T>
+class GenericField
     {
     public:
-        Field() = delete;
-        Field(std::shared_ptr<Mesh> mesh);
+        GenericField() = delete;
+        GenericField(int shape)
+            : data_(nullptr), shape_(-1)
+            {
+            reshape(shape);
+            }
 
         // noncopyable / nonmovable
-        Field(const Field&) = delete;
-        Field(Field&&) = delete;
-        Field& operator=(const Field&) = delete;
-        Field& operator=(Field&&) = delete;
+        GenericField(const GenericField&) = delete;
+        GenericField(GenericField&&) = delete;
+        GenericField& operator=(const GenericField&) = delete;
+        GenericField& operator=(GenericField&&) = delete;
 
-        virtual ~Field();
+        ~GenericField()
+            {
+            if (data_) delete data_;
+            }
 
-        double* data();
-        const double* data() const;
+        T* data()
+            {
+            return data_;
+            }
 
-        std::shared_ptr<Mesh> getMesh();
-        void setMesh(std::shared_ptr<Mesh> mesh);
+        const T* data() const
+            {
+            return static_cast<const T*>(data_);
+            }
+
+        int shape() const
+            {
+            return shape_;
+            }
+
+        void reshape(int shape)
+            {
+            if (shape != shape_)
+                {
+                if (data_ != nullptr) delete data_;
+                data_ = new T[shape];
+                std::fill(data_, data_+shape, T(0));
+                }
+            shape_ = shape;
+            }
 
     private:
-        std::shared_ptr<Mesh> mesh_;
-        double* data_;
-
-        int alloc_shape_;
-        void resize(int shape);
+        T* data_;
+        int shape_;
     };
+
+typedef GenericField<double> Field;
+typedef GenericField<std::complex<double>> ComplexField;
 
 }
 

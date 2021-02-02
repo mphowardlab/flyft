@@ -3,23 +3,23 @@
 namespace flyft
 {
 
-State::State(std::shared_ptr<Mesh> mesh, int num_fields)
+State::State(std::shared_ptr<const Mesh> mesh, int num_fields)
     : mesh_(mesh), num_fields_(num_fields), fields_(num_fields)
     {
     for (auto& f : fields_)
         {
-        f = std::make_shared<Field>(mesh_);
+        f = std::make_shared<Field>(mesh_->shape());
         }
     }
 
-std::shared_ptr<Mesh> State::getMesh()
+std::shared_ptr<const Mesh> State::getMesh() const
     {
     return mesh_;
     }
 
 int State::getNumFields() const
     {
-    return static_cast<int>(fields_.size());
+    return num_fields_;
     }
 
 const std::vector<std::shared_ptr<Field>>& State::getFields()
@@ -34,7 +34,7 @@ std::shared_ptr<Field> State::getField(int idx)
 
 std::shared_ptr<const Field> State::getField(int idx) const
     {
-    return std::static_pointer_cast<const Field>(fields_[idx]);
+    return fields_[idx];
     }
 
 

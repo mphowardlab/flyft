@@ -10,11 +10,14 @@ class Mesh
         Mesh() = delete;
         Mesh(double L, int shape);
 
-        //! Get position on the mesh
+        //! Get position on the mesh, defined as center of bin
         double coordinate(int i) const;
 
         //! Get the bin for a coordinate
         int bin(double x) const;
+
+        // Length of the mesh
+        double L() const;
 
         //! Shape the mesh
         int shape() const;

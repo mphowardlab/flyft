@@ -29,22 +29,21 @@ std::shared_ptr<Field> FreeEnergyFunctional::getDerivative(int idx)
 
 std::shared_ptr<const Field> FreeEnergyFunctional::getDerivative(int idx) const
     {
-    return std::static_pointer_cast<const Field>(derivatives_[idx]);
+    return derivatives_[idx];
     }
 
 void FreeEnergyFunctional::allocate(std::shared_ptr<State> state)
     {
     derivatives_.resize(state->getNumFields());
+
+    auto mesh = state->getMesh();
     for (auto& d : derivatives_)
         {
         if (!d)
             {
-            d = std::make_shared<Field>(state->getMesh());
+            d = std::make_shared<Field>(mesh->shape());
             }
-        else
-            {
-            d->setMesh(state->getMesh());
-            }
+        d->reshape(mesh->shape());
         }
     }
 
