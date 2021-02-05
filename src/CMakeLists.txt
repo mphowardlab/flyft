@@ -1,6 +1,8 @@
 add_library(flyft SHARED
+    external_potential.cc
     fourier_transform.cc
     free_energy_functional.cc
+    hard_wall_potential.cc
     mesh.cc
     reciprocal_mesh.cc
     rosenfeld_fmt.cc

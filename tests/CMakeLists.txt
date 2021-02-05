@@ -1,4 +1,5 @@
 set(TEST_NAMES
+    external_potential
     fourier_transform
     rosenfeld_fmt
 )
