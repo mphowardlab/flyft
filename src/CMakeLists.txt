@@ -1,11 +1,15 @@
 add_library(flyft SHARED
+    composite_functional.cc
     external_potential.cc
     fourier_transform.cc
     free_energy_functional.cc
     hard_wall_potential.cc
+    ideal_gas_functional.cc
     mesh.cc
+    piccard_iteration.cc
     reciprocal_mesh.cc
     rosenfeld_fmt.cc
+    solver.cc
     state.cc
     )
 

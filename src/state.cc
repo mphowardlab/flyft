@@ -111,7 +111,7 @@ void State::setIdealVolume(int idx, double ideal_volume)
         }
     else
         {
-        // error: invalid diameter
+        // error: invalid volume
         }
     }
 
