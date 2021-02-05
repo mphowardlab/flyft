@@ -10,24 +10,8 @@
 namespace flyft
 {
 
-RosenfeldFMT::RosenfeldFMT(const std::vector<double>& diameters)
-    : check_diameters_(true)
-    {
-    setDiameters(diameters);
-    }
-
 void RosenfeldFMT::compute(std::shared_ptr<State> state)
     {
-    if (state->getNumFields() != static_cast<int>(diameters_.size()))
-        {
-        // check diameters have right shape
-        }
-
-    if (!checkDiameters())
-        {
-        // error setting up
-        }
-
     // (re-)allocate the memory needed to work with this state
     // kmesh should really be coming from somewhere else (like the FFT)
     allocate(state);
@@ -54,7 +38,7 @@ void RosenfeldFMT::compute(std::shared_ptr<State> state)
         for (int i=0; i < state->getNumFields(); ++i)
             {
             // hard-sphere radius
-            const double R = 0.5*diameters_[i];
+            const double R = 0.5*state->getDiameter(i);
             if (R == 0.)
                 {
                 // no radius, no weights contribute (skip)
@@ -210,7 +194,7 @@ void RosenfeldFMT::compute(std::shared_ptr<State> state)
         for (int i=0; i < state->getNumFields(); ++i)
             {
             // hard-sphere radius
-            const double R = 0.5*diameters_[i];
+            const double R = 0.5*state->getDiameter(i);
             if (R == 0.)
                 {
                 // no radius, no contribution to energy
@@ -239,45 +223,6 @@ void RosenfeldFMT::compute(std::shared_ptr<State> state)
 
     // total value of free energy is integral of phi, which we do by simple quadrature
     value_ = mesh->step()*std::accumulate(phi_->data(), phi_->data()+mesh->shape(), 0.0);
-    }
-
-const std::vector<double>& RosenfeldFMT::getDiameters()
-    {
-    return diameters_;
-    }
-
-double RosenfeldFMT::getDiameter(int idx) const
-    {
-    return diameters_[idx];
-    }
-
-void RosenfeldFMT::setDiameters(const std::vector<double>& diameters)
-    {
-    diameters_.resize(diameters.size());
-    std::copy(diameters.begin(), diameters.end(), diameters_.begin());
-    check_diameters_ = true;
-    }
-
-void RosenfeldFMT::setDiameter(int idx, double diameter)
-    {
-    diameters_[idx] = diameter;
-    check_diameters_ = true;
-    }
-
-bool RosenfeldFMT::checkDiameters() const
-    {
-    if (!check_diameters_) return true;
-
-    // diameters should be positive
-    for (const auto& d : diameters_)
-        {
-        if (d < 0)
-            {
-            return false;
-            }
-        }
-
-    return true;
     }
 
 void RosenfeldFMT::allocate(std::shared_ptr<State> state)

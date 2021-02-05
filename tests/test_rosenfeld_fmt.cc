@@ -17,6 +17,8 @@ int main()
     const std::vector<double> etas = {0.01,0.01};
     const std::vector<double> detas = {0.01,0.01};
 
+    state->setDiameters(diameters);
+
     // initialize density profiles
     for (int i=0; i < state->getNumFields(); ++i)
         {
@@ -34,7 +36,7 @@ int main()
             }
         }
 
-    auto fmt = std::make_shared<flyft::RosenfeldFMT>(diameters);
+    auto fmt = std::make_shared<flyft::RosenfeldFMT>();
     for (unsigned int iter=0; iter < 2; ++iter)
         {
         fmt->compute(state);

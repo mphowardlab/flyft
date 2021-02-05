@@ -15,7 +15,7 @@ void ExternalPotential::compute(std::shared_ptr<State> state)
     for (int i=0; i < state->getNumFields(); ++i)
         {
         // evaluate the external potential on the mesh, and store directly in derivative
-        potential(derivatives_[i],i,mesh);
+        potential(derivatives_[i],i,state);
 
         // compute the total potential by integration
         auto f = state->getField(i)->data();

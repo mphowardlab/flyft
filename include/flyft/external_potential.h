@@ -17,7 +17,7 @@ class ExternalPotential : public FreeEnergyFunctional
     protected:
         virtual void potential(std::shared_ptr<Field> V,
                                int idx,
-                               std::shared_ptr<const Mesh> mesh) = 0;
+                               std::shared_ptr<State> state) = 0;
 
     };
 

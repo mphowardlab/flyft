@@ -14,6 +14,7 @@ int main()
     auto state = std::make_shared<flyft::State>(mesh,2);
 
     const std::vector<double> diameters = {1.0,2.0};
+    state->setDiameters(diameters);
 
     for (int i=0; i < state->getNumFields(); ++i)
         {
@@ -21,8 +22,8 @@ int main()
         std::fill(field->data(), field->data()+mesh->shape(), 0.1);
         }
 
-    auto Vlo = std::make_shared<flyft::HardWallPotential>(0.5, true, diameters);
-    auto Vhi = std::make_shared<flyft::HardWallPotential>(4.5, false, diameters);
+    auto Vlo = std::make_shared<flyft::HardWallPotential>(0.5, true);
+    auto Vhi = std::make_shared<flyft::HardWallPotential>(4.5, false);
     Vlo->compute(state);
     Vhi->compute(state);
     for (int idx=0; idx < mesh->shape(); ++idx)

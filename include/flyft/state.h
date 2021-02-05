@@ -28,13 +28,27 @@ class State
         const std::vector<std::shared_ptr<Field>>& getFields();
         std::shared_ptr<Field> getField(int idx);
         std::shared_ptr<const Field> getField(int idx) const;
-        void setField(int idx, std::shared_ptr<Field> field);
+
+        const std::vector<double>& getDiameters();
+        double getDiameter(int idx) const;
+        void setDiameters(const std::vector<double>& diameters);
+        void setDiameter(int idx, double diameter);
+
+        const std::vector<double>& getIdealVolumes();
+        double getIdealVolume(int idx) const;
+        void setIdealVolumes(const std::vector<double>& ideal_volumes);
+        void setIdealVolume(int idx, double ideal_volume);
 
     private:
         std::shared_ptr<const Mesh> mesh_;
 
         int num_fields_;
         std::vector<std::shared_ptr<Field>> fields_;
+        std::vector<double> diameters_;
+        std::vector<double> ideal_volumes_;
+
+        bool checkDiameter(double diameter) const;
+        bool checkIdealVolume(double ideal_volume) const;
     };
 
 }

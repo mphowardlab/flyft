@@ -16,22 +16,9 @@ namespace flyft
 class RosenfeldFMT : public FreeEnergyFunctional
     {
     public:
-        RosenfeldFMT() = delete;
-        RosenfeldFMT(const std::vector<double>& diameters);
-
         void compute(std::shared_ptr<State> state) override;
 
-        const std::vector<double>& getDiameters();
-        double getDiameter(int idx) const;
-        void setDiameters(const std::vector<double>& diameters);
-        void setDiameter(int idx, double diameter);
-
     protected:
-        std::vector<double> diameters_;
-
-        bool check_diameters_;
-        bool checkDiameters() const;
-
         std::unique_ptr<FourierTransform> ft_;
 
         std::unique_ptr<Field> n0_;
