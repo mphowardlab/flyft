@@ -14,4 +14,5 @@ list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 find_package(FFTW3 MODULE)
 
 add_subdirectory(src)
+add_subdirectory(python)
 add_subdirectory(tests)

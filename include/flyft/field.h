@@ -29,6 +29,16 @@ class GenericField
             if (data_) delete data_;
             }
 
+        double& operator()(int idx)
+            {
+            return data_[idx];
+            }
+
+        double operator()(int idx) const
+            {
+            return data_[idx];
+            }
+
         T* data()
             {
             return data_;
