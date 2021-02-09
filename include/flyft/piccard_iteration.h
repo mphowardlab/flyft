@@ -16,7 +16,8 @@ class PiccardIteration : public Solver
         PiccardIteration(std::shared_ptr<FreeEnergyFunctional> excess,
                          std::shared_ptr<FreeEnergyFunctional> external,
                          double mix_param,
-                         int max_iterations);
+                         int max_iterations,
+                         double tolerance);
 
         bool solve(std::shared_ptr<State> state) override;
 
@@ -26,9 +27,13 @@ class PiccardIteration : public Solver
         int getMaxIterations() const;
         void setMaxIterations(int max_iterations);
 
+        double getTolerance() const;
+        void setTolerance(double tolerance);
+
     private:
         double mix_param_;
         int max_iterations_;
+        double tolerance_;
     };
 
 }

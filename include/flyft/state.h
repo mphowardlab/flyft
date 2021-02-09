@@ -15,6 +15,7 @@ class State
     public:
         State() = delete;
         State(std::shared_ptr<const Mesh> mesh, int num_fields);
+        State(std::shared_ptr<const Mesh> mesh, const std::vector<double>& Ns);
 
         // noncopyable / nonmovable
         State(const State&) = delete;
@@ -39,6 +40,11 @@ class State
         void setIdealVolumes(const std::vector<double>& ideal_volumes);
         void setIdealVolume(int idx, double ideal_volume);
 
+        const std::vector<double>& getNs();
+        double getN(int idx) const;
+        void setNs(const std::vector<double>& Ns);
+        void setN(int idx, double N);
+
     private:
         std::shared_ptr<const Mesh> mesh_;
 
@@ -46,9 +52,7 @@ class State
         std::vector<std::shared_ptr<Field>> fields_;
         std::vector<double> diameters_;
         std::vector<double> ideal_volumes_;
-
-        bool checkDiameter(double diameter) const;
-        bool checkIdealVolume(double ideal_volume) const;
+        std::vector<double> Ns_;
     };
 
 }

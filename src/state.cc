@@ -4,15 +4,23 @@ namespace flyft
 {
 
 State::State(std::shared_ptr<const Mesh> mesh, int num_fields)
-    : mesh_(mesh), num_fields_(num_fields), fields_(num_fields), diameters_(num_fields),
-      ideal_volumes_(num_fields)
+    : State(mesh, std::vector<double>(num_fields,0.0))
+    {}
+
+State::State(std::shared_ptr<const Mesh> mesh, const std::vector<double>& Ns)
+    : mesh_(mesh)
     {
+    num_fields_ = static_cast<int>(Ns.size());
+
+    fields_.resize(num_fields_);
     for (auto& f : fields_)
         {
         f = std::make_shared<Field>(mesh_->shape());
         }
-    std::fill(diameters_.begin(), diameters_.end(), 0.0);
-    std::fill(ideal_volumes_.begin(), ideal_volumes_.end(), 1.0);
+
+    diameters_ = std::vector<double>(num_fields_,0.0);
+    ideal_volumes_ = std::vector<double>(num_fields_,1.0);
+    Ns_ = Ns;
     }
 
 std::shared_ptr<const Mesh> State::getMesh() const
@@ -65,7 +73,7 @@ void State::setDiameters(const std::vector<double>& diameters)
 
 void State::setDiameter(int idx, double diameter)
     {
-    if (checkDiameter(diameter))
+    if (diameter >= 0.)
         {
         diameters_[idx] = diameter;
         }
@@ -73,11 +81,6 @@ void State::setDiameter(int idx, double diameter)
         {
         // error: invalid diameter
         }
-    }
-
-bool State::checkDiameter(double diameter) const
-    {
-    return diameter >= 0.;
     }
 
 const std::vector<double>& State::getIdealVolumes()
@@ -105,7 +108,7 @@ void State::setIdealVolumes(const std::vector<double>& ideal_volumes)
 
 void State::setIdealVolume(int idx, double ideal_volume)
     {
-    if (checkIdealVolume(ideal_volume))
+    if (ideal_volume > 0.)
         {
         ideal_volumes_[idx] = ideal_volume;
         }
@@ -115,9 +118,39 @@ void State::setIdealVolume(int idx, double ideal_volume)
         }
     }
 
-bool State::checkIdealVolume(double ideal_volume) const
+const std::vector<double>& State::getNs()
     {
-    return ideal_volume > 0.;
+    return Ns_;
+    }
+
+double State::getN(int idx) const
+    {
+    return Ns_[idx];
+    }
+
+void State::setNs(const std::vector<double>& Ns)
+    {
+    if (static_cast<int>(Ns.size()) != getNumFields())
+        {
+        // error: size must match
+        }
+
+    for (int idx=0; idx < getNumFields(); ++idx)
+        {
+        setN(idx, Ns[idx]);
+        }
+    }
+
+void State::setN(int idx, double N)
+    {
+    if (N > 0.)
+        {
+        Ns_[idx] = N;
+        }
+    else
+        {
+        // error: invalid volume
+        }
     }
 
 }
