@@ -27,5 +27,6 @@ void bindField(py::module_& m)
                 {f.shape()},
                 {sizeof(double)}
                 );
-        });
+        })
+        ;
     }

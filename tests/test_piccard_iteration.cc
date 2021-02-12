@@ -32,7 +32,7 @@ int main()
 
         // set diameter and average N
         state->setDiameter(i,d);
-        state->setN(i,L*rho);
+        state->setConstraint(i,L*rho,flyft::State::Constraint::N);
         }
 
     auto fmt = std::make_shared<flyft::RosenfeldFMT>();

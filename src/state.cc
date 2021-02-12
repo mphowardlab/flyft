@@ -20,7 +20,8 @@ State::State(std::shared_ptr<const Mesh> mesh, const std::vector<double>& Ns)
 
     diameters_ = std::vector<double>(num_fields_,0.0);
     ideal_volumes_ = std::vector<double>(num_fields_,1.0);
-    Ns_ = Ns;
+    constraints_ = std::vector<double>(num_fields_,0.0);
+    constraint_types_ = std::vector<Constraint>(num_fields_,Constraint::compute);
     }
 
 std::shared_ptr<const Mesh> State::getMesh() const
@@ -118,39 +119,59 @@ void State::setIdealVolume(int idx, double ideal_volume)
         }
     }
 
-const std::vector<double>& State::getNs()
+const std::vector<double>& State::getConstraints()
     {
-    return Ns_;
-    }
-
-double State::getN(int idx) const
-    {
-    return Ns_[idx];
-    }
-
-void State::setNs(const std::vector<double>& Ns)
-    {
-    if (static_cast<int>(Ns.size()) != getNumFields())
-        {
-        // error: size must match
-        }
-
     for (int idx=0; idx < getNumFields(); ++idx)
         {
-        setN(idx, Ns[idx]);
+        checkConstraint(idx);
         }
+    return constraints_;
     }
 
-void State::setN(int idx, double N)
+double State::getConstraint(int idx)
     {
-    if (N > 0.)
-        {
-        Ns_[idx] = N;
-        }
-    else
-        {
-        // error: invalid volume
-        }
+    checkConstraint(idx);
+    return constraints_[idx];
     }
 
+const std::vector<State::Constraint>& State::getConstraintTypes()
+    {
+    for (int idx=0; idx < getNumFields(); ++idx)
+        {
+        checkConstraint(idx);
+        }
+    return constraint_types_;
+    }
+
+State::Constraint State::getConstraintType(int idx)
+    {
+    checkConstraint(idx);
+    return constraint_types_[idx];
+    }
+
+void State::setConstraint(int idx, double value, State::Constraint type)
+    {
+    constraints_[idx] = value;
+    constraint_types_[idx] = type;
+    }
+
+void State::setConstraintType(int idx, State::Constraint type)
+    {
+    constraint_types_[idx] = type;
+    }
+
+void State::checkConstraint(int idx)
+    {
+    if (constraint_types_[idx] == Constraint::compute)
+        {
+        auto rho = getField(idx)->data();
+        double sum = 0.0;
+        for (int i=0; i < mesh_->shape(); ++i)
+            {
+            sum += rho[i];
+            }
+        sum *= mesh_->step();
+        setConstraint(idx, sum, Constraint::N);
+        }
+    }
 }

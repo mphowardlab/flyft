@@ -9,6 +9,11 @@ CompositeFunctional::CompositeFunctional()
     {
     }
 
+CompositeFunctional::CompositeFunctional(std::shared_ptr<FreeEnergyFunctional> functional)
+    : CompositeFunctional(std::vector<std::shared_ptr<FreeEnergyFunctional>>({functional}))
+    {
+    }
+
 CompositeFunctional::CompositeFunctional(const std::vector<std::shared_ptr<FreeEnergyFunctional>>& functionals)
     {
     for (const auto& f : functionals)

@@ -16,6 +16,12 @@ class FreeEnergyFunctional
         FreeEnergyFunctional();
         virtual ~FreeEnergyFunctional();
 
+        // noncopyable / nonmovable
+        FreeEnergyFunctional(const FreeEnergyFunctional&) = delete;
+        FreeEnergyFunctional(FreeEnergyFunctional&&) = delete;
+        FreeEnergyFunctional& operator=(const FreeEnergyFunctional&) = delete;
+        FreeEnergyFunctional& operator=(FreeEnergyFunctional&&) = delete;
+
         virtual void compute(std::shared_ptr<State> state) = 0;
 
         double getValue() const;

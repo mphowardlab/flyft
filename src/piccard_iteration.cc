@@ -23,6 +23,8 @@ bool PiccardIteration::solve(std::shared_ptr<State> state)
     auto alpha = getMixParameter();
     auto tol = getTolerance();
 
+    // establish constraints on fields
+
     Field tmp(mesh->shape());
     bool converged = false;
     for (int iter=0; iter < getMaxIterations() && !converged; ++iter)
@@ -42,18 +44,36 @@ bool PiccardIteration::solve(std::shared_ptr<State> state)
             auto mu_ex = excess_->getDerivative(i)->data();
             auto V = external_->getDerivative(i)->data();
 
-            // compute new field and also accumulate the sum over the mesh
-            double sum = 0.0;
-            for (int idx=0; idx < mesh->shape(); ++idx)
+            double norm = 1.0;
+            auto constraint_type = state->getConstraintType(i);
+            if (constraint_type == State::Constraint::N)
                 {
-                rho_tmp[idx] = std::exp(-V[idx]-mu_ex[idx]);
-                sum += rho_tmp[idx];
+                auto N = state->getConstraint(i);
+                double sum = 0.0;
+                for (int idx=0; idx < mesh->shape(); ++idx)
+                    {
+                    rho_tmp[idx] = std::exp(-V[idx]-mu_ex[idx]);
+                    sum += rho_tmp[idx];
+                    }
+                sum *= mesh->step();
+                norm = N/sum;
                 }
-            sum *= mesh->step();
+            else if (constraint_type == State::Constraint::mu)
+                {
+                auto mu_bulk = state->getConstraint(i);
+                for (int idx=0; idx < mesh->shape(); ++idx)
+                    {
+                    rho_tmp[idx] = std::exp(-V[idx]-mu_ex[idx]+mu_bulk);
+                    }
+                norm = 1.0/state->getIdealVolume(i);
+                }
+            else
+                {
+                // don't know what to do
+                }
 
-            // use Lagrange multipler to fix the average N, and apply Piccard mixing
+            // apply Piccard mixing along with appropriate norm on value
             // during the same loop while checking convergence
-            const double norm = state->getN(i)/sum;
             for (int idx=0; idx < mesh->shape(); ++idx)
                 {
                 const double drho = alpha*(norm*rho_tmp[idx]-rho[idx]);

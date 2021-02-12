@@ -14,6 +14,7 @@ class CompositeFunctional : public FreeEnergyFunctional
     {
     public:
         CompositeFunctional();
+        CompositeFunctional(std::shared_ptr<FreeEnergyFunctional> functional);
         CompositeFunctional(const std::vector<std::shared_ptr<FreeEnergyFunctional>>& functionals);
 
         void compute(std::shared_ptr<State> state) override;

@@ -11,5 +11,6 @@ void bindMesh(py::module_& m)
         .def_property_readonly("shape", &Mesh::shape)
         .def_property_readonly("step", &Mesh::step)
         .def("coordinate", &Mesh::coordinate)
-        .def("bin", &Mesh::bin);
+        .def("bin", &Mesh::bin)
+        ;
     }

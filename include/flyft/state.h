@@ -40,10 +40,18 @@ class State
         void setIdealVolumes(const std::vector<double>& ideal_volumes);
         void setIdealVolume(int idx, double ideal_volume);
 
-        const std::vector<double>& getNs();
-        double getN(int idx) const;
-        void setNs(const std::vector<double>& Ns);
-        void setN(int idx, double N);
+        enum class Constraint
+            {
+            compute,
+            N,
+            mu
+            };
+        const std::vector<double>& getConstraints();
+        double getConstraint(int idx);
+        const std::vector<Constraint>& getConstraintTypes();
+        Constraint getConstraintType(int idx);
+        void setConstraint(int idx, double value, Constraint type);
+        void setConstraintType(int idx, Constraint type);
 
     private:
         std::shared_ptr<const Mesh> mesh_;
@@ -52,7 +60,10 @@ class State
         std::vector<std::shared_ptr<Field>> fields_;
         std::vector<double> diameters_;
         std::vector<double> ideal_volumes_;
-        std::vector<double> Ns_;
+        std::vector<double> constraints_;
+        std::vector<Constraint> constraint_types_;
+
+        void checkConstraint(int idx);
     };
 
 }

@@ -2,8 +2,16 @@ find_package(pybind11 CONFIG)
 
 pybind11_add_module(_flyft
     _flyft.cc
+    composite_functional.cc
+    external_potential.cc
     field.cc
+    free_energy_functional.cc
+    hard_wall_potential.cc
+    ideal_gas_functional.cc
     mesh.cc
+    piccard_iteration.cc
+    rosenfeld_fmt.cc
+    solver.cc
     state.cc
     )
 
