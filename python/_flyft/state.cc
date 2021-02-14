@@ -12,7 +12,7 @@ void bindState(py::module_& m)
     state.def(py::init<std::shared_ptr<const Mesh>,int>())
         .def_property_readonly("mesh", &State::getMesh)
         .def_property_readonly("num_fields", &State::getNumFields)
-        .def_property_readonly("field",
+        .def_property_readonly("fields",
             [](State& state) -> py::tuple {
                 py::list res;
                 for (auto& f : state.getFields())
@@ -21,7 +21,7 @@ void bindState(py::module_& m)
                     }
                 return py::tuple(res);
             })
-        .def_property("diameter",
+        .def_property("diameters",
             [](py::object self) -> py::array {
                 auto _self = self.cast<State*>();
                 return py::array(_self->getNumFields(),
@@ -39,7 +39,7 @@ void bindState(py::module_& m)
                     _self->setDiameter(i,py::cast<double>(diameters[i]));
                     }
             })
-        .def_property("ideal_volume",
+        .def_property("ideal_volumes",
             [](py::object self) -> py::array {
                 auto _self = self.cast<State*>();
                 return py::array(_self->getNumFields(),
