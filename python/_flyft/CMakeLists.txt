@@ -13,6 +13,7 @@ pybind11_add_module(_flyft
     rosenfeld_fmt.cc
     solver.cc
     state.cc
+    type_map.cc
     )
 
 target_include_directories(

@@ -3,6 +3,9 @@
 
 #include "flyft/external_potential.h"
 
+#include <memory>
+#include <string>
+
 namespace flyft
 {
 
@@ -21,7 +24,7 @@ class HardWallPotential : public ExternalPotential
         void setPositiveNormal(bool positive_normal);
 
     protected:
-        void potential(std::shared_ptr<Field> V, int idx, std::shared_ptr<State> state) override;
+        void potential(std::shared_ptr<Field> V, const std::string& type, std::shared_ptr<State> state) override;
 
     private:
         double origin_;

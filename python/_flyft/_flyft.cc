@@ -1,6 +1,8 @@
 #include "_flyft.h"
 
 // function predeclaration in lieu of a bunch of headers
+void bindTypeMap(py::module_&);
+
 void bindField(py::module_&);
 void bindMesh(py::module_&);
 void bindState(py::module_&);
@@ -18,6 +20,8 @@ void bindPiccardIteration(py::module_&);
 
 PYBIND11_MODULE(_flyft, m)
     {
+    bindTypeMap(m);
+
     bindField(m);
     bindMesh(m);
     bindState(m);

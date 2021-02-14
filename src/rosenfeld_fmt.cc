@@ -35,10 +35,10 @@ void RosenfeldFMT::compute(std::shared_ptr<State> state)
         std::fill(nv1k, nv1k+ft_->getReciprocalSize(), 0.);
         std::fill(nv2k, nv2k+ft_->getReciprocalSize(), 0.);
 
-        for (int i=0; i < state->getNumFields(); ++i)
+        for (const auto& t : state->getTypes())
             {
             // hard-sphere radius
-            const double R = 0.5*state->getDiameter(i);
+            const double R = 0.5*state->getDiameter(t);
             if (R == 0.)
                 {
                 // no radius, no weights contribute (skip)
@@ -46,25 +46,25 @@ void RosenfeldFMT::compute(std::shared_ptr<State> state)
                 }
 
             // fft the density
-            ft_->setRealData(state->getField(i)->data());
+            ft_->setRealData(state->getField(t)->data());
             ft_->transform();
             const auto rhok = ft_->getReciprocalData();
 
             // accumulate the fourier transformed densities into n
-            for (int j=0; j < ft_->getReciprocalSize(); ++j)
+            for (int idx=0; idx < ft_->getReciprocalSize(); ++idx)
                 {
-                const double k = kmesh.coordinate(j);
+                const double k = kmesh.coordinate(idx);
 
                 // compute weights at this k, using limiting values for k = 0
                 std::complex<double> w0,w1,w2,w3,wv1,wv2;
                 computeWeights(w0,w1,w2,w3,wv1,wv2,k,R);
 
-                n0k[j] += w0*rhok[j];
-                n1k[j] += w1*rhok[j];
-                n2k[j] += w2*rhok[j];
-                n3k[j] += w3*rhok[j];
-                nv1k[j] += wv1*rhok[j];
-                nv2k[j] += wv2*rhok[j];
+                n0k[idx] += w0*rhok[idx];
+                n1k[idx] += w1*rhok[idx];
+                n2k[idx] += w2*rhok[idx];
+                n3k[idx] += w3*rhok[idx];
+                nv1k[idx] += wv1*rhok[idx];
+                nv2k[idx] += wv2*rhok[idx];
                 }
             }
         }
@@ -191,33 +191,33 @@ void RosenfeldFMT::compute(std::shared_ptr<State> state)
 
         auto derivativek = derivativek_->data();
 
-        for (int i=0; i < state->getNumFields(); ++i)
+        for (const auto& t : state->getTypes())
             {
             // hard-sphere radius
-            const double R = 0.5*state->getDiameter(i);
+            const double R = 0.5*state->getDiameter(t);
             if (R == 0.)
                 {
                 // no radius, no contribution to energy
                 // need to set here as we are not prefilling the array with zeros
-                std::fill(derivatives_[i]->data(), derivatives_[i]->data()+mesh->shape(),0.0);
+                std::fill(derivatives_[t]->data(), derivatives_[t]->data()+mesh->shape(),0.0);
                 continue;
                 }
 
-            for (int j=0; j < ft_->getReciprocalSize(); ++j)
+            for (int idx=0; idx < ft_->getReciprocalSize(); ++idx)
                 {
-                const double k = kmesh.coordinate(j);
+                const double k = kmesh.coordinate(idx);
 
                 // get weights
                 std::complex<double> w0,w1,w2,w3,wv1,wv2;
                 computeWeights(w0,w1,w2,w3,wv1,wv2,k,R);
 
                 // convolution (note opposite sign for vector weights due to change of order in convolution)
-                derivativek[j] = (dphi_dn0k[j]*w0+dphi_dn1k[j]*w1+dphi_dn2k[j]*w2+dphi_dn3k[j]*w3
-                                  -dphi_dnv1k[j]*wv1-dphi_dnv2k[j]*wv2);
+                derivativek[idx] = (dphi_dn0k[idx]*w0+dphi_dn1k[idx]*w1+dphi_dn2k[idx]*w2+dphi_dn3k[idx]*w3
+                                    -dphi_dnv1k[idx]*wv1-dphi_dnv2k[idx]*wv2);
                 }
             ft_->setReciprocalData(derivativek);
             ft_->transform();
-            std::copy(ft_->getRealData(),ft_->getRealData()+mesh->shape(),derivatives_[i]->data());
+            std::copy(ft_->getRealData(),ft_->getRealData()+mesh->shape(),derivatives_[t]->data());
             }
         }
 

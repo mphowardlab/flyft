@@ -10,13 +10,13 @@ void IdealGasFunctional::compute(std::shared_ptr<State> state)
     // compute derivatives and accumulate energy
     auto mesh = state->getMesh();
     value_ = 0.0;
-    for (int i=0; i < state->getNumFields(); ++i)
+    for (const auto& t : state->getTypes())
         {
-        const auto vol = state->getIdealVolume(i);
+        const auto vol = state->getIdealVolume(t);
 
         // compute the total potential by integration
-        auto f = state->getField(i)->data();
-        auto d = derivatives_[i]->data();
+        auto f = state->getField(t)->data();
+        auto d = derivatives_[t]->data();
         for (int idx=0; idx < mesh->shape(); ++idx)
             {
             const double rho = f[idx];

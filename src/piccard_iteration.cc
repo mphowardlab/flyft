@@ -37,18 +37,18 @@ bool PiccardIteration::solve(std::shared_ptr<State> state)
         external_->compute(state);
 
         // apply piccard mixing scheme
-        for (int i=0; i < state->getNumFields(); ++i)
+        for (const auto& t : state->getTypes())
             {
-            auto rho = state->getField(i)->data();
+            auto rho = state->getField(t)->data();
             auto rho_tmp = tmp.data();
-            auto mu_ex = excess_->getDerivative(i)->data();
-            auto V = external_->getDerivative(i)->data();
+            auto mu_ex = excess_->getDerivative(t)->data();
+            auto V = external_->getDerivative(t)->data();
 
             double norm = 1.0;
-            auto constraint_type = state->getConstraintType(i);
+            auto constraint_type = state->getConstraintType(t);
             if (constraint_type == State::Constraint::N)
                 {
-                auto N = state->getConstraint(i);
+                auto N = state->getConstraint(t);
                 double sum = 0.0;
                 for (int idx=0; idx < mesh->shape(); ++idx)
                     {
@@ -60,12 +60,12 @@ bool PiccardIteration::solve(std::shared_ptr<State> state)
                 }
             else if (constraint_type == State::Constraint::mu)
                 {
-                auto mu_bulk = state->getConstraint(i);
+                auto mu_bulk = state->getConstraint(t);
                 for (int idx=0; idx < mesh->shape(); ++idx)
                     {
                     rho_tmp[idx] = std::exp(-V[idx]-mu_ex[idx]+mu_bulk);
                     }
-                norm = 1.0/state->getIdealVolume(i);
+                norm = 1.0/state->getIdealVolume(t);
                 }
             else
                 {

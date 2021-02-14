@@ -1,5 +1,5 @@
 import abc
-from collections.abc import Sequence
+from collections.abc import (MutableMapping,Sequence)
 
 import _flyft
 
@@ -45,6 +45,38 @@ class Mirror(metaclass=MirrorClass):
 
         setattr(cls, name, mattr)
 
+class MirrorDict(Mapping):
+    def __init__(self, _self):
+        self._self = _self
+
+    def __getitem__(self, key):
+        return self._self[key]
+
+    def __iter__(self):
+        return self._self
+
+    def __len__(self):
+        return len(self._self)
+
+class MirrorMutableDict(MutableMapping):
+    def __init__(self, _self):
+        self._self = _self
+
+    def __delitem__(self, key):
+        del self._self[key]
+
+    def __getitem__(self, key):
+        return self._self[key]
+
+    def __iter__(self):
+        return self._self
+
+    def __setitem__(self, key, value):
+        self._self[key] = value
+
+    def __len__(self):
+        return len(self._self)
+
 class Mesh(Mirror,mirrorclass=_flyft.Mesh):
     def __init__(self, L, shape):
         super().__init__(L, shape)
@@ -76,30 +108,35 @@ class Field(Mirror,mirrorclass=_flyft.Field):
 Field.mirror("shape")
 
 class State(Mirror,mirrorclass=_flyft.State):
-    def __init__(self, mesh):
-        super().__init__(mesh)
-
-    class Fields(Sequence):
-        def __init__(self, _self):
-            self._self = _self
-
-        def __getitem__(self, key):
-            if not isinstance(key, int):
-                raise TypeError('Fields are indexed by integer')
-
-            if key < 0 or key >= self._self.num_fields:
-                raise IndexError('Invalid field index')
-
-            return Field.wrap(self._self.field[key])
-
-        def __len__(self):
-            return self._self.num_fields
+    def __init__(self, mesh, types):
+        super().__init__(mesh, types)
 
     @property
     def fields(self):
         if not hasattr(self, '_fields'):
             self._fields = Fields(self._self)
         return self._fields
-State.mirror("diameters")
-State.mirror("ideal_volumes")
+
+    @property
+    def diameters(self):
+        if not hasattr(self, '_diameters'):
+            self._diameters = MirrorDict(self._self.diameters)
+        return self._diameters
+
+    @diameters.setter
+    def diameters(self, value):
+        self._self.diameters = value
+        self._diameters = MirrorDict(self._self.diameters)
+
+    @property
+    def ideal_volumes(self):
+        if not hasattr(self, '_ideal_volumes'):
+            self._ideal_volumes = MirrorDict(self._self.ideal_volumes)
+        return self._ideal_volumes
+
+    @ideal_volumes.setter
+    def ideal_volumes(self, value):
+        self._self.ideal_volumes = value
+        self._ideal_volumes = MirrorDict(self._self.ideal_volumes)
+
 State.mirror("mesh")

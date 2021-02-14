@@ -29,9 +29,9 @@ void CompositeFunctional::compute(std::shared_ptr<State> state)
 
     // initialize to zeros
     value_ = 0.0;
-    for (int i=0; i < state->getNumFields(); ++i)
+    for (const auto& t : state->getTypes())
         {
-        auto d = derivatives_[i]->data();
+        auto d = derivatives_[t]->data();
         std::fill(d,d+mesh->shape(),0.);
         }
 
@@ -45,10 +45,10 @@ void CompositeFunctional::compute(std::shared_ptr<State> state)
         value_ += v;
 
         // accumulate derivatives
-        for (int i=0; i < state->getNumFields(); ++i)
+        for (const auto& t : state->getTypes())
             {
-            auto d = derivatives_[i]->data();
-            auto df = f->getDerivative(i)->data();
+            auto d = derivatives_[t]->data();
+            auto df = f->getDerivative(t)->data();
             for (int idx=0; idx < mesh->shape(); ++idx)
                 {
                 d[idx] += df[idx];

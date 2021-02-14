@@ -12,14 +12,14 @@ void ExternalPotential::compute(std::shared_ptr<State> state)
     // compute derivatives and accumulate energy
     auto mesh = state->getMesh();
     value_ = 0.0;
-    for (int i=0; i < state->getNumFields(); ++i)
+    for (const auto& t : state->getTypes())
         {
         // evaluate the external potential on the mesh, and store directly in derivative
-        potential(derivatives_[i],i,state);
+        potential(derivatives_[t],t,state);
 
         // compute the total potential by integration
-        auto f = state->getField(i)->data();
-        auto d = derivatives_[i]->data();
+        auto f = state->getField(t)->data();
+        auto d = derivatives_[t]->data();
         for (int idx=0; idx < mesh->shape(); ++idx)
             {
             const double V = d[idx];

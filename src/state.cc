@@ -3,25 +3,18 @@
 namespace flyft
 {
 
-State::State(std::shared_ptr<const Mesh> mesh, int num_fields)
-    : State(mesh, std::vector<double>(num_fields,0.0))
+State::State(std::shared_ptr<const Mesh> mesh, const std::string& type)
+    : State(mesh, std::vector<std::string>({type}))
     {}
 
-State::State(std::shared_ptr<const Mesh> mesh, const std::vector<double>& Ns)
-    : mesh_(mesh)
+State::State(std::shared_ptr<const Mesh> mesh, const std::vector<std::string>& types)
+    : mesh_(mesh), types_(types)
     {
-    num_fields_ = static_cast<int>(Ns.size());
-
-    fields_.resize(num_fields_);
-    for (auto& f : fields_)
+    for (const auto& t : types_)
         {
-        f = std::make_shared<Field>(mesh_->shape());
+        fields_[t] = std::make_shared<Field>(mesh_->shape());
+        setDiameter(t,0.0);
         }
-
-    diameters_ = std::vector<double>(num_fields_,0.0);
-    ideal_volumes_ = std::vector<double>(num_fields_,1.0);
-    constraints_ = std::vector<double>(num_fields_,0.0);
-    constraint_types_ = std::vector<Constraint>(num_fields_,Constraint::compute);
     }
 
 std::shared_ptr<const Mesh> State::getMesh() const
@@ -31,52 +24,64 @@ std::shared_ptr<const Mesh> State::getMesh() const
 
 int State::getNumFields() const
     {
-    return num_fields_;
+    return static_cast<int>(types_.size());
     }
 
-const std::vector<std::shared_ptr<Field>>& State::getFields()
+const std::vector<std::string>& State::getTypes()
+    {
+    return types_;
+    }
+
+const std::string State::getType(int idx) const
+    {
+    return types_.at(idx);
+    }
+
+int State::getTypeIndex(const std::string& type) const
+    {
+    const auto it = std::find(types_.begin(), types_.end(), type);
+    if (it == types_.end())
+        {
+        // error: type not found
+        }
+    return (it - types_.begin());
+    }
+
+const TypeMap<std::shared_ptr<Field>>& State::getFields()
     {
     return fields_;
     }
 
-std::shared_ptr<Field> State::getField(int idx)
+std::shared_ptr<Field> State::getField(const std::string& type)
     {
-    return fields_[idx];
+    return fields_[type];
     }
 
-std::shared_ptr<const Field> State::getField(int idx) const
+std::shared_ptr<const Field> State::getField(const std::string& type) const
     {
-    return fields_[idx];
+    return fields_.at(type);
     }
 
-const std::vector<double>& State::getDiameters()
+const TypeMap<double>& State::getDiameters()
     {
     return diameters_;
     }
 
-double State::getDiameter(int idx) const
+double State::getDiameter(const std::string& type) const
     {
-    return diameters_[idx];
+    return diameters_.at(type);
     }
 
-void State::setDiameters(const std::vector<double>& diameters)
+void State::setDiameters(const TypeMap<double>& diameters)
     {
-    if (static_cast<int>(diameters.size()) != getNumFields())
-        {
-        // error: size must match
-        }
-
-    for (int idx=0; idx < getNumFields(); ++idx)
-        {
-        setDiameter(idx, diameters[idx]);
-        }
+    diameters_ = TypeMap<double>(diameters);
     }
 
-void State::setDiameter(int idx, double diameter)
+void State::setDiameter(const std::string& type, double diameter)
     {
     if (diameter >= 0.)
         {
-        diameters_[idx] = diameter;
+        diameters_[type] = diameter;
         }
     else
         {
@@ -84,34 +89,26 @@ void State::setDiameter(int idx, double diameter)
         }
     }
 
-const std::vector<double>& State::getIdealVolumes()
+const TypeMap<double>& State::getIdealVolumes()
     {
     return ideal_volumes_;
     }
 
-double State::getIdealVolume(int idx) const
+double State::getIdealVolume(const std::string& type) const
     {
-    return ideal_volumes_[idx];
+    return ideal_volumes_.at(type);
     }
 
-void State::setIdealVolumes(const std::vector<double>& ideal_volumes)
+void State::setIdealVolumes(const TypeMap<double>& ideal_volumes)
     {
-    if (static_cast<int>(ideal_volumes.size()) != getNumFields())
-        {
-        // error: size must match
-        }
-
-    for (int idx=0; idx < getNumFields(); ++idx)
-        {
-        setIdealVolume(idx, ideal_volumes[idx]);
-        }
+    ideal_volumes_ = TypeMap<double>(ideal_volumes);
     }
 
-void State::setIdealVolume(int idx, double ideal_volume)
+void State::setIdealVolume(const std::string& type, double ideal_volume)
     {
     if (ideal_volume > 0.)
         {
-        ideal_volumes_[idx] = ideal_volume;
+        ideal_volumes_[type] = ideal_volume;
         }
     else
         {
@@ -119,59 +116,60 @@ void State::setIdealVolume(int idx, double ideal_volume)
         }
     }
 
-const std::vector<double>& State::getConstraints()
+const TypeMap<double>& State::getConstraints()
     {
-    for (int idx=0; idx < getNumFields(); ++idx)
+    for (const auto& t : types_)
         {
-        checkConstraint(idx);
+        checkConstraint(t);
         }
     return constraints_;
     }
 
-double State::getConstraint(int idx)
+double State::getConstraint(const std::string& type)
     {
-    checkConstraint(idx);
-    return constraints_[idx];
+    checkConstraint(type);
+    return constraints_[type];
     }
 
-const std::vector<State::Constraint>& State::getConstraintTypes()
+const TypeMap<State::Constraint>& State::getConstraintTypes()
     {
-    for (int idx=0; idx < getNumFields(); ++idx)
+    for (const auto& t : types_)
         {
-        checkConstraint(idx);
+        checkConstraint(t);
         }
     return constraint_types_;
     }
 
-State::Constraint State::getConstraintType(int idx)
+State::Constraint State::getConstraintType(const std::string& type)
     {
-    checkConstraint(idx);
-    return constraint_types_[idx];
+    checkConstraint(type);
+    return constraint_types_[type];
     }
 
-void State::setConstraint(int idx, double value, State::Constraint type)
+void State::setConstraint(const std::string& type, double value, State::Constraint ctype)
     {
-    constraints_[idx] = value;
-    constraint_types_[idx] = type;
+    constraints_[type] = value;
+    constraint_types_[type] = ctype;
     }
 
-void State::setConstraintType(int idx, State::Constraint type)
+void State::setConstraintType(const std::string& type, State::Constraint ctype)
     {
-    constraint_types_[idx] = type;
+    constraint_types_[type] = ctype;
     }
 
-void State::checkConstraint(int idx)
+void State::checkConstraint(const std::string& type)
     {
-    if (constraint_types_[idx] == Constraint::compute)
+    if (constraint_types_[type] == Constraint::compute)
         {
-        auto rho = getField(idx)->data();
+        auto rho = fields_[type]->data();
         double sum = 0.0;
-        for (int i=0; i < mesh_->shape(); ++i)
+        for (int idx=0; idx < mesh_->shape(); ++idx)
             {
-            sum += rho[i];
+            sum += rho[idx];
             }
         sum *= mesh_->step();
-        setConstraint(idx, sum, Constraint::N);
+        setConstraint(type, sum, Constraint::N);
         }
     }
+
 }

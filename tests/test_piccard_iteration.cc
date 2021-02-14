@@ -14,25 +14,26 @@
 int main()
     {
     const double L = 20.0;
-    const std::vector<double> etas = {0.4257};
-    const std::vector<double> diameters = {1.0};
+    std::vector<std::string> types {"A"};
+    flyft::TypeMap<double> diameters {{"A",1.0}};
+    flyft::TypeMap<double> etas {{"A",0.4257}};
 
     auto mesh = std::make_shared<const flyft::Mesh>(L,1000);
-    auto state = std::make_shared<flyft::State>(mesh,etas.size());
+    auto state = std::make_shared<flyft::State>(mesh,types);
 
     // initialize density profiles
-    for (int i=0; i < state->getNumFields(); ++i)
+    for (const auto& t : state->getTypes())
         {
-        const double d = diameters[i];
-        const double rho = 6.*etas[i]/(M_PI*d*d*d);
+        const double d = diameters[t];
+        const double rho = 6.*etas[t]/(M_PI*d*d*d);
 
         // fill initial density
-        auto data = state->getField(i)->data();
+        auto data = state->getField(t)->data();
         std::fill(data, data+mesh->shape(), rho);
 
         // set diameter and average N
-        state->setDiameter(i,d);
-        state->setConstraint(i,L*rho,flyft::State::Constraint::N);
+        state->setDiameter(t,d);
+//         state->setConstraint(t,L*rho,flyft::State::Constraint::N);
         }
 
     auto fmt = std::make_shared<flyft::RosenfeldFMT>();
@@ -53,9 +54,9 @@ int main()
     for (int idx=0; idx < mesh->shape(); ++idx)
         {
         std::cout << mesh->coordinate(idx);
-        for (int i=0; i < state->getNumFields(); ++i)
+        for (const auto& t : state->getTypes())
             {
-            std::cout << " " << state->getField(i)->data()[idx];
+            std::cout << " " << state->getField(t)->data()[idx];
             }
         std::cout << std::endl;
         }

@@ -17,34 +17,34 @@ double FreeEnergyFunctional::getValue() const
     return value_;
     }
 
-const std::vector<std::shared_ptr<Field>>& FreeEnergyFunctional::getDerivatives()
+const TypeMap<std::shared_ptr<Field>>& FreeEnergyFunctional::getDerivatives()
     {
     return derivatives_;
     }
 
-std::shared_ptr<Field> FreeEnergyFunctional::getDerivative(int idx)
+std::shared_ptr<Field> FreeEnergyFunctional::getDerivative(const std::string& type)
     {
-    return derivatives_[idx];
+    return derivatives_[type];
     }
 
-std::shared_ptr<const Field> FreeEnergyFunctional::getDerivative(int idx) const
+std::shared_ptr<const Field> FreeEnergyFunctional::getDerivative(const std::string& type) const
     {
-    return derivatives_[idx];
+    return derivatives_.at(type);
     }
 
 void FreeEnergyFunctional::allocate(std::shared_ptr<State> state)
     {
-    derivatives_.resize(state->getNumFields());
-
     auto mesh = state->getMesh();
-    for (auto& d : derivatives_)
+
+    // TODO: purge unused fields
+
+    for (const auto& t : state->getTypes())
         {
-        if (!d)
+        if (derivatives_.find(t) == derivatives_.end())
             {
-            d = std::make_shared<Field>(mesh->shape());
+            derivatives_[t] = std::make_shared<Field>(mesh->shape());
             }
-        d->reshape(mesh->shape());
+        derivatives_[t]->reshape(mesh->shape());
         }
     }
-
 }

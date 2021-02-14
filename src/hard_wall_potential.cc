@@ -1,6 +1,5 @@
 #include "flyft/hard_wall_potential.h"
 
-#include <algorithm>
 #include <cmath>
 
 namespace flyft
@@ -19,18 +18,18 @@ void HardWallPotential::compute(std::shared_ptr<State> state)
     ExternalPotential::compute(state);
     }
 
-void HardWallPotential::potential(std::shared_ptr<Field> V, int idx, std::shared_ptr<State> state)
+void HardWallPotential::potential(std::shared_ptr<Field> V, const std::string& type, std::shared_ptr<State> state)
     {
     // edge where sphere contacts the wall
-    const double R = 0.5*state->getDiameter(idx);
+    const double R = 0.5*state->getDiameter(type);
     const double edge = origin_ + ((positive_normal_) ? R : -R);
 
     auto mesh = state->getMesh();
     auto data = V->data();
-    for (int i=0; i < mesh->shape(); ++i)
+    for (int idx=0; idx < mesh->shape(); ++idx)
         {
-        const auto x = mesh->coordinate(i);
-        data[i] = ((positive_normal_ && x < edge) || (!positive_normal_ && x > edge)) ? std::numeric_limits<double>::infinity() : 0.0;
+        const auto x = mesh->coordinate(idx);
+        data[idx] = ((positive_normal_ && x < edge) || (!positive_normal_ && x > edge)) ? std::numeric_limits<double>::infinity() : 0.0;
         }
     }
 

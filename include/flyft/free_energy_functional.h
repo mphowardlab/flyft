@@ -3,8 +3,10 @@
 
 #include "flyft/field.h"
 #include "flyft/state.h"
+#include "flyft/type_map.h"
 
 #include <memory>
+#include <string>
 #include <vector>
 
 namespace flyft
@@ -26,13 +28,13 @@ class FreeEnergyFunctional
 
         double getValue() const;
 
-        const std::vector<std::shared_ptr<Field>>& getDerivatives();
-        std::shared_ptr<Field> getDerivative(int idx);
-        std::shared_ptr<const Field> getDerivative(int idx) const;
+        const TypeMap<std::shared_ptr<Field>>& getDerivatives();
+        std::shared_ptr<Field> getDerivative(const std::string& type);
+        std::shared_ptr<const Field> getDerivative(const std::string& type) const;
 
     protected:
         double value_;
-        std::vector<std::shared_ptr<Field>> derivatives_;
+        TypeMap<std::shared_ptr<Field>> derivatives_;
 
         virtual void allocate(std::shared_ptr<State> state);
     };

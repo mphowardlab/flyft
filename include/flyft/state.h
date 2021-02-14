@@ -3,6 +3,7 @@
 
 #include "flyft/field.h"
 #include "flyft/mesh.h"
+#include "flyft/type_map.h"
 
 #include <memory>
 #include <vector>
@@ -14,8 +15,8 @@ class State
     {
     public:
         State() = delete;
-        State(std::shared_ptr<const Mesh> mesh, int num_fields);
-        State(std::shared_ptr<const Mesh> mesh, const std::vector<double>& Ns);
+        State(std::shared_ptr<const Mesh> mesh, const std::string& type);
+        State(std::shared_ptr<const Mesh> mesh, const std::vector<std::string>& types);
 
         // noncopyable / nonmovable
         State(const State&) = delete;
@@ -26,19 +27,23 @@ class State
         std::shared_ptr<const Mesh> getMesh() const;
 
         int getNumFields() const;
-        const std::vector<std::shared_ptr<Field>>& getFields();
-        std::shared_ptr<Field> getField(int idx);
-        std::shared_ptr<const Field> getField(int idx) const;
+        const std::vector<std::string>& getTypes();
+        const std::string getType(int idx) const;
+        int getTypeIndex(const std::string& type) const;
 
-        const std::vector<double>& getDiameters();
-        double getDiameter(int idx) const;
-        void setDiameters(const std::vector<double>& diameters);
-        void setDiameter(int idx, double diameter);
+        const TypeMap<std::shared_ptr<Field>>& getFields();
+        std::shared_ptr<Field> getField(const std::string& type);
+        std::shared_ptr<const Field> getField(const std::string& type) const;
 
-        const std::vector<double>& getIdealVolumes();
-        double getIdealVolume(int idx) const;
-        void setIdealVolumes(const std::vector<double>& ideal_volumes);
-        void setIdealVolume(int idx, double ideal_volume);
+        const TypeMap<double>& getDiameters();
+        double getDiameter(const std::string& type) const;
+        void setDiameters(const TypeMap<double>& diameters);
+        void setDiameter(const std::string& type, double diameter);
+
+        const TypeMap<double>& getIdealVolumes();
+        double getIdealVolume(const std::string& type) const;
+        void setIdealVolumes(const TypeMap<double>& ideal_volumes);
+        void setIdealVolume(const std::string& type, double ideal_volume);
 
         enum class Constraint
             {
@@ -46,24 +51,24 @@ class State
             N,
             mu
             };
-        const std::vector<double>& getConstraints();
-        double getConstraint(int idx);
-        const std::vector<Constraint>& getConstraintTypes();
-        Constraint getConstraintType(int idx);
-        void setConstraint(int idx, double value, Constraint type);
-        void setConstraintType(int idx, Constraint type);
+        const TypeMap<double>& getConstraints();
+        double getConstraint(const std::string& type);
+        const TypeMap<Constraint>& getConstraintTypes();
+        Constraint getConstraintType(const std::string& type);
+        void setConstraint(const std::string& type, double value, Constraint ctype);
+        void setConstraintType(const std::string& type, Constraint ctype);
 
     private:
         std::shared_ptr<const Mesh> mesh_;
 
-        int num_fields_;
-        std::vector<std::shared_ptr<Field>> fields_;
-        std::vector<double> diameters_;
-        std::vector<double> ideal_volumes_;
-        std::vector<double> constraints_;
-        std::vector<Constraint> constraint_types_;
+        std::vector<std::string> types_;
+        TypeMap<std::shared_ptr<Field>> fields_;
+        TypeMap<double> diameters_;
+        TypeMap<double> ideal_volumes_;
+        TypeMap<double> constraints_;
+        TypeMap<Constraint> constraint_types_;
 
-        void checkConstraint(int idx);
+        void checkConstraint(const std::string& type);
     };
 
 }
