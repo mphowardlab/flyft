@@ -5,38 +5,47 @@ import _flyft
 
 __version__ = '0.0.0'
 
-class MirrorClass(metaclass=abc.ABCMeta):
+class MirrorClass(abc.ABCMeta):
+    def __new__(mcls, name, bases, dct, *, mirrorclass=None):
+        if mirrorclass is not None:
+            dct['_mirrorclass'] = mirrorclass
+        return super().__new__(mcls, name, bases, dct)
+
+class Mirror(metaclass=MirrorClass):
     def __init__(self, *args, **kwargs):
-        if len(args) == 1 and isinstance(args[0], self._class):
+        if len(args) == 1 and isinstance(args[0], self._mirrorclass):
             self._self = args[0]
         else:
-            self._self = self._class(*args,**kwargs)
+            self._self = self._mirrorclass(*args,**kwargs)
 
     @classmethod
     def wrap(cls, obj):
-        if not isinstance(obj, self._class):
+        if not isinstance(obj, self._mirrorclass):
             raise TypeError('Cannot initialize from object')
         return cls(obj)
 
     @classmethod
-    def def_property(cls, name, settable=False, doc=None):
-        if not hasattr(cls._class, name):
-            raise AttributeError('Mirrored object does not have attribute')
+    def mirror(cls, name, doc=None):
+        attr = getattr(cls._mirrorclass, name, None)
+        if attr is None:
+            raise AttributeError('{} does not have attribute {}'.format(cls._mirrorclass.__name__,name))
 
-        fget = lambda self : getattr(self._self, name)
-        if settable:
-            fset = lambda self,v : setattr(self._self, name, v)
+        if doc is None:
+            doc = attr.__doc__
+
+        if isinstance(attr,property):
+            fget = lambda self : getattr(self._self, name)
+            if attr.fset is not None:
+                fset = lambda self,v : setattr(self._self, name, v)
+            else:
+                fset = None
+            mattr = property(fget=fget, fset=fset, doc=doc)
         else:
-            fset = None
+            mattr = lambda self,*args,**kwargs : attr(self._self,*args,**kwargs)
 
-        if doc is None and isinstance(cls[name],property):
-            doc = cls[name].__doc__
+        setattr(cls, name, mattr)
 
-        setattr(cls, name, property(fget, fset, doc))
-
-class Mesh(MirrorClass):
-    _class = _flyft.Mesh
-
+class Mesh(Mirror,mirrorclass=_flyft.Mesh):
     def __init__(self, L, shape):
         super().__init__(L, shape)
 
@@ -45,13 +54,11 @@ class Mesh(MirrorClass):
         if not hasattr(self, '_coordinates'):
             self._coordinates = np.array([self._self.coordinate(i) for i in range(self.shape)])
         return self._coordinates
-Mesh.def_property("L")
-Mesh.def_property("shape")
-Mesh.def_property("step")
+Mesh.mirror("L")
+Mesh.mirror("shape")
+Mesh.mirror("step")
 
-class Field(MirrorClass):
-    _class = _flyft.Field
-
+class Field(Mirror,mirrorclass=_flyft.Field):
     def __init__(self, shape):
         super().__init__(shape)
 
@@ -66,11 +73,9 @@ class Field(MirrorClass):
         if not hasattr(self, '_data'):
             self._data = np.array(self._self,copy=False)
         return d
-Field.def_property("shape")
+Field.mirror("shape")
 
-class State(MirrorClass):
-    _class = _flyft.State
-
+class State(Mirror,mirrorclass=_flyft.State):
     def __init__(self, mesh):
         super().__init__(mesh)
 
@@ -95,7 +100,6 @@ class State(MirrorClass):
         if not hasattr(self, '_fields'):
             self._fields = Fields(self._self)
         return self._fields
-
-State.def_property("diameters", settable=True)
-State.def_property("ideal_volumes", settable=True)
-State.def_property("mesh")
+State.mirror("diameters")
+State.mirror("ideal_volumes")
+State.mirror("mesh")
