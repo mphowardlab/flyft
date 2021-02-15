@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-import flyft
+import flyft.mirror
 
 class _A:
     def __init__(self, x, y):
@@ -23,14 +23,14 @@ class _A:
     def add(self, z):
         return self.x+self.y+z
 
-class A(flyft.Mirror,mirrorclass=_A):
+class A(flyft.mirror.Mirror,mirrorclass=_A):
     def __init__(self, x, y):
         super().__init__(x,y)
 A.mirror("x")
 A.mirror("y")
 A.mirror("add")
 
-def test_mirror():
+def test_Mirror():
     a = A(1,2)
 
     # test read properties
@@ -48,3 +48,47 @@ def test_mirror():
 
     # test method
     assert a.add(3) == 4
+
+def test_Mapping():
+    d = dict(a=1,b=2)
+    m = flyft.mirror.Mapping(d)
+
+    # length
+    assert len(m) == 2
+
+    # get
+    assert m['a'] == 1
+    assert m['b'] == 2
+
+    # iteration
+    for key,value in m.items():
+        assert d[key] == value
+
+    # not mutable
+    with pytest.raises(TypeError):
+        m['a'] = 3
+
+def test_MutableMapping():
+    d = dict(a=1,b=2)
+    m = flyft.mirror.MutableMapping(d)
+
+    # length
+    assert len(m) == 2
+
+    # get
+    assert m['a'] == 1
+    assert m['b'] == 2
+
+    # iteration
+    for key,value in m.items():
+        assert d[key] == value
+
+    # set
+    m['a'] = 3
+    assert m['a'] == 3
+    assert d['a'] == 3
+
+    # delete
+    del m['b']
+    assert 'b' not in m
+    assert 'b' not in d

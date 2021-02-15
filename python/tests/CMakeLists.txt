@@ -2,6 +2,7 @@
 set(FLYFT_PYTEST_SOURCES
     __init__.py
     test_mesh.py
+    test_field.py
     test_mirror.py
     )
 

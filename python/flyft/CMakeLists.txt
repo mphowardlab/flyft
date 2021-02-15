@@ -1,6 +1,7 @@
 # python source files
 set(FLYFT_PY_SOURCES
     __init__.py
+    mirror.py
     )
 
 # pull in _flyft files here to get compiled module at same level in build as python module
