@@ -1,2 +1,5 @@
 find_package(pybind11 CONFIG REQUIRED)
 add_subdirectory(flyft)
+if(FLYFT_TESTING)
+add_subdirectory(tests)
+endif()

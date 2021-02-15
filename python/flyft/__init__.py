@@ -1,6 +1,8 @@
 import abc
 from collections.abc import (Mapping,MutableMapping,Sequence)
 
+import numpy as np
+
 from . import _flyft
 
 __version__ = '0.0.0'
