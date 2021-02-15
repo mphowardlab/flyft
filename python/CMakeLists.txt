@@ -1,3 +1,2 @@
-add_subdirectory(_flyft)
-
-# install everything as one python module
+find_package(pybind11 CONFIG REQUIRED)
+add_subdirectory(flyft)

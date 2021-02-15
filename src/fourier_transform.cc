@@ -34,13 +34,13 @@ int FourierTransform::getRealSize() const
     }
 
 const double* FourierTransform::getRealData() const
-	{
-	if (space_ != RealSpace)
-	    {
-	    // raise error, buffer not valid
-	    }
-	return static_cast<const double*>(data_);
-	}
+    {
+    if (space_ != RealSpace)
+        {
+        // raise error, buffer not valid
+        }
+    return static_cast<const double*>(data_);
+    }
 
 void FourierTransform::setRealData(const double* data)
     {
@@ -54,13 +54,13 @@ int FourierTransform::getReciprocalSize() const
     }
 
 const std::complex<double>* FourierTransform::getReciprocalData() const
-	{
-	if (space_ != ReciprocalSpace)
-	    {
-	    // raise error, buffer not valid
-	    }
-	return reinterpret_cast<const std::complex<double>*>(data_);
-	}
+    {
+    if (space_ != ReciprocalSpace)
+        {
+        // raise error, buffer not valid
+        }
+    return reinterpret_cast<const std::complex<double>*>(data_);
+    }
 
 void FourierTransform::setReciprocalData(const std::complex<double>* data)
     {

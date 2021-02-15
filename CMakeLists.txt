@@ -1,18 +1,21 @@
 cmake_minimum_required(VERSION 3.19)
-if(${CMAKE_VERSION} VERSION_LESS 3.12)
-    cmake_policy(VERSION ${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION})
-endif()
-
 project(
     flyft
-    VERSION 0.0
+    VERSION 0.0.0
     LANGUAGES CXX
     )
 
-list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
+option(FLYFT_PYTHON "Build Python package." ON)
+option(FLYFT_TESTING "Build testing." ON)
 
-find_package(FFTW3 MODULE)
+list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
+find_package(FFTW3 MODULE REQUIRED)
 
 add_subdirectory(src)
-add_subdirectory(python)
-add_subdirectory(tests)
+if(FLYFT_PYTHON)
+    add_subdirectory(python)
+endif()
+if(FLYFT_TESTING)
+    enable_testing()
+    add_subdirectory(tests)
+endif()

@@ -1,7 +1,7 @@
 import abc
-from collections.abc import (MutableMapping,Sequence)
+from collections.abc import (Mapping,MutableMapping,Sequence)
 
-import _flyft
+from . import _flyft
 
 __version__ = '0.0.0'
 
