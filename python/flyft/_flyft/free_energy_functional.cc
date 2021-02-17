@@ -26,6 +26,6 @@ void bindFreeEnergyFunctional(py::module_& m)
         .def(py::init<>())
         .def("compute", &FreeEnergyFunctional::compute)
         .def_property_readonly("value", &FreeEnergyFunctional::getValue)
-        .def_property_readonly("derivative", &FreeEnergyFunctional::getDerivatives)
+        .def_property_readonly("derivative", &FreeEnergyFunctional::getDerivatives, py::return_value_policy::reference_internal)
         ;
     }

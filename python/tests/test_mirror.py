@@ -33,6 +33,9 @@ A.mirror("add")
 def test_Mirror():
     a = A(1,2)
 
+    # test creation
+    assert isinstance(a._self, _A)
+
     # test read properties
     assert a.x == 1
     assert a._self.x == 1
@@ -48,6 +51,14 @@ def test_Mirror():
 
     # test method
     assert a.add(3) == 4
+
+def test_Mirror_wrap():
+    _a = _A(3,4)
+    a = A.wrap(_a)
+
+    assert a._self is _a
+    assert a.x == 3
+    assert a.y == 4
 
 def test_Mapping():
     d = dict(a=1,b=2)

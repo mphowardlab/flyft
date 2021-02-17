@@ -4,6 +4,7 @@ set(FLYFT_PYTEST_SOURCES
     test_mesh.py
     test_field.py
     test_mirror.py
+    test_state.py
     )
 
 # copy pytest files to build directory for testing (not strictly necessary)

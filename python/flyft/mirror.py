@@ -2,23 +2,47 @@ import abc
 import collections.abc
 
 class MirrorMeta(abc.ABCMeta):
+    _register = {}
+
     def __new__(mcls, name, bases, dct, *, mirrorclass=None):
         if mirrorclass is not None:
             dct['_mirrorclass'] = mirrorclass
-        return super().__new__(mcls, name, bases, dct)
+        cls = super().__new__(mcls, name, bases, dct)
+
+        if mirrorclass is not None:
+            if mirrorclass in mcls._register:
+                raise TypeError('Type has already been mirrored')
+            mcls._register[mirrorclass] = cls
+
+        return cls
 
 class Mirror(metaclass=MirrorMeta):
     def __init__(self, *args, **kwargs):
-        if len(args) == 1 and isinstance(args[0], self._mirrorclass):
-            self._self = args[0]
-        else:
-            self._self = self._mirrorclass(*args,**kwargs)
+        args_ = []
+        for a in args:
+            if isinstance(a,Mirror):
+                args_.append(a._self)
+            else:
+                args_.append(a)
+
+        kwargs_ = {}
+        for key,value in kwargs.items():
+            if isinstance(value,Mirror):
+                kwargs_[key] = value._self
+            else:
+                kwargs_[key] = value
+
+        self._self = self._mirrorclass(*args_,**kwargs_)
 
     @classmethod
-    def wrap(cls, obj):
-        if not isinstance(obj, self._mirrorclass):
-            raise TypeError('Cannot initialize from object')
-        return cls(obj)
+    def wrap(cls, ptr):
+        if not isinstance(ptr, cls._mirrorclass):
+            raise TypeError('Cannot wrap object type')
+        # bypass calling this class's __init__, and just force in the _self value
+        obj = cls.__new__(cls)
+        super(Mirror,obj).__init__()
+        obj._self = ptr
+        return obj
 
     @classmethod
     def mirror(cls, name, doc=None):
@@ -30,12 +54,55 @@ class Mirror(metaclass=MirrorMeta):
             doc = attr.__doc__
 
         if isinstance(attr,property):
-            fget = lambda self : getattr(self._self, name)
-            if attr.fset is not None:
-                fset = lambda self,v : setattr(self._self, name, v)
-            else:
-                fset = None
-            mattr = property(fget=fget, fset=fset, doc=doc)
+            def fget(obj):
+                # get value from the mirror class
+                v = getattr(obj._self, name, None)
+                if v is None:
+                    raise AttributeError('Mirror class does not have attribute {}'.format(name))
+
+                # check for mirror class that *may* be cached as obj._name
+                cache_name = '_'+name
+                cache_v = getattr(obj, cache_name, None)
+                update_cache = False
+
+                # if cache value is set, check whether it is still current
+                if cache_v is not None:
+                    if isinstance(cache_v,Mirror):
+                        # if mirror internal object still matches pointer, reuse the cache
+                        if cache_v._self is v:
+                            v = cache_v
+                        # otherwise, create a new wrap and mark to update the cache
+                        else:
+                            v = MirrorMeta._register[type(v)].wrap(v)
+                            update_cache = True
+                    else:
+                        raise TypeError('Mirrored properties must only cache mirror type')
+                # otherwise, use the output directly, wrapping a class if it is known to be mirrored
+                else:
+                    type_ = type(v)
+                    # autowrap the mirrorclass
+                    if type_ in MirrorMeta._register:
+                        v = MirrorMeta._register[type_].wrap(v)
+                        update_cache = True
+
+                # if object should be cached, set the attribute before finalizing
+                if update_cache:
+                    setattr(obj,cache_name,v)
+
+                return v
+
+            def fset(obj,v):
+                # autoconvert mirrorclasses
+                if isinstance(v, Mirror):
+                    # save instance to cache
+                    setattr(obj, '_'+name, v)
+                    setattr(obj._self, name, v._self)
+                else:
+                    setattr(obj._self, name, v)
+
+            mattr = property(fget=fget,
+                             fset=fset if attr.fset is not None else None,
+                             doc=doc)
         else:
             mattr = lambda self,*args,**kwargs : attr(self._self,*args,**kwargs)
 
