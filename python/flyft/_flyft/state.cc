@@ -13,14 +13,5 @@ void bindState(py::module_& m)
         .def_property_readonly("mesh", &State::getMesh)
         .def_property_readonly("num_fields", &State::getNumFields)
         .def_property_readonly("fields", &State::getFields, py::return_value_policy::reference_internal)
-        .def_property("diameters", &State::getDiameters, &State::setDiameters, py::return_value_policy::reference_internal)
-        .def_property("ideal_volumes", &State::getIdealVolumes, &State::setIdealVolumes, py::return_value_policy::reference_internal)
-        .def("setConstraint", &State::setConstraint)
-        ;
-
-    py::enum_<State::Constraint>(state, "Constraint", py::arithmetic())
-        .value("compute", State::Constraint::compute)
-        .value("N", State::Constraint::N)
-        .value("mu", State::Constraint::mu)
         ;
     }

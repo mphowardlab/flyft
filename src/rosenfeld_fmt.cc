@@ -38,7 +38,7 @@ void RosenfeldFMT::compute(std::shared_ptr<State> state)
         for (const auto& t : state->getTypes())
             {
             // hard-sphere radius
-            const double R = 0.5*state->getDiameter(t);
+            const double R = 0.5*diameters_.at(t);
             if (R == 0.)
                 {
                 // no radius, no weights contribute (skip)
@@ -194,7 +194,7 @@ void RosenfeldFMT::compute(std::shared_ptr<State> state)
         for (const auto& t : state->getTypes())
             {
             // hard-sphere radius
-            const double R = 0.5*state->getDiameter(t);
+            const double R = 0.5*diameters_.at(t);
             if (R == 0.)
                 {
                 // no radius, no contribution to energy
@@ -316,6 +316,33 @@ void RosenfeldFMT::computeWeights(std::complex<double>& w0,
         w3 = w2*(R/3.);
         wv1 = 0.0;
         wv2 = 0.0;
+        }
+    }
+
+const TypeMap<double>& RosenfeldFMT::getDiameters()
+    {
+    return diameters_;
+    }
+
+double RosenfeldFMT::getDiameter(const std::string& type) const
+    {
+    return diameters_.at(type);
+    }
+
+void RosenfeldFMT::setDiameters(const TypeMap<double>& diameters)
+    {
+    diameters_ = TypeMap<double>(diameters);
+    }
+
+void RosenfeldFMT::setDiameter(const std::string& type, double diameter)
+    {
+    if (diameter >= 0.)
+        {
+        diameters_[type] = diameter;
+        }
+    else
+        {
+        // error: invalid diameter
         }
     }
 

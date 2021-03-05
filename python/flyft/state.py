@@ -66,32 +66,4 @@ class State(mirror.Mirror,mirrorclass=_flyft.State):
         if not hasattr(self, '_fields'):
             self._fields = Fields(self._self.fields)
         return self._fields
-
-    @property
-    def diameters(self):
-        if not hasattr(self, '_diameters'):
-            self._diameters = mirror.MutableMapping(self._self.diameters)
-        return self._diameters
-
-    @diameters.setter
-    def diameters(self, value):
-        diams = _flyft.TypeMapDouble()
-        for t,d in value.items():
-            diams[t] = d
-        self._self.diameters = diams
-        self._diameters = mirror.MutableMapping(self._self.diameters)
-
-    @property
-    def ideal_volumes(self):
-        if not hasattr(self, '_ideal_volumes'):
-            self._ideal_volumes = mirror.MutableMapping(self._self.ideal_volumes)
-        return self._ideal_volumes
-
-    @ideal_volumes.setter
-    def ideal_volumes(self, value):
-        vols = _flyft.TypeMapDouble()
-        for t,v in value.items():
-            vols[t] = v
-        self._self.ideal_volumes = vols
-        self._ideal_volumes = mirror.MutableMapping(self._self.ideal_volumes)
 State.mirror('mesh')

@@ -17,6 +17,11 @@ class HardWallPotential : public ExternalPotential
 
         void compute(std::shared_ptr<State> state) override;
 
+        const TypeMap<double>& getDiameters();
+        double getDiameter(const std::string& type) const;
+        void setDiameters(const TypeMap<double>& diameters);
+        void setDiameter(const std::string& type, double diameter);
+
         double getOrigin() const;
         void setOrigin(double origin);
 
@@ -27,6 +32,7 @@ class HardWallPotential : public ExternalPotential
         void potential(std::shared_ptr<Field> V, const std::string& type, std::shared_ptr<State> state) override;
 
     private:
+        TypeMap<double> diameters_;
         double origin_;
         bool positive_normal_;
     };

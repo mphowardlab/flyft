@@ -18,8 +18,9 @@ int main()
 
     auto mesh = std::make_shared<const flyft::Mesh>(5.0,25);
     auto state = std::make_shared<flyft::State>(mesh,types);
+    auto fmt = std::make_shared<flyft::RosenfeldFMT>();
 
-    state->setDiameters(diameters);
+    fmt->setDiameters(diameters);
 
     // initialize density profiles
     for (const auto& t : state->getTypes())
@@ -38,7 +39,6 @@ int main()
             }
         }
 
-    auto fmt = std::make_shared<flyft::RosenfeldFMT>();
     for (unsigned int iter=0; iter < 2; ++iter)
         {
         fmt->compute(state);

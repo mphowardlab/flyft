@@ -12,7 +12,7 @@ void IdealGasFunctional::compute(std::shared_ptr<State> state)
     value_ = 0.0;
     for (const auto& t : state->getTypes())
         {
-        const auto vol = state->getIdealVolume(t);
+        const auto vol = volumes_.at(t);
 
         // compute the total potential by integration
         auto f = state->getField(t)->data();
@@ -28,8 +28,37 @@ void IdealGasFunctional::compute(std::shared_ptr<State> state)
             else
                 {
                 d[idx] = -std::numeric_limits<double>::infinity();
+                // no contribution to total in limit rho -> 0
+                // value_ += 0.0
                 }
             }
+        }
+    }
+
+const TypeMap<double>& IdealGasFunctional::getVolumes()
+    {
+    return volumes_;
+    }
+
+double IdealGasFunctional::getVolume(const std::string& type) const
+    {
+    return volumes_.at(type);
+    }
+
+void IdealGasFunctional::setVolumes(const TypeMap<double>& volumes)
+    {
+    volumes_ = TypeMap<double>(volumes);
+    }
+
+void IdealGasFunctional::setVolume(const std::string& type, double volume)
+    {
+    if (volume > 0.)
+        {
+        volumes_[type] = volume;
+        }
+    else
+        {
+        // error: invalid volume
         }
     }
 

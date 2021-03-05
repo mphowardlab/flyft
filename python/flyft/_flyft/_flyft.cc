@@ -9,6 +9,7 @@ void bindState(py::module_&);
 
 void bindFreeEnergyFunctional(py::module_&);
 void bindCompositeFunctional(py::module_&);
+void bindGrandPotential(py::module_&);
 void bindIdealGasFunctional(py::module_&);
 void bindRosenfeldFMT(py::module_&);
 
@@ -28,6 +29,7 @@ PYBIND11_MODULE(_flyft, m)
 
     bindFreeEnergyFunctional(m);
     bindCompositeFunctional(m);
+    bindGrandPotential(m);
     bindIdealGasFunctional(m);
     bindRosenfeldFMT(m);
 

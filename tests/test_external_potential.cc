@@ -16,7 +16,10 @@ int main()
 
     auto mesh = std::make_shared<const flyft::Mesh>(5.0,25);
     auto state = std::make_shared<flyft::State>(mesh,types);
-    state->setDiameters(diameters);
+    auto Vlo = std::make_shared<flyft::HardWallPotential>(0.5, true);
+    auto Vhi = std::make_shared<flyft::HardWallPotential>(4.5, false);
+    Vlo->setDiameters(diameters);
+    Vhi->setDiameters(diameters);
 
     for (const auto& t : state->getTypes())
         {
@@ -24,8 +27,6 @@ int main()
         std::fill(field->data(), field->data()+mesh->shape(), 0.1);
         }
 
-    auto Vlo = std::make_shared<flyft::HardWallPotential>(0.5, true);
-    auto Vhi = std::make_shared<flyft::HardWallPotential>(4.5, false);
     Vlo->compute(state);
     Vhi->compute(state);
     for (int idx=0; idx < mesh->shape(); ++idx)

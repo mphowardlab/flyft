@@ -12,6 +12,7 @@ set(_FLYFT_CC_SOURCES
     external_potential.cc
     field.cc
     free_energy_functional.cc
+    grand_potential.cc
     hard_wall_potential.cc
     ideal_gas_functional.cc
     mesh.cc

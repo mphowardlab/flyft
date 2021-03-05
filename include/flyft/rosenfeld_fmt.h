@@ -5,6 +5,7 @@
 #include "flyft/fourier_transform.h"
 #include "flyft/free_energy_functional.h"
 #include "flyft/state.h"
+#include "flyft/type_map.h"
 
 #include <complex>
 #include <memory>
@@ -18,7 +19,13 @@ class RosenfeldFMT : public FreeEnergyFunctional
     public:
         void compute(std::shared_ptr<State> state) override;
 
+        const TypeMap<double>& getDiameters();
+        double getDiameter(const std::string& type) const;
+        void setDiameters(const TypeMap<double>& diameters);
+        void setDiameter(const std::string& type, double diameter);
+
     protected:
+        TypeMap<double> diameters_;
         std::unique_ptr<FourierTransform> ft_;
 
         std::unique_ptr<Field> n0_;

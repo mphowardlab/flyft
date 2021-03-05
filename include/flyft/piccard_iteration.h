@@ -1,7 +1,7 @@
 #ifndef FLYFT_PICCARD_ITERATION_H_
 #define FLYFT_PICCARD_ITERATION_H_
 
-#include "flyft/free_energy_functional.h"
+#include "flyft/grand_potential.h"
 #include "flyft/state.h"
 #include "flyft/solver.h"
 
@@ -13,8 +13,7 @@ namespace flyft
 class PiccardIteration : public Solver
     {
     public:
-        PiccardIteration(std::shared_ptr<FreeEnergyFunctional> excess,
-                         std::shared_ptr<FreeEnergyFunctional> external,
+        PiccardIteration(std::shared_ptr<GrandPotential> grand,
                          double mix_param,
                          int max_iterations,
                          double tolerance);

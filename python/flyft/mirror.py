@@ -20,14 +20,14 @@ class Mirror(metaclass=MirrorMeta):
     def __init__(self, *args, **kwargs):
         args_ = []
         for a in args:
-            if isinstance(a,Mirror):
+            if isinstance(a, Mirror):
                 args_.append(a._self)
             else:
                 args_.append(a)
 
         kwargs_ = {}
         for key,value in kwargs.items():
-            if isinstance(value,Mirror):
+            if isinstance(value, Mirror):
                 kwargs_[key] = value._self
             else:
                 kwargs_[key] = value
@@ -53,7 +53,7 @@ class Mirror(metaclass=MirrorMeta):
         if doc is None:
             doc = attr.__doc__
 
-        if isinstance(attr,property):
+        if isinstance(attr, property):
             def fget(obj):
                 # get value from the mirror class
                 v = getattr(obj._self, name, None)
@@ -67,7 +67,7 @@ class Mirror(metaclass=MirrorMeta):
 
                 # if cache value is set, check whether it is still current
                 if cache_v is not None:
-                    if isinstance(cache_v,Mirror):
+                    if isinstance(cache_v, Mirror):
                         # if mirror internal object still matches pointer, reuse the cache
                         if cache_v._self is v:
                             v = cache_v
@@ -87,7 +87,7 @@ class Mirror(metaclass=MirrorMeta):
 
                 # if object should be cached, set the attribute before finalizing
                 if update_cache:
-                    setattr(obj,cache_name,v)
+                    setattr(obj, cache_name, v)
 
                 return v
 

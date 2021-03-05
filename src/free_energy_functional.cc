@@ -1,5 +1,7 @@
 #include "flyft/free_energy_functional.h"
 
+#include <algorithm>
+
 namespace flyft
 {
 
@@ -24,7 +26,7 @@ const TypeMap<std::shared_ptr<Field>>& FreeEnergyFunctional::getDerivatives()
 
 std::shared_ptr<Field> FreeEnergyFunctional::getDerivative(const std::string& type)
     {
-    return derivatives_[type];
+    return derivatives_.at(type);
     }
 
 std::shared_ptr<const Field> FreeEnergyFunctional::getDerivative(const std::string& type) const
@@ -34,10 +36,23 @@ std::shared_ptr<const Field> FreeEnergyFunctional::getDerivative(const std::stri
 
 void FreeEnergyFunctional::allocate(std::shared_ptr<State> state)
     {
+    // purge stored types that are not in the state
+    auto types = state->getTypes();
+    for (auto it = derivatives_.cbegin(); it != derivatives_.cend(); /* no increment here */)
+        {
+        auto t = it->first;
+        if (std::find(types.begin(), types.end(), t) == types.end())
+            {
+            it = derivatives_.erase(it);
+            }
+        else
+            {
+            ++it;
+            }
+        }
+
+    // ensure every type has a field with the right shape
     auto mesh = state->getMesh();
-
-    // TODO: purge unused fields
-
     for (const auto& t : state->getTypes())
         {
         if (derivatives_.find(t) == derivatives_.end())

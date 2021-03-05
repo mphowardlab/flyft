@@ -9,6 +9,7 @@ void bindTypeMap(py::module& m)
 
     py::bind_map<TypeMap<double>>(m, "TypeMapDouble");
     py::bind_map<TypeMap<Field>>(m, "TypeMapField");
+    py::bind_map<TypeMap<GrandPotential::Constraint>>(m, "TypeMapConstraint");
 
     py::bind_vector<std::vector<std::string>>(m, "VectorString");
     }

@@ -21,6 +21,20 @@ int main()
     auto mesh = std::make_shared<const flyft::Mesh>(L,1000);
     auto state = std::make_shared<flyft::State>(mesh,types);
 
+    // functionals
+    auto omega = std::make_shared<flyft::GrandPotential>();
+
+    auto fmt = std::make_shared<flyft::RosenfeldFMT>();
+    fmt->setDiameters(diameters);
+    omega->addExcessFunctional(fmt);
+
+    auto Vlo = std::make_shared<flyft::HardWallPotential>(0.,true);
+    auto Vhi = std::make_shared<flyft::HardWallPotential>(L,false);
+    Vlo->setDiameters(diameters);
+    Vhi->setDiameters(diameters);
+    omega->addExternalPotential(Vlo);
+    omega->addExternalPotential(Vhi);
+
     // initialize density profiles
     for (const auto& t : state->getTypes())
         {
@@ -32,17 +46,11 @@ int main()
         std::fill(data, data+mesh->shape(), rho);
 
         // set diameter and average N
-        state->setDiameter(t,d);
-//         state->setConstraint(t,L*rho,flyft::State::Constraint::N);
+        omega->setConstraint(t,(L-d)*rho);
+        omega->setConstraintType(t,flyft::GrandPotential::Constraint::N);
         }
 
-    auto fmt = std::make_shared<flyft::RosenfeldFMT>();
-
-    auto Vext = std::make_shared<flyft::CompositeFunctional>();
-    Vext->addFunctional(std::make_shared<flyft::HardWallPotential>(0.,true));
-    Vext->addFunctional(std::make_shared<flyft::HardWallPotential>(L,false));
-
-    auto slv = std::make_shared<flyft::PiccardIteration>(fmt,Vext,0.01,10000,1.e-12);
+    auto slv = std::make_shared<flyft::PiccardIteration>(omega,0.01,10000,1.e-12);
     auto conv = slv->solve(state);
 
     if (!conv)

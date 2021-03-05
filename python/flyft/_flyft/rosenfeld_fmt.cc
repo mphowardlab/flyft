@@ -8,5 +8,6 @@ void bindRosenfeldFMT(py::module_& m)
 
     py::class_<RosenfeldFMT,std::shared_ptr<RosenfeldFMT>,FreeEnergyFunctional>(m, "RosenfeldFMT")
         .def(py::init())
+        .def_property("diameters", &RosenfeldFMT::getDiameters, &RosenfeldFMT::setDiameters, py::return_value_policy::reference_internal)
         ;
     }

@@ -7,6 +7,7 @@ void bindHardWallPotential(py::module_& m)
 
     py::class_<HardWallPotential,std::shared_ptr<HardWallPotential>,ExternalPotential>(m, "HardWallPotential")
         .def(py::init<double,bool>())
+        .def_property("diameters", &HardWallPotential::getDiameters, &HardWallPotential::setDiameters, py::return_value_policy::reference_internal)
         .def_property("origin", &HardWallPotential::getOrigin, &HardWallPotential::setOrigin)
         .def_property("positive_normal", &HardWallPotential::hasPositiveNormal, &HardWallPotential::setPositiveNormal)
         ;
