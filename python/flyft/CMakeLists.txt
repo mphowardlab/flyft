@@ -1,6 +1,7 @@
 # python source files
 set(FLYFT_PY_SOURCES
     __init__.py
+    functional.py
     mirror.py
     state.py
     )

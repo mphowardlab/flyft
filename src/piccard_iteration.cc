@@ -31,7 +31,7 @@ bool PiccardIteration::solve(std::shared_ptr<State> state)
 
         // compute current fields
         auto ideal = grand_->getIdealGasFunctional();
-        auto excess = grand_->getExcessIntrinsicFunctional();
+        auto excess = grand_->getExcessFunctional();
         auto external = grand_->getExternalPotential();
         excess->compute(state);
         external->compute(state);

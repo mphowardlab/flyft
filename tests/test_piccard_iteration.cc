@@ -26,14 +26,16 @@ int main()
 
     auto fmt = std::make_shared<flyft::RosenfeldFMT>();
     fmt->setDiameters(diameters);
-    omega->addExcessFunctional(fmt);
+    omega->setExcessFunctional(fmt);
 
+    auto Vext = std::make_shared<flyft::CompositeFunctional>();
     auto Vlo = std::make_shared<flyft::HardWallPotential>(0.,true);
     auto Vhi = std::make_shared<flyft::HardWallPotential>(L,false);
     Vlo->setDiameters(diameters);
     Vhi->setDiameters(diameters);
-    omega->addExternalPotential(Vlo);
-    omega->addExternalPotential(Vhi);
+    Vext->addFunctional(Vlo);
+    Vext->addFunctional(Vhi);
+    omega->setExternalPotential(Vext);
 
     // initialize density profiles
     for (const auto& t : state->getTypes())

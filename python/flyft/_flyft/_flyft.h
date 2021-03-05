@@ -3,6 +3,7 @@
 
 // flyft headers for binding opaque types
 #include "flyft/field.h"
+#include "flyft/free_energy_functional.h"
 #include "flyft/grand_potential.h"
 #include "flyft/type_map.h"
 
@@ -15,6 +16,7 @@ namespace py = pybind11;
 
 // make opaque types for accessing properties elsewhere
 PYBIND11_MAKE_OPAQUE(std::vector<std::string>);
+PYBIND11_MAKE_OPAQUE(std::vector<flyft::FreeEnergyFunctional>);
 PYBIND11_MAKE_OPAQUE(flyft::TypeMap<double>);
 PYBIND11_MAKE_OPAQUE(flyft::TypeMap<flyft::Field>);
 PYBIND11_MAKE_OPAQUE(flyft::TypeMap<flyft::GrandPotential::Constraint>);

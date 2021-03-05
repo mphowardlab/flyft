@@ -74,4 +74,14 @@ void CompositeFunctional::removeFunctional(std::shared_ptr<FreeEnergyFunctional>
         }
     }
 
+void CompositeFunctional::clearFunctionals()
+    {
+    functionals_.clear();
+    }
+
+const std::vector<std::shared_ptr<FreeEnergyFunctional>>& CompositeFunctional::getFunctionals()
+    {
+    return functionals_;
+    }
+
 }

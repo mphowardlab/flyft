@@ -21,6 +21,8 @@ class CompositeFunctional : public FreeEnergyFunctional
 
         void addFunctional(std::shared_ptr<FreeEnergyFunctional> functional);
         void removeFunctional(std::shared_ptr<FreeEnergyFunctional> functional);
+        void clearFunctionals();
+        const std::vector<std::shared_ptr<FreeEnergyFunctional>>& getFunctionals();
 
     private:
         std::vector<std::shared_ptr<FreeEnergyFunctional>> functionals_;

@@ -25,7 +25,7 @@ class Field(mirror.Mirror,mirrorclass=_flyft.Field):
         if v.shape != (self.shape,):
             raise TypeError('Array shapes must match')
         np.copyto(self.data, v)
-Field.mirror('shape')
+Field.mirror_property('shape')
 
 class Fields(mirror.Mapping):
     def __init__(self, _self):
@@ -47,9 +47,9 @@ class Mesh(mirror.Mirror,mirrorclass=_flyft.Mesh):
         if not hasattr(self, '_coordinates'):
             self._coordinates = np.array([self._self.coordinate(i) for i in range(self.shape)])
         return self._coordinates
-Mesh.mirror('L')
-Mesh.mirror('shape')
-Mesh.mirror('step')
+Mesh.mirror_property('L')
+Mesh.mirror_property('shape')
+Mesh.mirror_property('step')
 
 class State(mirror.Mirror,mirrorclass=_flyft.State):
     def __init__(self, mesh, types):
@@ -63,7 +63,7 @@ class State(mirror.Mirror,mirrorclass=_flyft.State):
 
     @property
     def fields(self):
-        if not hasattr(self, '_fields'):
+        if not hasattr(self, '_fields') or self._fields._self is not self._self.fields:
             self._fields = Fields(self._self.fields)
         return self._fields
-State.mirror('mesh')
+State.mirror_property('mesh')

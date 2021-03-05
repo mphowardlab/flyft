@@ -20,15 +20,16 @@ class GrandPotential : public FreeEnergyFunctional
         void compute(std::shared_ptr<State> state) override;
 
         std::shared_ptr<IdealGasFunctional> getIdealGasFunctional();
-        std::shared_ptr<CompositeFunctional> getIntrinsicFunctional();
-        std::shared_ptr<CompositeFunctional> getExcessIntrinsicFunctional();
-        std::shared_ptr<CompositeFunctional> getExternalPotential();
+        std::shared_ptr<const IdealGasFunctional> getIdealGasFunctional() const;
+        void setIdealGasFunctional(std::shared_ptr<IdealGasFunctional> ideal);
 
-        void addExcessFunctional(std::shared_ptr<FreeEnergyFunctional> functional);
-        void removeExcessFunctional(std::shared_ptr<FreeEnergyFunctional> functional);
+        std::shared_ptr<FreeEnergyFunctional> getExcessFunctional();
+        std::shared_ptr<const FreeEnergyFunctional> getExcessFunctional() const;
+        void setExcessFunctional(std::shared_ptr<FreeEnergyFunctional> excess);
 
-        void addExternalPotential(std::shared_ptr<ExternalPotential> functional);
-        void removeExternalPotential(std::shared_ptr<ExternalPotential> functional);
+        std::shared_ptr<FreeEnergyFunctional> getExternalPotential();
+        std::shared_ptr<const FreeEnergyFunctional> getExternalPotential() const;
+        void setExternalPotential(std::shared_ptr<FreeEnergyFunctional> external);
 
         enum class Constraint
             {
@@ -47,9 +48,8 @@ class GrandPotential : public FreeEnergyFunctional
 
     private:
         std::shared_ptr<IdealGasFunctional> ideal_;
-        std::shared_ptr<CompositeFunctional> intrinsic_;
-        std::shared_ptr<CompositeFunctional> excess_;
-        std::shared_ptr<CompositeFunctional> external_;
+        std::shared_ptr<FreeEnergyFunctional> excess_;
+        std::shared_ptr<FreeEnergyFunctional> external_;
         TypeMap<double> constraints_;
         TypeMap<Constraint> constraint_types_;
     };

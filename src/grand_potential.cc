@@ -8,9 +8,6 @@ namespace flyft
 GrandPotential::GrandPotential()
     {
     ideal_ = std::make_shared<IdealGasFunctional>();
-    intrinsic_ = std::make_shared<CompositeFunctional>(ideal_);
-    excess_ = std::make_shared<CompositeFunctional>();
-    external_ = std::make_shared<CompositeFunctional>();
     }
 
 void GrandPotential::compute(std::shared_ptr<State> state)
@@ -19,19 +16,32 @@ void GrandPotential::compute(std::shared_ptr<State> state)
     auto mesh = state->getMesh();
 
     // evaluate functionals
-    intrinsic_->compute(state);
-    external_->compute(state);
+    ideal_->compute(state);
+    value_ = ideal_->getValue();
+
+    if (excess_)
+        {
+        excess_->compute(state);
+        value_ += excess_->getValue();
+        }
+    if (external_)
+        {
+        external_->compute(state);
+        value_ += external_->getValue();
+        }
 
     // sum up contributions
-    value_ = intrinsic_->getValue() + external_->getValue();
     for (const auto& t : state->getTypes())
         {
         auto d = derivatives_[t]->data();
-        auto dint = intrinsic_->getDerivative(t)->data();
-        auto dext = external_->getDerivative(t)->data();
+        auto did = ideal_->getDerivative(t)->data();
+        auto dex = (excess_) ? excess_->getDerivative(t)->data() : nullptr;
+        auto dext = (external_) ? external_->getDerivative(t)->data() : nullptr;
         for (int idx=0; idx < mesh->shape(); ++idx)
             {
-            d[idx] = dint[idx] + dext[idx];
+            d[idx] = did[idx];
+            if (dex) d[idx] += dex[idx];
+            if (dext) d[idx] += dext[idx];
             }
 
         // subtract chemical potential part when component is open
@@ -54,41 +64,51 @@ std::shared_ptr<IdealGasFunctional> GrandPotential::getIdealGasFunctional()
     return ideal_;
     }
 
-std::shared_ptr<CompositeFunctional> GrandPotential::getIntrinsicFunctional()
+std::shared_ptr<const IdealGasFunctional> GrandPotential::getIdealGasFunctional() const
     {
-    return intrinsic_;
+    return ideal_;
     }
 
-std::shared_ptr<CompositeFunctional> GrandPotential::getExcessIntrinsicFunctional()
+void GrandPotential::setIdealGasFunctional(std::shared_ptr<IdealGasFunctional> ideal)
+    {
+    if (ideal)
+        {
+        ideal_ = ideal;
+        }
+    else
+        {
+        // can't set with nullptr
+        }
+    }
+
+std::shared_ptr<FreeEnergyFunctional> GrandPotential::getExcessFunctional()
     {
     return excess_;
     }
 
-std::shared_ptr<CompositeFunctional> GrandPotential::getExternalPotential()
+std::shared_ptr<const FreeEnergyFunctional> GrandPotential::getExcessFunctional() const
+    {
+    return excess_;
+    }
+
+void GrandPotential::setExcessFunctional(std::shared_ptr<FreeEnergyFunctional> excess)
+    {
+    excess_ = excess;
+    }
+
+std::shared_ptr<FreeEnergyFunctional> GrandPotential::getExternalPotential()
     {
     return external_;
     }
 
-void GrandPotential::addExcessFunctional(std::shared_ptr<FreeEnergyFunctional> functional)
+std::shared_ptr<const FreeEnergyFunctional> GrandPotential::getExternalPotential() const
     {
-    intrinsic_->addFunctional(functional);
-    excess_->addFunctional(functional);
+    return external_;
     }
 
-void GrandPotential::removeExcessFunctional(std::shared_ptr<FreeEnergyFunctional> functional)
+void GrandPotential::setExternalPotential(std::shared_ptr<FreeEnergyFunctional> external)
     {
-    intrinsic_->removeFunctional(functional);
-    excess_->removeFunctional(functional);
-    }
-
-void GrandPotential::addExternalPotential(std::shared_ptr<ExternalPotential> functional)
-    {
-    external_->addFunctional(functional);
-    }
-
-void GrandPotential::removeExternalPotential(std::shared_ptr<ExternalPotential> functional)
-    {
-    external_->removeFunctional(functional);
+    external_ = external;
     }
 
 const TypeMap<double>& GrandPotential::getConstraints()

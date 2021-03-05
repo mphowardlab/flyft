@@ -12,4 +12,5 @@ void bindTypeMap(py::module& m)
     py::bind_map<TypeMap<GrandPotential::Constraint>>(m, "TypeMapConstraint");
 
     py::bind_vector<std::vector<std::string>>(m, "VectorString");
+    py::bind_vector<std::vector<FreeEnergyFunctional>>(m, "VectorFunctionals");
     }
