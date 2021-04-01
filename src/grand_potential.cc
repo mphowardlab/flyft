@@ -7,7 +7,6 @@ namespace flyft
 
 GrandPotential::GrandPotential()
     {
-    ideal_ = std::make_shared<IdealGasFunctional>();
     }
 
 void GrandPotential::compute(std::shared_ptr<State> state)

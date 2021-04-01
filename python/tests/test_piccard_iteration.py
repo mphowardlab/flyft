@@ -7,7 +7,7 @@ from .test_rosenfeld_fmt import muex_py
 
 @pytest.fixture
 def piccard():
-    return flyft.solve.PiccardIteration(0.1,100,1.e-6)
+    return flyft.solver.PiccardIteration(0.1,100,1.e-6)
 
 def test_init(piccard):
     assert piccard.mix_parameter == pytest.approx(0.1)
@@ -31,6 +31,7 @@ def test_init(piccard):
 
 def test_solve(piccard,grand,fmt,walls,mesh,state):
     rho = 0.1
+    grand.ideal = flyft.functional.IdealGas()
     grand.ideal.volumes['A'] = 1.0
     grand.constrain('A', mu_ig(rho,1.0), grand.Constraint.mu)
 

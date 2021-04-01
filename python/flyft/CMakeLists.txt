@@ -4,7 +4,7 @@ set(FLYFT_PY_SOURCES
     external.py
     functional.py
     mirror.py
-    solve.py
+    solver.py
     state.py
     )
 

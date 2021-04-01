@@ -53,8 +53,8 @@ bool PiccardIteration::solve(std::shared_ptr<GrandPotential> grand, std::shared_
                 for (int idx=0; idx < mesh->shape(); ++idx)
                     {
                     double eff_energy = 0.0;
-                    if (V) eff_energy += V[idx];
                     if (mu_ex) eff_energy += mu_ex[idx];
+                    if (V) eff_energy += V[idx];
 
                     rho_tmp[idx] = std::exp(-eff_energy);
                     sum += rho_tmp[idx];
@@ -68,8 +68,8 @@ bool PiccardIteration::solve(std::shared_ptr<GrandPotential> grand, std::shared_
                 for (int idx=0; idx < mesh->shape(); ++idx)
                     {
                     double eff_energy = 0.0;
-                    if (V) eff_energy += V[idx];
                     if (mu_ex) eff_energy += mu_ex[idx];
+                    if (V) eff_energy += V[idx];
 
                     rho_tmp[idx] = std::exp(-eff_energy+mu_bulk);
                     }

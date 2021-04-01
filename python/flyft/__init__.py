@@ -1,6 +1,6 @@
 from . import external
 from . import functional
-from . import solve
+from . import solver
 from . import state
 from .state import (Field, Mesh, State)
 

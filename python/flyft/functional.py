@@ -60,8 +60,10 @@ class RosenfeldFMT(FreeEnergy,mirrorclass=_flyft.RosenfeldFMT):
 RosenfeldFMT.mirror_mapped_property('diameters')
 
 class GrandPotential(FreeEnergy,mirrorclass=_flyft.GrandPotential):
-    def __init__(self, excess=None, external=None):
+    def __init__(self, ideal=None, excess=None, external=None):
         super().__init__()
+        if ideal is not None:
+            self.ideal = ideal
         if excess is not None:
             self.excess = excess
         if external is not None:

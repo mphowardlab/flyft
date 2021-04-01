@@ -6,7 +6,7 @@ from .test_ideal_gas import f_ig,mu_ig
 from .test_rosenfeld_fmt import fex_py,muex_py
 
 def test_ideal(grand):
-    assert isinstance(grand.ideal,flyft.functional.IdealGas)
+    assert grand.ideal is None
 
     # set ideal gas functional
     ig = flyft.functional.IdealGas()
@@ -70,6 +70,7 @@ def test_compute(grand, mesh, state):
     state.fields['A'][:] = rho
 
     # check ideal contribution
+    grand.ideal = flyft.functional.IdealGas()
     grand.ideal.volumes['A'] = 1.0
     grand.constrain('A', np.sum(10.0*state.fields['A'].data), grand.Constraint.N)
     grand.compute(state)

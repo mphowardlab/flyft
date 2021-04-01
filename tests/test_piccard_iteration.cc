@@ -15,6 +15,7 @@ int main()
     {
     const double L = 20.0;
     std::vector<std::string> types {"A"};
+    flyft::TypeMap<double> volumes {{"A",1.0}};
     flyft::TypeMap<double> diameters {{"A",1.0}};
     flyft::TypeMap<double> etas {{"A",0.4257}};
 
@@ -23,6 +24,10 @@ int main()
 
     // functionals
     auto omega = std::make_shared<flyft::GrandPotential>();
+
+    auto ig = std::make_shared<flyft::IdealGasFunctional>();
+    ig->setVolumes(volumes);
+    omega->setIdealGasFunctional(ig);
 
     auto fmt = std::make_shared<flyft::RosenfeldFMT>();
     fmt->setDiameters(diameters);
