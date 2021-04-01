@@ -5,18 +5,16 @@
 namespace flyft
 {
 
-PiccardIteration::PiccardIteration(std::shared_ptr<GrandPotential> grand,
-                                   double mix_param,
+PiccardIteration::PiccardIteration(double mix_param,
                                    int max_iterations,
                                    double tolerance)
-    : Solver(grand)
     {
     setMixParameter(mix_param);
     setMaxIterations(max_iterations);
     setTolerance(tolerance);
     }
 
-bool PiccardIteration::solve(std::shared_ptr<State> state)
+bool PiccardIteration::solve(std::shared_ptr<GrandPotential> grand, std::shared_ptr<State> state)
     {
     auto mesh = state->getMesh();
     auto alpha = getMixParameter();
@@ -30,29 +28,35 @@ bool PiccardIteration::solve(std::shared_ptr<State> state)
         converged = true;
 
         // compute current fields
-        auto ideal = grand_->getIdealGasFunctional();
-        auto excess = grand_->getExcessFunctional();
-        auto external = grand_->getExternalPotential();
-        excess->compute(state);
-        external->compute(state);
+        auto ideal = grand->getIdealGasFunctional();
+        auto excess = grand->getExcessFunctional();
+        auto external = grand->getExternalPotential();
+        if (excess)
+            excess->compute(state);
+        if (external)
+            external->compute(state);
 
         // apply piccard mixing scheme
         for (const auto& t : state->getTypes())
             {
             auto rho = state->getField(t)->data();
             auto rho_tmp = tmp.data();
-            auto mu_ex = excess->getDerivative(t)->data();
-            auto V = external->getDerivative(t)->data();
+            auto mu_ex = (excess) ? excess->getDerivative(t)->data() : nullptr;
+            auto V = (external) ? external->getDerivative(t)->data() : nullptr;
 
             double norm = 1.0;
-            auto constraint_type = grand_->getConstraintType(t);
+            auto constraint_type = grand->getConstraintType(t);
             if (constraint_type == GrandPotential::Constraint::N)
                 {
-                auto N = grand_->getConstraint(t);
+                auto N = grand->getConstraint(t);
                 double sum = 0.0;
                 for (int idx=0; idx < mesh->shape(); ++idx)
                     {
-                    rho_tmp[idx] = std::exp(-V[idx]-mu_ex[idx]);
+                    double eff_energy = 0.0;
+                    if (V) eff_energy += V[idx];
+                    if (mu_ex) eff_energy += mu_ex[idx];
+
+                    rho_tmp[idx] = std::exp(-eff_energy);
                     sum += rho_tmp[idx];
                     }
                 sum *= mesh->step();
@@ -60,10 +64,14 @@ bool PiccardIteration::solve(std::shared_ptr<State> state)
                 }
             else if (constraint_type == GrandPotential::Constraint::mu)
                 {
-                auto mu_bulk = grand_->getConstraint(t);
+                auto mu_bulk = grand->getConstraint(t);
                 for (int idx=0; idx < mesh->shape(); ++idx)
                     {
-                    rho_tmp[idx] = std::exp(-V[idx]-mu_ex[idx]+mu_bulk);
+                    double eff_energy = 0.0;
+                    if (V) eff_energy += V[idx];
+                    if (mu_ex) eff_energy += mu_ex[idx];
+
+                    rho_tmp[idx] = std::exp(-eff_energy+mu_bulk);
                     }
                 norm = 1.0/ideal->getVolume(t);
                 }

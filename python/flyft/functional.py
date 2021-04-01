@@ -3,8 +3,8 @@ from . import mirror
 from . import state
 
 class FreeEnergy(mirror.Mirror,mirrorclass=_flyft.FreeEnergyFunctional):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
     @property
     def derivatives(self):
@@ -72,7 +72,6 @@ class GrandPotential(FreeEnergy,mirrorclass=_flyft.GrandPotential):
     def constrain(self, key, value, constraint_type):
         self.constraints[key] = value
         self.constraint_types[key] = constraint_type
-
 GrandPotential.mirror_property('ideal')
 GrandPotential.mirror_property('excess')
 GrandPotential.mirror_property('external')

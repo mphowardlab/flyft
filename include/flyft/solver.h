@@ -12,7 +12,7 @@ namespace flyft
 class Solver
     {
     public:
-        Solver(std::shared_ptr<GrandPotential> grand);
+        Solver();
         virtual ~Solver();
 
         // noncopyable / nonmovable
@@ -21,10 +21,7 @@ class Solver
         Solver& operator=(const Solver&) = delete;
         Solver& operator=(Solver&&) = delete;
 
-        virtual bool solve(std::shared_ptr<State> state) = 0;
-
-    protected:
-        std::shared_ptr<GrandPotential> grand_;
+        virtual bool solve(std::shared_ptr<GrandPotential> grand, std::shared_ptr<State> state) = 0;
     };
 
 }

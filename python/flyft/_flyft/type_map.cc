@@ -13,4 +13,5 @@ void bindTypeMap(py::module& m)
 
     py::bind_vector<std::vector<std::string>>(m, "VectorString");
     py::bind_vector<std::vector<FreeEnergyFunctional>>(m, "VectorFunctionals");
+    py::bind_vector<std::vector<ExternalPotential>>(m, "VectorExternalPotentials");
     }

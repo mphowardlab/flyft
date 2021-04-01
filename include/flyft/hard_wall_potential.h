@@ -28,7 +28,6 @@ class HardWallPotential : public ExternalPotential
         bool hasPositiveNormal() const;
         void setPositiveNormal(bool positive_normal);
 
-    protected:
         void potential(std::shared_ptr<Field> V, const std::string& type, std::shared_ptr<State> state) override;
 
     private:

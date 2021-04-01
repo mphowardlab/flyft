@@ -52,8 +52,8 @@ int main()
         omega->setConstraintType(t,flyft::GrandPotential::Constraint::N);
         }
 
-    auto slv = std::make_shared<flyft::PiccardIteration>(omega,0.01,10000,1.e-12);
-    auto conv = slv->solve(state);
+    auto slv = std::make_shared<flyft::PiccardIteration>(0.01,10000,1.e-12);
+    auto conv = slv->solve(omega,state);
 
     if (!conv)
         {

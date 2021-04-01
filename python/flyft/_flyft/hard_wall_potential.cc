@@ -9,6 +9,6 @@ void bindHardWallPotential(py::module_& m)
         .def(py::init<double,bool>())
         .def_property("diameters", &HardWallPotential::getDiameters, &HardWallPotential::setDiameters, py::return_value_policy::reference_internal)
         .def_property("origin", &HardWallPotential::getOrigin, &HardWallPotential::setOrigin)
-        .def_property("positive_normal", &HardWallPotential::hasPositiveNormal, &HardWallPotential::setPositiveNormal)
+        .def_property("normal", &HardWallPotential::hasPositiveNormal, &HardWallPotential::setPositiveNormal)
         ;
     }

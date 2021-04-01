@@ -13,12 +13,11 @@ namespace flyft
 class PiccardIteration : public Solver
     {
     public:
-        PiccardIteration(std::shared_ptr<GrandPotential> grand,
-                         double mix_param,
+        PiccardIteration(double mix_param,
                          int max_iterations,
                          double tolerance);
 
-        bool solve(std::shared_ptr<State> state) override;
+        bool solve(std::shared_ptr<GrandPotential> grand, std::shared_ptr<State> state) override;
 
         double getMixParameter() const;
         void setMixParameter(double mix_param);

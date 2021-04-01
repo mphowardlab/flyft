@@ -5,10 +5,6 @@ import flyft
 from .test_ideal_gas import f_ig,mu_ig
 from .test_rosenfeld_fmt import fex_py,muex_py
 
-@pytest.fixture
-def grand():
-    return flyft.functional.GrandPotential()
-
 def test_ideal(grand):
     assert isinstance(grand.ideal,flyft.functional.IdealGas)
 
@@ -38,6 +34,13 @@ def test_excess(grand):
 def test_external(grand):
     assert grand.external is None
 
+    hw = flyft.external.HardWall(0.0, True)
+    grand.external = hw
+    assert grand.external is hw
+
+    hw.diameters['A'] = 1.0
+    assert grand.external.diameters['A'] == pytest.approx(1.0)
+
 def test_constraints(grand):
     assert len(grand.constraints) == 0
     assert len(grand.constraint_types) == 0
@@ -59,10 +62,7 @@ def test_constraints(grand):
     assert grand.constraint_types['A'] == grand.Constraint.mu
     assert grand._self.constraint_types['A'] == grand.Constraint.mu
 
-def test_compute(grand):
-    m = flyft.Mesh(10.0,20)
-    state = flyft.State(m,'A')
-
+def test_compute(grand, mesh, state):
     d = 1.0
     v = np.pi*d**3/6.
     eta = 0.1

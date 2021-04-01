@@ -1,14 +1,17 @@
 # python source files
 set(FLYFT_PY_SOURCES
     __init__.py
+    external.py
     functional.py
     mirror.py
+    solve.py
     state.py
     )
 
 # pull in _flyft files here to get compiled module at same level in build as python module
 set(_FLYFT_CC_SOURCES
     _flyft.cc
+    composite_external_potential.cc
     composite_functional.cc
     external_potential.cc
     field.cc

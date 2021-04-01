@@ -2,7 +2,6 @@ import numpy as np
 import pytest
 
 import flyft
-from .test_ideal_gas import ig
 
 @pytest.fixture
 def comp():
@@ -50,9 +49,7 @@ def test_append_extend_remove(comp,ig):
     assert len(comp.functionals) == 2
     assert len(comp._self.functionals) == 2
 
-def test_compute(comp,ig):
-    m = flyft.Mesh(10.0,20)
-    state = flyft.State(m,'A')
+def test_compute(comp,ig,mesh,state):
     state.fields['A'][:] = 1.0
 
     comp = flyft.functional.Composite(ig)

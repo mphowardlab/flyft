@@ -16,11 +16,9 @@ class ExternalPotential : public FreeEnergyFunctional
     public:
         void compute(std::shared_ptr<State> state) override;
 
-    protected:
         virtual void potential(std::shared_ptr<Field> V,
                                const std::string& type,
                                std::shared_ptr<State> state) = 0;
-
     };
 
 }

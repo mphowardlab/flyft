@@ -3,10 +3,6 @@ import pytest
 
 import flyft
 
-@pytest.fixture
-def ig():
-    return flyft.functional.IdealGas()
-
 def f_ig(rho,lam):
     """Free-energy density of ideal gas"""
     if rho > 0:
@@ -42,9 +38,8 @@ def test_volumes(ig):
     assert ig._self.volumes['A'] == pytest.approx(1.5)
     assert ig._self.volumes['B'] == pytest.approx(2.5)
 
-def test_compute(ig):
-    m = flyft.Mesh(10.0,20)
-    state = flyft.State(m,('A','B'))
+def test_compute(ig,mesh,binary_state):
+    state = binary_state
 
     state.fields['A'][:] = 1.0
     state.fields['B'][:] = 0.0
