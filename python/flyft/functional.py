@@ -67,8 +67,12 @@ class GrandPotential(FreeEnergy,mirrorclass=_flyft.GrandPotential):
         if external is not None:
             self.external = external
 
-    CANONICAL = _flyft.GrandPotential.Constraint.N
-    GRAND = _flyft.GrandPotential.Constraint.mu
+    Constraint = _flyft.GrandPotential.Constraint
+
+    def constrain(self, key, value, constraint_type):
+        self.constraints[key] = value
+        self.constraint_types[key] = constraint_type
+
 GrandPotential.mirror_property('ideal')
 GrandPotential.mirror_property('excess')
 GrandPotential.mirror_property('external')

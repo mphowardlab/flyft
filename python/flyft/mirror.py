@@ -47,8 +47,9 @@ class Mirror(metaclass=MirrorMeta):
 
     @classmethod
     def mirror_method(cls, name, doc=None):
-        meth = getattr(cls._mirrorclass, name, None)
-        if meth is None:
+        try:
+            meth = getattr(cls._mirrorclass, name)
+        except AttributeError:
             raise AttributeError('{} does not have method {}'.format(cls._mirrorclass.__name__,name))
 
         if doc is None:
@@ -74,21 +75,27 @@ class Mirror(metaclass=MirrorMeta):
 
     @classmethod
     def mirror_property(cls, name, doc=None):
-        attr = getattr(cls._mirrorclass, name, None)
-        if attr is None or not isinstance(attr,property):
+        try:
+            attr = getattr(cls._mirrorclass, name)
+            if not isinstance(attr,property):
+                raise AttributeError
+        except AttributeError:
             raise AttributeError('{} does not have property {}'.format(cls._mirrorclass.__name__,name))
 
         if doc is None:
             doc = attr.__doc__
 
+        # name used to save mirror classes as obj._name
+        cache_name = '_'+name
+
         def fget(obj):
             # get value from the mirror class
-            v = getattr(obj._self, name, None)
-            if v is None:
+            try:
+                v = getattr(obj._self, name)
+            except:
                 raise AttributeError('Mirror class does not have attribute {}'.format(name))
 
-            # check for mirror class that *may* be cached as obj._name
-            cache_name = '_'+name
+            # check for mirror class that *may* be cached
             cache_v = getattr(obj, cache_name, None)
             update_cache = False
 
@@ -122,9 +129,11 @@ class Mirror(metaclass=MirrorMeta):
             # autoconvert mirrorclasses
             if isinstance(value, Mirror):
                 # save instance to cache
-                setattr(obj, '_'+name, value)
+                setattr(obj, cache_name, value)
                 setattr(obj._self, name, value._self)
             else:
+                if hasattr(obj, cache_name):
+                    setattr(obj, cache_name, value)
                 setattr(obj._self, name, value)
 
         mattr = property(fget=fget,
@@ -134,8 +143,11 @@ class Mirror(metaclass=MirrorMeta):
 
     @classmethod
     def mirror_mapped_property(cls, name, mutable=True, doc=None):
-        attr = getattr(cls._mirrorclass, name, None)
-        if attr is None or not isinstance(attr,property):
+        try:
+            attr = getattr(cls._mirrorclass, name)
+            if not isinstance(attr,property):
+                raise AttributeError
+        except AttributeError:
             raise AttributeError('{} does not have property {}'.format(cls._mirrorclass.__name__,name))
 
         if doc is None:
@@ -143,8 +155,9 @@ class Mirror(metaclass=MirrorMeta):
 
         def fget(obj):
             # get value from the mirror class
-            v = getattr(obj._self, name, None)
-            if v is None:
+            try:
+                v = getattr(obj._self, name, None)
+            except:
                 raise AttributeError('Mirror class does not have attribute {}'.format(name))
 
             # check for mirror mapping that *may* be cached as obj._name

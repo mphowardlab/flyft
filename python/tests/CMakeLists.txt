@@ -2,10 +2,12 @@
 set(FLYFT_PYTEST_SOURCES
     __init__.py
     test_composite_functional.py
+    test_grand_potential.py
     test_ideal_gas.py
     test_mesh.py
     test_field.py
     test_mirror.py
+    test_rosenfeld_fmt.py
     test_state.py
     )
 

@@ -7,6 +7,19 @@ import flyft
 def ig():
     return flyft.functional.IdealGas()
 
+def f_ig(rho,lam):
+    """Free-energy density of ideal gas"""
+    if rho > 0:
+        return rho*(np.log(lam*rho)-1)
+    else:
+        return 0.
+def mu_ig(rho,lam):
+    """Chemical potential of ideal gas"""
+    if rho > 0:
+        return np.log(lam*rho)
+    else:
+        return -np.inf
+
 def test_volumes(ig):
     assert len(ig.volumes) == 0
 
@@ -40,13 +53,13 @@ def test_compute(ig):
 
     # compute with only one component present
     ig.compute(state)
-    assert ig.value == pytest.approx(-10.0)
-    assert np.allclose(ig.derivatives['A'].data,0.0)
-    assert np.all(ig.derivatives['B'].data == -np.inf)
+    assert ig.value == pytest.approx(10.0*f_ig(1.0,1.0))
+    assert np.allclose(ig.derivatives['A'].data,mu_ig(1.0,1.0))
+    assert np.all(ig.derivatives['B'].data == mu_ig(0.0,2.0))
 
     # compute with both present
     state.fields['B'][:] = 0.5
     ig.compute(state)
-    assert ig.value == pytest.approx(-15.0)
-    assert np.allclose(ig.derivatives['A'].data,0.0)
-    assert np.allclose(ig.derivatives['B'].data,0.0)
+    assert ig.value == pytest.approx(10.0*(f_ig(1.0,1.0)+f_ig(0.5,2.0)))
+    assert np.allclose(ig.derivatives['A'].data,mu_ig(1.0,1.0))
+    assert np.allclose(ig.derivatives['B'].data,mu_ig(0.5,2.0))
