@@ -1,10 +1,10 @@
 #ifndef FLYFT_HARD_WALL_POTENTIAL_H_
 #define FLYFT_HARD_WALL_POTENTIAL_H_
 
-#include "flyft/external_potential.h"
 #include "flyft/field.h"
 #include "flyft/state.h"
 #include "flyft/type_map.h"
+#include "flyft/wall_potential.h"
 
 #include <memory>
 #include <string>
@@ -12,7 +12,7 @@
 namespace flyft
 {
 
-class HardWallPotential : public ExternalPotential
+class HardWallPotential : public WallPotential
     {
     public:
         HardWallPotential() = delete;
@@ -25,18 +25,10 @@ class HardWallPotential : public ExternalPotential
         void setDiameters(const TypeMap<double>& diameters);
         void setDiameter(const std::string& type, double diameter);
 
-        double getOrigin() const;
-        void setOrigin(double origin);
-
-        double getNormal() const;
-        void setNormal(double normal);
-
         void potential(std::shared_ptr<Field> V, const std::string& type, std::shared_ptr<State> state) override;
 
     private:
         TypeMap<double> diameters_;
-        double origin_;
-        double normal_;
     };
 
 }

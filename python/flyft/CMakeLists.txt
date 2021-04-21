@@ -26,6 +26,7 @@ set(_FLYFT_CC_SOURCES
     solver.cc
     state.cc
     type_map.cc
+    wall_potential.cc
     )
 list(TRANSFORM _FLYFT_CC_SOURCES PREPEND _flyft/)
 

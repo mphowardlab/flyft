@@ -1,10 +1,10 @@
 #ifndef FLYFT_HARMONIC_WALL_POTENTIAL_H_
 #define FLYFT_HARMONIC_WALL_POTENTIAL_H_
 
-#include "flyft/external_potential.h"
 #include "flyft/field.h"
 #include "flyft/state.h"
 #include "flyft/type_map.h"
+#include "flyft/wall_potential.h"
 
 #include <memory>
 #include <string>
@@ -12,7 +12,7 @@
 namespace flyft
 {
 
-class HarmonicWallPotential : public ExternalPotential
+class HarmonicWallPotential : public WallPotential
     {
     public:
         HarmonicWallPotential() = delete;
@@ -30,21 +30,11 @@ class HarmonicWallPotential : public ExternalPotential
         void setShifts(const TypeMap<double>& shift);
         void setShift(const std::string& type, double shift);
 
-        double getOrigin() const;
-        void setOrigin(double origin);
-
-        double getNormal() const;
-        void setNormal(double normal);
-
-        const TypeMap<double>& getDiameters();
-
         void potential(std::shared_ptr<Field> V, const std::string& type, std::shared_ptr<State> state) override;
 
     private:
         TypeMap<double> spring_constants_;
         TypeMap<double> shifts_;
-        double origin_;
-        double normal_;
     };
 
 }

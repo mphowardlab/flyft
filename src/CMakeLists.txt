@@ -14,6 +14,7 @@ add_library(flyft SHARED
     rosenfeld_fmt.cc
     solver.cc
     state.cc
+    wall_potential.cc
     )
 
 target_include_directories(

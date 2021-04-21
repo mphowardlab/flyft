@@ -4,9 +4,8 @@ namespace flyft
 {
 
 HarmonicWallPotential::HarmonicWallPotential(double origin, double normal)
-    : origin_(origin)
+    : WallPotential(origin,normal)
     {
-    setNormal(normal);
     }
 
 void HarmonicWallPotential::compute(std::shared_ptr<State> state)
@@ -75,37 +74,6 @@ void HarmonicWallPotential::setShifts(const TypeMap<double>& shifts)
 void HarmonicWallPotential::setShift(const std::string& type, double shift)
     {
     shifts_[type] = shift;
-    }
-
-double HarmonicWallPotential::getOrigin() const
-    {
-    return origin_;
-    }
-
-void HarmonicWallPotential::setOrigin(double origin)
-    {
-    origin_ = origin;
-    }
-
-double HarmonicWallPotential::getNormal() const
-    {
-    return normal_;
-    }
-
-void HarmonicWallPotential::setNormal(double normal)
-    {
-    if (normal > 0)
-        {
-        normal_ = 1.0;
-        }
-    else if (normal < 0)
-        {
-        normal_ = -1.0;
-        }
-    else
-        {
-        // error: normal must be nonzero
-        }
     }
 
 }
