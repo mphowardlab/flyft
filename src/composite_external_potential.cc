@@ -1,7 +1,6 @@
 #include "flyft/composite_external_potential.h"
 
 #include <algorithm>
-#include <iostream>
 
 namespace flyft
 {
@@ -66,7 +65,6 @@ void CompositeExternalPotential::potential(std::shared_ptr<Field> V, const std::
 
     for (const auto& potential : potentials_)
         {
-        std::cout << "here" << std::endl;
         potential->potential(Vtmp_,type,state);
         auto tmp = Vtmp_->data();
         for (int idx=0; idx < mesh->shape(); ++idx)
