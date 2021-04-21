@@ -47,3 +47,11 @@ class HardWall(ExternalPotential,mirrorclass=_flyft.HardWallPotential):
 HardWall.mirror_property('origin')
 HardWall.mirror_property('normal')
 HardWall.mirror_mapped_property('diameters')
+
+class HarmonicWall(ExternalPotential,mirrorclass=_flyft.HarmonicWallPotential):
+    def __init__(self, origin, normal):
+        super().__init__(origin, normal)
+HarmonicWall.mirror_property('origin')
+HarmonicWall.mirror_property('normal')
+HarmonicWall.mirror_mapped_property('spring_constants')
+HarmonicWall.mirror_mapped_property('shifts')

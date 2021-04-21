@@ -16,6 +16,7 @@ void bindRosenfeldFMT(py::module_&);
 void bindExternalPotential(py::module_&);
 void bindCompositeExternalPotential(py::module_&);
 void bindHardWallPotential(py::module_&);
+void bindHarmonicWallPotential(py::module_&);
 
 void bindSolver(py::module_&);
 void bindPiccardIteration(py::module_&);
@@ -37,6 +38,7 @@ PYBIND11_MODULE(_flyft, m)
     bindExternalPotential(m);
     bindCompositeExternalPotential(m);
     bindHardWallPotential(m);
+    bindHarmonicWallPotential(m);
 
     bindSolver(m);
     bindPiccardIteration(m);

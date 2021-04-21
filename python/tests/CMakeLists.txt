@@ -7,6 +7,7 @@ set(FLYFT_PYTEST_SOURCES
     test_field.py
     test_grand_potential.py
     test_hard_wall_potential.py
+    test_harmonic_wall_potential.py
     test_ideal_gas.py
     test_mesh.py
     test_mirror.py

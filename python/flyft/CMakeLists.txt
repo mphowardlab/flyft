@@ -18,6 +18,7 @@ set(_FLYFT_CC_SOURCES
     functional.cc
     grand_potential.cc
     hard_wall_potential.cc
+    harmonic_wall_potential.cc
     ideal_gas_functional.cc
     mesh.cc
     piccard_iteration.cc
