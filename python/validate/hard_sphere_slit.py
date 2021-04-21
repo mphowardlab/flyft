@@ -14,7 +14,7 @@ mesh = flyft.Mesh(L,1000)
 state = flyft.State(mesh,'A')
 
 # setup functionals
-ig = flyft.funcational.IdealGas()
+ig = flyft.functional.IdealGas()
 ig.volumes['A'] = 1.0
 
 fmt = flyft.functional.RosenfeldFMT()
