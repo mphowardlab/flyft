@@ -18,6 +18,7 @@ namespace py = pybind11;
 PYBIND11_MAKE_OPAQUE(std::vector<std::string>);
 PYBIND11_MAKE_OPAQUE(std::vector<flyft::Functional>);
 PYBIND11_MAKE_OPAQUE(std::vector<flyft::ExternalPotential>);
+PYBIND11_MAKE_OPAQUE(flyft::TypeMap<bool>);
 PYBIND11_MAKE_OPAQUE(flyft::TypeMap<double>);
 PYBIND11_MAKE_OPAQUE(flyft::TypeMap<flyft::Field>);
 PYBIND11_MAKE_OPAQUE(flyft::TypeMap<flyft::GrandPotential::Constraint>);

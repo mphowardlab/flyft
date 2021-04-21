@@ -20,6 +20,7 @@ set(_FLYFT_CC_SOURCES
     hard_wall_potential.cc
     harmonic_wall_potential.cc
     ideal_gas_functional.cc
+    lennard_jones_93_wall_potential.cc
     mesh.cc
     piccard_iteration.cc
     rosenfeld_fmt.cc

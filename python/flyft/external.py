@@ -41,17 +41,27 @@ class Composite(ExternalPotential,mirrorclass=_flyft.CompositeExternalPotential)
         for f in potentials:
             self.append(f)
 
-class HardWall(ExternalPotential,mirrorclass=_flyft.HardWallPotential):
+class WallPotential(ExternalPotential,mirrorclass=_flyft.WallPotential):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args,**kwargs)
+WallPotential.mirror_property('origin')
+WallPotential.mirror_property('normal')
+
+class HardWall(WallPotential,mirrorclass=_flyft.HardWallPotential):
     def __init__(self, origin, normal):
         super().__init__(origin, normal)
-HardWall.mirror_property('origin')
-HardWall.mirror_property('normal')
 HardWall.mirror_mapped_property('diameters')
 
-class HarmonicWall(ExternalPotential,mirrorclass=_flyft.HarmonicWallPotential):
+class HarmonicWall(WallPotential,mirrorclass=_flyft.HarmonicWallPotential):
     def __init__(self, origin, normal):
         super().__init__(origin, normal)
-HarmonicWall.mirror_property('origin')
-HarmonicWall.mirror_property('normal')
 HarmonicWall.mirror_mapped_property('spring_constants')
 HarmonicWall.mirror_mapped_property('shifts')
+
+class LennardJones93Wall(WallPotential,mirrorclass=_flyft.LennardJones93WallPotential):
+    def __init__(self, origin, normal):
+        super().__init__(origin, normal)
+LennardJones93Wall.mirror_mapped_property('epsilons')
+LennardJones93Wall.mirror_mapped_property('sigmas')
+LennardJones93Wall.mirror_mapped_property('cutoffs')
+LennardJones93Wall.mirror_mapped_property('shifts')

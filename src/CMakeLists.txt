@@ -8,6 +8,7 @@ add_library(flyft SHARED
     hard_wall_potential.cc
     harmonic_wall_potential.cc
     ideal_gas_functional.cc
+    lennard_jones_93_wall_potential.cc
     mesh.cc
     piccard_iteration.cc
     reciprocal_mesh.cc

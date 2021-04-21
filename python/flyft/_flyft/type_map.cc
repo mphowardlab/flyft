@@ -7,6 +7,7 @@ void bindTypeMap(py::module& m)
     {
     using namespace flyft;
 
+    py::bind_map<TypeMap<bool>>(m, "TypeMapBool");
     py::bind_map<TypeMap<double>>(m, "TypeMapDouble");
     py::bind_map<TypeMap<Field>>(m, "TypeMapField");
     py::bind_map<TypeMap<GrandPotential::Constraint>>(m, "TypeMapConstraint");

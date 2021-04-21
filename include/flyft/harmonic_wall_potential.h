@@ -27,7 +27,7 @@ class HarmonicWallPotential : public WallPotential
 
         const TypeMap<double>& getShifts();
         double getShift(const std::string& type) const;
-        void setShifts(const TypeMap<double>& shift);
+        void setShifts(const TypeMap<double>& shifts);
         void setShift(const std::string& type, double shift);
 
         void potential(std::shared_ptr<Field> V, const std::string& type, std::shared_ptr<State> state) override;
