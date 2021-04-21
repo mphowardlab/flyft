@@ -3,9 +3,6 @@ from . import mirror
 from . import state
 
 class Functional(mirror.Mirror,mirrorclass=_flyft.Functional):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
     @property
     def derivatives(self):
         if not hasattr(self, '_derivatives') or self._derivatives._self is not self._self.derivatives:
@@ -50,13 +47,11 @@ class Composite(Functional,mirrorclass=_flyft.CompositeFunctional):
             self.append(f)
 
 class IdealGas(Functional,mirrorclass=_flyft.IdealGasFunctional):
-    def __init__(self):
-        super().__init__()
+    pass
 IdealGas.mirror_mapped_property('volumes')
 
 class RosenfeldFMT(Functional,mirrorclass=_flyft.RosenfeldFMT):
-    def __init__(self):
-        super().__init__()
+    pass
 RosenfeldFMT.mirror_mapped_property('diameters')
 
 class GrandPotential(Functional,mirrorclass=_flyft.GrandPotential):

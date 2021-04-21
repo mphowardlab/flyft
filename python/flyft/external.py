@@ -3,8 +3,7 @@ from .functional import Functional
 from . import state
 
 class ExternalPotential(Functional,mirrorclass=_flyft.ExternalPotential):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args,**kwargs)
+    pass
 
 class Composite(ExternalPotential,mirrorclass=_flyft.CompositeExternalPotential):
     def __init__(self, potentials=None):
@@ -42,8 +41,7 @@ class Composite(ExternalPotential,mirrorclass=_flyft.CompositeExternalPotential)
             self.append(f)
 
 class WallPotential(ExternalPotential,mirrorclass=_flyft.WallPotential):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args,**kwargs)
+    pass
 WallPotential.mirror_property('origin')
 WallPotential.mirror_property('normal')
 
