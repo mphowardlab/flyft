@@ -96,11 +96,12 @@ class Mirror(metaclass=MirrorMeta):
                 raise AttributeError('Mirror class does not have attribute {}'.format(name))
 
             # check for mirror class that *may* be cached
+            has_cache = hasattr(obj, cache_name)
             cache_v = getattr(obj, cache_name, None)
             update_cache = False
 
             # if cache value is set, check whether it is still current
-            if cache_v is not None:
+            if has_cache:
                 if isinstance(cache_v, Mirror):
                     # if mirror internal object still matches pointer, reuse the cache
                     if cache_v._self is v:
@@ -126,14 +127,14 @@ class Mirror(metaclass=MirrorMeta):
             return v
 
         def fset(obj,value):
-            # autoconvert mirrorclasses
             if isinstance(value, Mirror):
-                # save instance to cache
+                # cache Mirror objects
                 setattr(obj, cache_name, value)
                 setattr(obj._self, name, value._self)
             else:
+                # don't cache non-Mirror objects
                 if hasattr(obj, cache_name):
-                    setattr(obj, cache_name, value)
+                    delattr(obj, cache_name)
                 setattr(obj._self, name, value)
 
         mattr = property(fget=fget,
@@ -162,9 +163,10 @@ class Mirror(metaclass=MirrorMeta):
 
             # check for mirror mapping that *may* be cached as obj._name
             cache_name = '_'+name
-            cache_v = getattr(obj, cache_name, None)
+            has_cache = hasattr(obj, cache_name)
+            cache_v = getattr(obj, cache_name,None)
 
-            if cache_v is None or cache_v._self is not v:
+            if not has_cache or cache_v._self is not v:
                 if mutable:
                     cache_v = MutableMapping(v)
                 else:
@@ -174,8 +176,7 @@ class Mirror(metaclass=MirrorMeta):
 
         def fset(obj,value):
             # deduce type of internal container, then make a new one
-            mirror_v = getattr(obj._self, name)
-            container = type(mirror_v)
+            container = type(getattr(obj._self, name))
             mirror_v = container()
             for t,v in value.items():
                 mirror_v[t] = v

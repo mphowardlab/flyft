@@ -1,13 +1,13 @@
 #include "flyft/composite_external_potential.h"
 
 #include <algorithm>
+#include <iostream>
 
 namespace flyft
 {
 
 CompositeExternalPotential::CompositeExternalPotential()
     {
-
     }
 
 CompositeExternalPotential::CompositeExternalPotential(std::shared_ptr<ExternalPotential> potential)
@@ -52,13 +52,21 @@ const std::vector<std::shared_ptr<ExternalPotential>>& CompositeExternalPotentia
 
 void CompositeExternalPotential::potential(std::shared_ptr<Field> V, const std::string& type, std::shared_ptr<State> state)
     {
-    // fill total potential with zeros
+    // size temporary array
     auto mesh = state->getMesh();
+    if (!Vtmp_)
+        {
+        Vtmp_ = std::make_shared<Field>(mesh->shape());
+        }
+    Vtmp_->reshape(mesh->shape());
+
+    // fill total potential with zeros
     auto data = V->data();
     std::fill(data,data+mesh->shape(),0.);
 
     for (const auto& potential : potentials_)
         {
+        std::cout << "here" << std::endl;
         potential->potential(Vtmp_,type,state);
         auto tmp = Vtmp_->data();
         for (int idx=0; idx < mesh->shape(); ++idx)
@@ -66,18 +74,6 @@ void CompositeExternalPotential::potential(std::shared_ptr<Field> V, const std::
             data[idx] += tmp[idx];
             }
         }
-    }
-
-void CompositeExternalPotential::allocate(std::shared_ptr<State> state)
-    {
-    ExternalPotential::allocate(state);
-
-    auto mesh = state->getMesh();
-    if (!Vtmp_)
-        {
-        Vtmp_ = std::make_shared<Field>(mesh->shape());
-        }
-    Vtmp_->reshape(mesh->shape());
     }
 
 }

@@ -15,9 +15,12 @@ void GrandPotential::compute(std::shared_ptr<State> state)
     auto mesh = state->getMesh();
 
     // evaluate functionals
-    ideal_->compute(state);
-    value_ = ideal_->getValue();
-
+    value_ = 0.0;
+    if (ideal_)
+        {
+        ideal_->compute(state);
+        value_ += ideal_->getValue();
+        }
     if (excess_)
         {
         excess_->compute(state);
@@ -29,18 +32,20 @@ void GrandPotential::compute(std::shared_ptr<State> state)
         value_ += external_->getValue();
         }
 
-    // sum up contributions
+    // sum up contributions to derivatives for each type
     for (const auto& t : state->getTypes())
         {
-        auto d = derivatives_[t]->data();
-        auto did = ideal_->getDerivative(t)->data();
+        auto d = derivatives_.at(t)->data();
+        auto did = (ideal_) ? ideal_->getDerivative(t)->data() : nullptr;
         auto dex = (excess_) ? excess_->getDerivative(t)->data() : nullptr;
         auto dext = (external_) ? external_->getDerivative(t)->data() : nullptr;
         for (int idx=0; idx < mesh->shape(); ++idx)
             {
-            d[idx] = did[idx];
-            if (dex) d[idx] += dex[idx];
-            if (dext) d[idx] += dext[idx];
+            double deriv = 0.;
+            if (did) deriv += did[idx];
+            if (dex) deriv += dex[idx];
+            if (dext) deriv += dext[idx];
+            d[idx] = deriv;
             }
 
         // subtract chemical potential part when component is open
@@ -70,14 +75,7 @@ std::shared_ptr<const IdealGasFunctional> GrandPotential::getIdealGasFunctional(
 
 void GrandPotential::setIdealGasFunctional(std::shared_ptr<IdealGasFunctional> ideal)
     {
-    if (ideal)
-        {
-        ideal_ = ideal;
-        }
-    else
-        {
-        // can't set with nullptr
-        }
+    ideal_ = ideal;
     }
 
 std::shared_ptr<Functional> GrandPotential::getExcessFunctional()
@@ -95,17 +93,17 @@ void GrandPotential::setExcessFunctional(std::shared_ptr<Functional> excess)
     excess_ = excess;
     }
 
-std::shared_ptr<Functional> GrandPotential::getExternalPotential()
+std::shared_ptr<ExternalPotential> GrandPotential::getExternalPotential()
     {
     return external_;
     }
 
-std::shared_ptr<const Functional> GrandPotential::getExternalPotential() const
+std::shared_ptr<const ExternalPotential> GrandPotential::getExternalPotential() const
     {
     return external_;
     }
 
-void GrandPotential::setExternalPotential(std::shared_ptr<Functional> external)
+void GrandPotential::setExternalPotential(std::shared_ptr<ExternalPotential> external)
     {
     external_ = external;
     }
@@ -125,9 +123,9 @@ void GrandPotential::setConstraints(const TypeMap<double>& constraints)
     constraints_ = TypeMap<double>(constraints);
     }
 
-void GrandPotential::setConstraint(const std::string& type, double value)
+void GrandPotential::setConstraint(const std::string& type, double constraint)
     {
-    constraints_[type] = value;
+    constraints_[type] = constraint;
     }
 
 const TypeMap<GrandPotential::Constraint>& GrandPotential::getConstraintTypes()
@@ -145,9 +143,9 @@ void GrandPotential::setConstraintTypes(const TypeMap<GrandPotential::Constraint
     constraint_types_ = TypeMap<GrandPotential::Constraint>(constraint_types);
     }
 
-void GrandPotential::setConstraintType(const std::string& type, GrandPotential::Constraint ctype)
+void GrandPotential::setConstraintType(const std::string& type, GrandPotential::Constraint constraint_type)
     {
-    constraint_types_[type] = ctype;
+    constraint_types_[type] = constraint_type;
     }
 
 }

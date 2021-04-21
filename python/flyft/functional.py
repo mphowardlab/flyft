@@ -2,7 +2,7 @@ from . import _flyft
 from . import mirror
 from . import state
 
-class FreeEnergy(mirror.Mirror,mirrorclass=_flyft.Functional):
+class Functional(mirror.Mirror,mirrorclass=_flyft.Functional):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -11,10 +11,10 @@ class FreeEnergy(mirror.Mirror,mirrorclass=_flyft.Functional):
         if not hasattr(self, '_derivatives') or self._derivatives._self is not self._self.derivatives:
             self._derivatives = state.Fields(self._self.derivatives)
         return self._derivatives
-FreeEnergy.mirror_property('value')
-FreeEnergy.mirror_method('compute')
+Functional.mirror_property('value')
+Functional.mirror_method('compute')
 
-class Composite(FreeEnergy,mirrorclass=_flyft.CompositeFunctional):
+class Composite(Functional,mirrorclass=_flyft.CompositeFunctional):
     def __init__(self, functionals=None):
         super().__init__()
         self._functionals = []
@@ -49,17 +49,17 @@ class Composite(FreeEnergy,mirrorclass=_flyft.CompositeFunctional):
         for f in functionals:
             self.append(f)
 
-class IdealGas(FreeEnergy,mirrorclass=_flyft.IdealGasFunctional):
+class IdealGas(Functional,mirrorclass=_flyft.IdealGasFunctional):
     def __init__(self):
         super().__init__()
 IdealGas.mirror_mapped_property('volumes')
 
-class RosenfeldFMT(FreeEnergy,mirrorclass=_flyft.RosenfeldFMT):
+class RosenfeldFMT(Functional,mirrorclass=_flyft.RosenfeldFMT):
     def __init__(self):
         super().__init__()
 RosenfeldFMT.mirror_mapped_property('diameters')
 
-class GrandPotential(FreeEnergy,mirrorclass=_flyft.GrandPotential):
+class GrandPotential(Functional,mirrorclass=_flyft.GrandPotential):
     def __init__(self, ideal=None, excess=None, external=None):
         super().__init__()
         if ideal is not None:

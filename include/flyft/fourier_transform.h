@@ -1,7 +1,7 @@
 #ifndef FLYFT_FOURIER_TRANSFORM_H_
 #define FLYFT_FOURIER_TRANSFORM_H_
 
-// need to include <complex> before <fftw.h>
+// need to include <complex> before <fftw3.h>
 #include <complex>
 #include <fftw3.h>
 
@@ -15,6 +15,7 @@ class FourierTransform
     public:
         FourierTransform() = delete;
         FourierTransform(int N);
+        ~FourierTransform();
 
         // noncopyable / nonmovable
         FourierTransform(const FourierTransform&) = delete;
@@ -22,13 +23,13 @@ class FourierTransform
         FourierTransform& operator=(const FourierTransform&) = delete;
         FourierTransform& operator=(FourierTransform&&) = delete;
 
-        ~FourierTransform();
-
         enum Space
             {
             RealSpace,
             ReciprocalSpace
             };
+
+        void transform();
 
         int getRealSize() const;
         const double* getRealData() const;
@@ -39,8 +40,6 @@ class FourierTransform
         void setReciprocalData(const std::complex<double>* data);
 
         Space getActiveSpace() const;
-
-        void transform();
 
     private:
         int N_;

@@ -1,9 +1,8 @@
 from . import _flyft
-from .functional import FreeEnergy
-from . import mirror
+from .functional import Functional
 from . import state
 
-class ExternalPotential(FreeEnergy,mirrorclass=_flyft.ExternalPotential):
+class ExternalPotential(Functional,mirrorclass=_flyft.ExternalPotential):
     def __init__(self, *args, **kwargs):
         super().__init__(*args,**kwargs)
 

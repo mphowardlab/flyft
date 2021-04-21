@@ -5,11 +5,19 @@ import flyft
 
 @pytest.fixture
 def hw():
-    return flyft.external.HardWall(2.0,True)
+    return flyft.external.HardWall(2.0,1.0)
 
 def test_init(hw):
     assert hw.origin == pytest.approx(2.0)
-    assert hw.normal == True
+    assert hw.normal == 1.0
+
+    hw2 = flyft.external.HardWall(2.0,2.0)
+    assert hw2.origin == pytest.approx(2.0)
+    assert hw2.normal == 1.0
+
+    hw3 = flyft.external.HardWall(4.0,-3.0)
+    assert hw3.origin == pytest.approx(4.0)
+    assert hw3.normal == -1.0
 
 def test_diameters(hw):
     assert len(hw.diameters) == 0
@@ -53,7 +61,7 @@ def test_potential(hw,mesh,state):
 
     # put the wall back and switch it the other way
     hw.origin = 2.0
-    hw.normal = False
+    hw.normal = -1.0
     hw.compute(state)
     assert hw.value == np.inf
     assert np.allclose(hw.derivatives['A'][x <= 1.5],0.0)

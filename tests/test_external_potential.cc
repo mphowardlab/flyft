@@ -16,8 +16,8 @@ int main()
 
     auto mesh = std::make_shared<const flyft::Mesh>(5.0,25);
     auto state = std::make_shared<flyft::State>(mesh,types);
-    auto Vlo = std::make_shared<flyft::HardWallPotential>(0.5, true);
-    auto Vhi = std::make_shared<flyft::HardWallPotential>(4.5, false);
+    auto Vlo = std::make_shared<flyft::HardWallPotential>(0.5, 1.0);
+    auto Vhi = std::make_shared<flyft::HardWallPotential>(4.5, -1.0);
     Vlo->setDiameters(diameters);
     Vhi->setDiameters(diameters);
 

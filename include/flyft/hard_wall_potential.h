@@ -2,6 +2,9 @@
 #define FLYFT_HARD_WALL_POTENTIAL_H_
 
 #include "flyft/external_potential.h"
+#include "flyft/field.h"
+#include "flyft/state.h"
+#include "flyft/type_map.h"
 
 #include <memory>
 #include <string>
@@ -13,7 +16,7 @@ class HardWallPotential : public ExternalPotential
     {
     public:
         HardWallPotential() = delete;
-        HardWallPotential(double origin, bool positive_normal);
+        HardWallPotential(double origin, double normal);
 
         void compute(std::shared_ptr<State> state) override;
 
@@ -25,15 +28,15 @@ class HardWallPotential : public ExternalPotential
         double getOrigin() const;
         void setOrigin(double origin);
 
-        bool hasPositiveNormal() const;
-        void setPositiveNormal(bool positive_normal);
+        double getNormal() const;
+        void setNormal(double normal);
 
         void potential(std::shared_ptr<Field> V, const std::string& type, std::shared_ptr<State> state) override;
 
     private:
         TypeMap<double> diameters_;
         double origin_;
-        bool positive_normal_;
+        double normal_;
     };
 
 }

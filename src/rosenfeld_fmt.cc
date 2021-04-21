@@ -199,7 +199,7 @@ void RosenfeldFMT::compute(std::shared_ptr<State> state)
                 {
                 // no radius, no contribution to energy
                 // need to set here as we are not prefilling the array with zeros
-                std::fill(derivatives_[t]->data(), derivatives_[t]->data()+mesh->shape(),0.0);
+                std::fill(derivatives_.at(t)->data(), derivatives_.at(t)->data()+mesh->shape(),0.0);
                 continue;
                 }
 
@@ -217,7 +217,7 @@ void RosenfeldFMT::compute(std::shared_ptr<State> state)
                 }
             ft_->setReciprocalData(derivativek);
             ft_->transform();
-            std::copy(ft_->getRealData(),ft_->getRealData()+mesh->shape(),derivatives_[t]->data());
+            std::copy(ft_->getRealData(),ft_->getRealData()+mesh->shape(),derivatives_.at(t)->data());
             }
         }
 

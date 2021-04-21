@@ -5,9 +5,11 @@
 namespace flyft
 {
 
-HardWallPotential::HardWallPotential(double origin, bool positive_normal)
-    : origin_(origin), positive_normal_(positive_normal)
-    {}
+HardWallPotential::HardWallPotential(double origin, double normal)
+    : origin_(origin)
+    {
+    setNormal(normal);
+    }
 
 void HardWallPotential::compute(std::shared_ptr<State> state)
     {
@@ -22,14 +24,14 @@ void HardWallPotential::potential(std::shared_ptr<Field> V, const std::string& t
     {
     // edge where sphere contacts the wall
     const double R = 0.5*diameters_.at(type);
-    const double edge = origin_ + ((positive_normal_) ? R : -R);
+    const double edge = origin_ + normal_*R;
 
     auto mesh = state->getMesh();
     auto data = V->data();
     for (int idx=0; idx < mesh->shape(); ++idx)
         {
         const auto x = mesh->coordinate(idx);
-        data[idx] = ((positive_normal_ && x < edge) || (!positive_normal_ && x > edge)) ? std::numeric_limits<double>::infinity() : 0.0;
+        data[idx] = (normal_*(x-edge) < 0) ? std::numeric_limits<double>::infinity() : 0.0;
         }
     }
 
@@ -70,14 +72,25 @@ void HardWallPotential::setOrigin(double origin)
     origin_ = origin;
     }
 
-bool HardWallPotential::hasPositiveNormal() const
+double HardWallPotential::getNormal() const
     {
-    return positive_normal_;
+    return normal_;
     }
 
-void HardWallPotential::setPositiveNormal(bool positive_normal)
+void HardWallPotential::setNormal(double normal)
     {
-    positive_normal_ = positive_normal;
+    if (normal > 0)
+        {
+        normal_ = 1.0;
+        }
+    else if (normal < 0)
+        {
+        normal_ = -1.0;
+        }
+    else
+        {
+        // error: normal must be nonzero
+        }
     }
 
 }

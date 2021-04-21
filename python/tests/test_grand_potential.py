@@ -34,7 +34,7 @@ def test_excess(grand):
 def test_external(grand):
     assert grand.external is None
 
-    hw = flyft.external.HardWall(0.0, True)
+    hw = flyft.external.HardWall(0.0, 1.0)
     grand.external = hw
     assert grand.external is hw
 

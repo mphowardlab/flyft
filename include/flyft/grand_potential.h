@@ -1,10 +1,11 @@
 #ifndef FLYFT_GRAND_POTENTIAL_H_
 #define FLYFT_GRAND_POTENTIAL_H_
 
-#include "flyft/composite_functional.h"
 #include "flyft/external_potential.h"
 #include "flyft/functional.h"
 #include "flyft/ideal_gas_functional.h"
+#include "flyft/state.h"
+#include "flyft/type_map.h"
 
 #include <memory>
 #include <string>
@@ -27,9 +28,9 @@ class GrandPotential : public Functional
         std::shared_ptr<const Functional> getExcessFunctional() const;
         void setExcessFunctional(std::shared_ptr<Functional> excess);
 
-        std::shared_ptr<Functional> getExternalPotential();
-        std::shared_ptr<const Functional> getExternalPotential() const;
-        void setExternalPotential(std::shared_ptr<Functional> external);
+        std::shared_ptr<ExternalPotential> getExternalPotential();
+        std::shared_ptr<const ExternalPotential> getExternalPotential() const;
+        void setExternalPotential(std::shared_ptr<ExternalPotential> external);
 
         enum class Constraint
             {
@@ -39,17 +40,17 @@ class GrandPotential : public Functional
         const TypeMap<double>& getConstraints();
         double getConstraint(const std::string& type) const;
         void setConstraints(const TypeMap<double>& constraints);
-        void setConstraint(const std::string& type, double value);
+        void setConstraint(const std::string& type, double constraint);
 
         const TypeMap<Constraint>& getConstraintTypes();
         Constraint getConstraintType(const std::string& type) const;
         void setConstraintTypes(const TypeMap<Constraint>& constraint_types);
-        void setConstraintType(const std::string& type, Constraint ctype);
+        void setConstraintType(const std::string& type, Constraint constraint_type);
 
     private:
         std::shared_ptr<IdealGasFunctional> ideal_;
         std::shared_ptr<Functional> excess_;
-        std::shared_ptr<Functional> external_;
+        std::shared_ptr<ExternalPotential> external_;
         TypeMap<double> constraints_;
         TypeMap<Constraint> constraint_types_;
     };

@@ -1,3 +1,4 @@
+#include "flyft/composite_external_potential.h"
 #include "flyft/composite_functional.h"
 #include "flyft/field.h"
 #include "flyft/hard_wall_potential.h"
@@ -33,13 +34,13 @@ int main()
     fmt->setDiameters(diameters);
     omega->setExcessFunctional(fmt);
 
-    auto Vext = std::make_shared<flyft::CompositeFunctional>();
-    auto Vlo = std::make_shared<flyft::HardWallPotential>(0.,true);
-    auto Vhi = std::make_shared<flyft::HardWallPotential>(L,false);
+    auto Vext = std::make_shared<flyft::CompositeExternalPotential>();
+    auto Vlo = std::make_shared<flyft::HardWallPotential>(0.,1.0);
+    auto Vhi = std::make_shared<flyft::HardWallPotential>(L,-1.0);
     Vlo->setDiameters(diameters);
     Vhi->setDiameters(diameters);
-    Vext->addFunctional(Vlo);
-    Vext->addFunctional(Vhi);
+    Vext->addPotential(Vlo);
+    Vext->addPotential(Vhi);
     omega->setExternalPotential(Vext);
 
     // initialize density profiles

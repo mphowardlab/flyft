@@ -6,6 +6,7 @@
 #include "flyft/type_map.h"
 
 #include <memory>
+#include <string>
 #include <vector>
 
 namespace flyft
@@ -37,7 +38,6 @@ class State
 
     private:
         std::shared_ptr<const Mesh> mesh_;
-
         std::vector<std::string> types_;
         TypeMap<std::shared_ptr<Field>> fields_;
     };

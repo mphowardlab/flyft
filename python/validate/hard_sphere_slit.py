@@ -20,8 +20,8 @@ ig.volumes['A'] = 1.0
 fmt = flyft.functional.RosenfeldFMT()
 fmt.diameters = diameters
 
-Vext = flyft.external.Composite((flyft.external.HardWall(0.0,True),
-                                 flyft.external.HardWall(L,False)))
+Vext = flyft.external.Composite((flyft.external.HardWall(0.0,1.0),
+                                 flyft.external.HardWall(L,-1.0)))
 for p in Vext.potentials:
     p.diameters = diameters
 

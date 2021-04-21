@@ -6,6 +6,7 @@
 #include "flyft/type_map.h"
 
 #include <memory>
+#include <string>
 
 namespace flyft
 {

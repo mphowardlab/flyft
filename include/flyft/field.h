@@ -61,8 +61,8 @@ class GenericField
                 if (data_ != nullptr) delete data_;
                 data_ = new T[shape];
                 std::fill(data_, data_+shape, T(0));
+                shape_ = shape;
                 }
-            shape_ = shape;
             }
 
     private:
@@ -70,8 +70,8 @@ class GenericField
         int shape_;
     };
 
-typedef GenericField<double> Field;
-typedef GenericField<std::complex<double>> ComplexField;
+using Field = GenericField<double>;
+using ComplexField = GenericField<std::complex<double>>;
 
 }
 

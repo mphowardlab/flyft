@@ -66,8 +66,15 @@ def test_compute(comp,walls,mesh,state):
     assert np.all(comp.derivatives['A'][x <= 1.0] == np.inf)
     assert np.allclose(comp.derivatives['A'][x > 1.0],0.0)
 
-    # add both walls
+    # swap lo for hi
+    comp.remove(lo)
     comp.append(hi)
+    comp.compute(state)
+    assert np.all(comp.derivatives['A'][x > 9.0] == np.inf)
+    assert np.allclose(comp.derivatives['A'][x <= 9.0],0.0)
+
+    # add both walls
+    comp.append(lo)
     comp.compute(state)
     flags = np.logical_or(x <= 1.0, x > 9.0)
     assert np.all(comp.derivatives['A'][flags] == np.inf)

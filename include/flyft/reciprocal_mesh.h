@@ -2,7 +2,6 @@
 #define FLYFT_RECIPROCAL_MESH_H_
 
 #include "flyft/mesh.h"
-#include <memory>
 
 namespace flyft
 {
