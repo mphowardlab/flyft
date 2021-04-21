@@ -13,6 +13,9 @@ class Field(mirror.Mirror,mirrorclass=_flyft.Field):
     def __setitem__(self, key, value):
         self.data[key] = value
 
+    def __array__(self):
+        return self.data
+
     @property
     def data(self):
         if not hasattr(self, '_data'):
