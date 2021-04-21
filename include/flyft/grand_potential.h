@@ -3,7 +3,7 @@
 
 #include "flyft/composite_functional.h"
 #include "flyft/external_potential.h"
-#include "flyft/free_energy_functional.h"
+#include "flyft/functional.h"
 #include "flyft/ideal_gas_functional.h"
 
 #include <memory>
@@ -12,7 +12,7 @@
 namespace flyft
 {
 
-class GrandPotential : public FreeEnergyFunctional
+class GrandPotential : public Functional
     {
     public:
         GrandPotential();
@@ -23,13 +23,13 @@ class GrandPotential : public FreeEnergyFunctional
         std::shared_ptr<const IdealGasFunctional> getIdealGasFunctional() const;
         void setIdealGasFunctional(std::shared_ptr<IdealGasFunctional> ideal);
 
-        std::shared_ptr<FreeEnergyFunctional> getExcessFunctional();
-        std::shared_ptr<const FreeEnergyFunctional> getExcessFunctional() const;
-        void setExcessFunctional(std::shared_ptr<FreeEnergyFunctional> excess);
+        std::shared_ptr<Functional> getExcessFunctional();
+        std::shared_ptr<const Functional> getExcessFunctional() const;
+        void setExcessFunctional(std::shared_ptr<Functional> excess);
 
-        std::shared_ptr<FreeEnergyFunctional> getExternalPotential();
-        std::shared_ptr<const FreeEnergyFunctional> getExternalPotential() const;
-        void setExternalPotential(std::shared_ptr<FreeEnergyFunctional> external);
+        std::shared_ptr<Functional> getExternalPotential();
+        std::shared_ptr<const Functional> getExternalPotential() const;
+        void setExternalPotential(std::shared_ptr<Functional> external);
 
         enum class Constraint
             {
@@ -48,8 +48,8 @@ class GrandPotential : public FreeEnergyFunctional
 
     private:
         std::shared_ptr<IdealGasFunctional> ideal_;
-        std::shared_ptr<FreeEnergyFunctional> excess_;
-        std::shared_ptr<FreeEnergyFunctional> external_;
+        std::shared_ptr<Functional> excess_;
+        std::shared_ptr<Functional> external_;
         TypeMap<double> constraints_;
         TypeMap<Constraint> constraint_types_;
     };

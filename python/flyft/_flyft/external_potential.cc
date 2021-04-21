@@ -24,7 +24,7 @@ void bindExternalPotential(py::module_& m)
     {
     using namespace flyft;
 
-    py::class_<ExternalPotential,std::shared_ptr<ExternalPotential>,ExternalPotentialTrampoline,FreeEnergyFunctional>(m, "ExternalPotential")
+    py::class_<ExternalPotential,std::shared_ptr<ExternalPotential>,ExternalPotentialTrampoline,Functional>(m, "ExternalPotential")
         .def(py::init<>())
         ;
     }

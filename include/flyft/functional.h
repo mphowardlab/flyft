@@ -1,5 +1,5 @@
-#ifndef FLYFT_FREE_ENERGY_FUNCTIONAL_H_
-#define FLYFT_FREE_ENERGY_FUNCTIONAL_H_
+#ifndef FLYFT_FUNCTIONAL_H_
+#define FLYFT_FUNCTIONAL_H_
 
 #include "flyft/field.h"
 #include "flyft/state.h"
@@ -12,17 +12,17 @@
 namespace flyft
 {
 
-class FreeEnergyFunctional
+class Functional
     {
     public:
-        FreeEnergyFunctional();
-        virtual ~FreeEnergyFunctional();
+        Functional();
+        virtual ~Functional();
 
         // noncopyable / nonmovable
-        FreeEnergyFunctional(const FreeEnergyFunctional&) = delete;
-        FreeEnergyFunctional(FreeEnergyFunctional&&) = delete;
-        FreeEnergyFunctional& operator=(const FreeEnergyFunctional&) = delete;
-        FreeEnergyFunctional& operator=(FreeEnergyFunctional&&) = delete;
+        Functional(const Functional&) = delete;
+        Functional(Functional&&) = delete;
+        Functional& operator=(const Functional&) = delete;
+        Functional& operator=(Functional&&) = delete;
 
         virtual void compute(std::shared_ptr<State> state) = 0;
 
@@ -41,4 +41,4 @@ class FreeEnergyFunctional
 
 }
 
-#endif // FLYFT_FREE_ENERGY_FUNCTIONAL_H_
+#endif // FLYFT_FUNCTIONAL_H_

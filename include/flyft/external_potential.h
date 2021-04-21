@@ -2,7 +2,7 @@
 #define FLYFT_EXTERNAL_POTENTIAL_H_
 
 #include "flyft/field.h"
-#include "flyft/free_energy_functional.h"
+#include "flyft/functional.h"
 #include "flyft/state.h"
 
 #include <memory>
@@ -11,7 +11,7 @@
 namespace flyft
 {
 
-class ExternalPotential : public FreeEnergyFunctional
+class ExternalPotential : public Functional
     {
     public:
         void compute(std::shared_ptr<State> state) override;

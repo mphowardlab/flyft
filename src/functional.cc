@@ -1,40 +1,40 @@
-#include "flyft/free_energy_functional.h"
+#include "flyft/functional.h"
 
 #include <algorithm>
 
 namespace flyft
 {
 
-FreeEnergyFunctional::FreeEnergyFunctional()
+Functional::Functional()
     : value_(0.)
     {
     }
 
-FreeEnergyFunctional::~FreeEnergyFunctional()
+Functional::~Functional()
     {
     }
 
-double FreeEnergyFunctional::getValue() const
+double Functional::getValue() const
     {
     return value_;
     }
 
-const TypeMap<std::shared_ptr<Field>>& FreeEnergyFunctional::getDerivatives()
+const TypeMap<std::shared_ptr<Field>>& Functional::getDerivatives()
     {
     return derivatives_;
     }
 
-std::shared_ptr<Field> FreeEnergyFunctional::getDerivative(const std::string& type)
+std::shared_ptr<Field> Functional::getDerivative(const std::string& type)
     {
     return derivatives_.at(type);
     }
 
-std::shared_ptr<const Field> FreeEnergyFunctional::getDerivative(const std::string& type) const
+std::shared_ptr<const Field> Functional::getDerivative(const std::string& type) const
     {
     return derivatives_.at(type);
     }
 
-void FreeEnergyFunctional::allocate(std::shared_ptr<State> state)
+void Functional::allocate(std::shared_ptr<State> state)
     {
     // purge stored types that are not in the state
     auto types = state->getTypes();

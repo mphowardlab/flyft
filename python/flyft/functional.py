@@ -2,7 +2,7 @@ from . import _flyft
 from . import mirror
 from . import state
 
-class FreeEnergy(mirror.Mirror,mirrorclass=_flyft.FreeEnergyFunctional):
+class FreeEnergy(mirror.Mirror,mirrorclass=_flyft.Functional):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 

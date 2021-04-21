@@ -227,7 +227,7 @@ void RosenfeldFMT::compute(std::shared_ptr<State> state)
 
 void RosenfeldFMT::allocate(std::shared_ptr<State> state)
     {
-    FreeEnergyFunctional::allocate(state);
+    Functional::allocate(state);
 
     auto mesh = state->getMesh();
 

@@ -9,12 +9,12 @@ CompositeFunctional::CompositeFunctional()
     {
     }
 
-CompositeFunctional::CompositeFunctional(std::shared_ptr<FreeEnergyFunctional> functional)
+CompositeFunctional::CompositeFunctional(std::shared_ptr<Functional> functional)
     {
     addFunctional(functional);
     }
 
-CompositeFunctional::CompositeFunctional(const std::vector<std::shared_ptr<FreeEnergyFunctional>>& functionals)
+CompositeFunctional::CompositeFunctional(const std::vector<std::shared_ptr<Functional>>& functionals)
     {
     for (const auto& f : functionals)
         {
@@ -57,7 +57,7 @@ void CompositeFunctional::compute(std::shared_ptr<State> state)
         }
     }
 
-void CompositeFunctional::addFunctional(std::shared_ptr<FreeEnergyFunctional> functional)
+void CompositeFunctional::addFunctional(std::shared_ptr<Functional> functional)
     {
     if(std::find(functionals_.begin(), functionals_.end(), functional) == functionals_.end())
         {
@@ -65,7 +65,7 @@ void CompositeFunctional::addFunctional(std::shared_ptr<FreeEnergyFunctional> fu
         }
     }
 
-void CompositeFunctional::removeFunctional(std::shared_ptr<FreeEnergyFunctional> functional)
+void CompositeFunctional::removeFunctional(std::shared_ptr<Functional> functional)
     {
     auto it = std::find(functionals_.begin(), functionals_.end(), functional);
     if (it != functionals_.end())
@@ -79,7 +79,7 @@ void CompositeFunctional::clearFunctionals()
     functionals_.clear();
     }
 
-const std::vector<std::shared_ptr<FreeEnergyFunctional>>& CompositeFunctional::getFunctionals()
+const std::vector<std::shared_ptr<Functional>>& CompositeFunctional::getFunctionals()
     {
     return functionals_;
     }

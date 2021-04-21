@@ -1,12 +1,12 @@
 #include "_flyft.h"
-#include "flyft/free_energy_functional.h"
+#include "flyft/functional.h"
 #include "flyft/composite_functional.h"
 
 void bindGrandPotential(py::module_& m)
     {
     using namespace flyft;
 
-    py::class_<GrandPotential,std::shared_ptr<GrandPotential>,FreeEnergyFunctional> grand(m, "GrandPotential");
+    py::class_<GrandPotential,std::shared_ptr<GrandPotential>,Functional> grand(m, "GrandPotential");
     grand.def(py::init())
         .def_property("ideal",  py::overload_cast<>(&GrandPotential::getIdealGasFunctional), &GrandPotential::setIdealGasFunctional)
         .def_property("excess", py::overload_cast<>(&GrandPotential::getExcessFunctional), &GrandPotential::setExcessFunctional)

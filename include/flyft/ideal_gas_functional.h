@@ -1,7 +1,7 @@
 #ifndef IDEAL_GAS_FUNCTIONAL_H_
 #define IDEAL_GAS_FUNCTIONAL_H_
 
-#include "flyft/free_energy_functional.h"
+#include "flyft/functional.h"
 #include "flyft/state.h"
 #include "flyft/type_map.h"
 
@@ -10,7 +10,7 @@
 namespace flyft
 {
 
-class IdealGasFunctional : public FreeEnergyFunctional
+class IdealGasFunctional : public Functional
     {
     public:
         void compute(std::shared_ptr<State> state) override;

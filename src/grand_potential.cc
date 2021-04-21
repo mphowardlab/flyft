@@ -80,32 +80,32 @@ void GrandPotential::setIdealGasFunctional(std::shared_ptr<IdealGasFunctional> i
         }
     }
 
-std::shared_ptr<FreeEnergyFunctional> GrandPotential::getExcessFunctional()
+std::shared_ptr<Functional> GrandPotential::getExcessFunctional()
     {
     return excess_;
     }
 
-std::shared_ptr<const FreeEnergyFunctional> GrandPotential::getExcessFunctional() const
+std::shared_ptr<const Functional> GrandPotential::getExcessFunctional() const
     {
     return excess_;
     }
 
-void GrandPotential::setExcessFunctional(std::shared_ptr<FreeEnergyFunctional> excess)
+void GrandPotential::setExcessFunctional(std::shared_ptr<Functional> excess)
     {
     excess_ = excess;
     }
 
-std::shared_ptr<FreeEnergyFunctional> GrandPotential::getExternalPotential()
+std::shared_ptr<Functional> GrandPotential::getExternalPotential()
     {
     return external_;
     }
 
-std::shared_ptr<const FreeEnergyFunctional> GrandPotential::getExternalPotential() const
+std::shared_ptr<const Functional> GrandPotential::getExternalPotential() const
     {
     return external_;
     }
 
-void GrandPotential::setExternalPotential(std::shared_ptr<FreeEnergyFunctional> external)
+void GrandPotential::setExternalPotential(std::shared_ptr<Functional> external)
     {
     external_ = external;
     }

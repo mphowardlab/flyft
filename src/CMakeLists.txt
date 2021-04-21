@@ -3,7 +3,7 @@ add_library(flyft SHARED
     composite_functional.cc
     external_potential.cc
     fourier_transform.cc
-    free_energy_functional.cc
+    functional.cc
     grand_potential.cc
     hard_wall_potential.cc
     ideal_gas_functional.cc

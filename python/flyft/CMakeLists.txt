@@ -15,7 +15,7 @@ set(_FLYFT_CC_SOURCES
     composite_functional.cc
     external_potential.cc
     field.cc
-    free_energy_functional.cc
+    functional.cc
     grand_potential.cc
     hard_wall_potential.cc
     ideal_gas_functional.cc

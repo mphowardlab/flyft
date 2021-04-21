@@ -3,7 +3,7 @@
 
 #include "flyft/field.h"
 #include "flyft/fourier_transform.h"
-#include "flyft/free_energy_functional.h"
+#include "flyft/functional.h"
 #include "flyft/state.h"
 #include "flyft/type_map.h"
 
@@ -14,7 +14,7 @@
 namespace flyft
 {
 
-class RosenfeldFMT : public FreeEnergyFunctional
+class RosenfeldFMT : public Functional
     {
     public:
         void compute(std::shared_ptr<State> state) override;

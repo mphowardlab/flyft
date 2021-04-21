@@ -7,7 +7,7 @@ void bindField(py::module_&);
 void bindMesh(py::module_&);
 void bindState(py::module_&);
 
-void bindFreeEnergyFunctional(py::module_&);
+void bindFunctional(py::module_&);
 void bindCompositeFunctional(py::module_&);
 void bindGrandPotential(py::module_&);
 void bindIdealGasFunctional(py::module_&);
@@ -28,7 +28,7 @@ PYBIND11_MODULE(_flyft, m)
     bindMesh(m);
     bindState(m);
 
-    bindFreeEnergyFunctional(m);
+    bindFunctional(m);
     bindCompositeFunctional(m);
     bindGrandPotential(m);
     bindIdealGasFunctional(m);
