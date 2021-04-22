@@ -1,18 +1,22 @@
 add_library(flyft SHARED
     composite_external_potential.cc
     composite_functional.cc
+    exponential_wall_potential.cc
     external_potential.cc
     fourier_transform.cc
     functional.cc
     grand_potential.cc
     hard_wall_potential.cc
+    harmonic_wall_potential.cc
     ideal_gas_functional.cc
+    lennard_jones_93_wall_potential.cc
     mesh.cc
     piccard_iteration.cc
     reciprocal_mesh.cc
     rosenfeld_fmt.cc
     solver.cc
     state.cc
+    wall_potential.cc
     )
 
 target_include_directories(

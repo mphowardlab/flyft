@@ -3,8 +3,7 @@ from . import mirror
 from . import state
 
 class Solver(mirror.Mirror,mirrorclass=_flyft.Solver):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    pass
 Solver.mirror_method('solve')
 
 class PiccardIteration(Solver,mirrorclass=_flyft.PiccardIteration):

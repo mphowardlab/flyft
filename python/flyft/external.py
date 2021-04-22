@@ -3,8 +3,7 @@ from .functional import Functional
 from . import state
 
 class ExternalPotential(Functional,mirrorclass=_flyft.ExternalPotential):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args,**kwargs)
+    pass
 
 class Composite(ExternalPotential,mirrorclass=_flyft.CompositeExternalPotential):
     def __init__(self, potentials=None):
@@ -41,9 +40,30 @@ class Composite(ExternalPotential,mirrorclass=_flyft.CompositeExternalPotential)
         for f in potentials:
             self.append(f)
 
-class HardWall(ExternalPotential,mirrorclass=_flyft.HardWallPotential):
+class WallPotential(ExternalPotential,mirrorclass=_flyft.WallPotential):
     def __init__(self, origin, normal):
         super().__init__(origin, normal)
-HardWall.mirror_property('origin')
-HardWall.mirror_property('normal')
+WallPotential.mirror_property('origin')
+WallPotential.mirror_property('normal')
+
+class ExponentialWall(WallPotential,mirrorclass=_flyft.ExponentialWallPotential):
+    pass
+ExponentialWall.mirror_mapped_property('epsilons')
+ExponentialWall.mirror_mapped_property('kappas')
+ExponentialWall.mirror_mapped_property('shifts')
+
+class HardWall(WallPotential,mirrorclass=_flyft.HardWallPotential):
+    pass
 HardWall.mirror_mapped_property('diameters')
+
+class HarmonicWall(WallPotential,mirrorclass=_flyft.HarmonicWallPotential):
+    pass
+HarmonicWall.mirror_mapped_property('spring_constants')
+HarmonicWall.mirror_mapped_property('shifts')
+
+class LennardJones93Wall(WallPotential,mirrorclass=_flyft.LennardJones93WallPotential):
+    pass
+LennardJones93Wall.mirror_mapped_property('epsilons')
+LennardJones93Wall.mirror_mapped_property('sigmas')
+LennardJones93Wall.mirror_mapped_property('cutoffs')
+LennardJones93Wall.mirror_mapped_property('shifts')

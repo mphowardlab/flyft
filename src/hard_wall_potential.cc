@@ -6,18 +6,8 @@ namespace flyft
 {
 
 HardWallPotential::HardWallPotential(double origin, double normal)
-    : origin_(origin)
+    : WallPotential(origin,normal)
     {
-    setNormal(normal);
-    }
-
-void HardWallPotential::compute(std::shared_ptr<State> state)
-    {
-    if (origin_ < 0 || origin_ > state->getMesh()->L())
-        {
-        // origin out of bounds
-        }
-    ExternalPotential::compute(state);
     }
 
 void HardWallPotential::potential(std::shared_ptr<Field> V, const std::string& type, std::shared_ptr<State> state)
@@ -59,37 +49,6 @@ void HardWallPotential::setDiameter(const std::string& type, double diameter)
     else
         {
         // error: invalid diameter
-        }
-    }
-
-double HardWallPotential::getOrigin() const
-    {
-    return origin_;
-    }
-
-void HardWallPotential::setOrigin(double origin)
-    {
-    origin_ = origin;
-    }
-
-double HardWallPotential::getNormal() const
-    {
-    return normal_;
-    }
-
-void HardWallPotential::setNormal(double normal)
-    {
-    if (normal > 0)
-        {
-        normal_ = 1.0;
-        }
-    else if (normal < 0)
-        {
-        normal_ = -1.0;
-        }
-    else
-        {
-        // error: normal must be nonzero
         }
     }
 
