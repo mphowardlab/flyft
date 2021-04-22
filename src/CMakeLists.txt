@@ -1,6 +1,7 @@
 add_library(flyft SHARED
     composite_external_potential.cc
     composite_functional.cc
+    exponential_wall_potential.cc
     external_potential.cc
     fourier_transform.cc
     functional.cc

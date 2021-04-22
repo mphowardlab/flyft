@@ -13,6 +13,7 @@ set(_FLYFT_CC_SOURCES
     _flyft.cc
     composite_external_potential.cc
     composite_functional.cc
+    exponential_wall_potential.cc
     external_potential.cc
     field.cc
     functional.cc

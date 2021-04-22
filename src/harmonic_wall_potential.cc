@@ -8,15 +8,6 @@ HarmonicWallPotential::HarmonicWallPotential(double origin, double normal)
     {
     }
 
-void HarmonicWallPotential::compute(std::shared_ptr<State> state)
-    {
-    if (origin_ < 0 || origin_ > state->getMesh()->L())
-        {
-        // origin out of bounds
-        }
-    ExternalPotential::compute(state);
-    }
-
 void HarmonicWallPotential::potential(std::shared_ptr<Field> V, const std::string& type, std::shared_ptr<State> state)
     {
     // get potential parameters for this type

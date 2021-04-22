@@ -9,6 +9,15 @@ WallPotential::WallPotential(double origin, double normal)
     setNormal(normal);
     }
 
+void WallPotential::compute(std::shared_ptr<State> state)
+    {
+    if (origin_ < 0 || origin_ > state->getMesh()->L())
+        {
+        // origin out of bounds
+        }
+    ExternalPotential::compute(state);
+    }
+
 double WallPotential::getOrigin() const
     {
     return origin_;

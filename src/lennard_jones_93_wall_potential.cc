@@ -10,15 +10,6 @@ LennardJones93WallPotential::LennardJones93WallPotential(double origin, double n
     {
     }
 
-void LennardJones93WallPotential::compute(std::shared_ptr<State> state)
-    {
-    if (origin_ < 0 || origin_ > state->getMesh()->L())
-        {
-        // origin out of bounds
-        }
-    ExternalPotential::compute(state);
-    }
-
 void LennardJones93WallPotential::potential(std::shared_ptr<Field> V, const std::string& type, std::shared_ptr<State> state)
     {
     // get potential parameters for this type

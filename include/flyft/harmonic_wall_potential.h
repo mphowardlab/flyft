@@ -18,8 +18,6 @@ class HarmonicWallPotential : public WallPotential
         HarmonicWallPotential() = delete;
         HarmonicWallPotential(double origin, double normal);
 
-        void compute(std::shared_ptr<State> state) override;
-
         const TypeMap<double>& getSpringConstants();
         double getSpringConstant(const std::string& type) const;
         void setSpringConstants(const TypeMap<double>& spring_constants);

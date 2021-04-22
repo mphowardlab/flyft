@@ -10,15 +10,6 @@ HardWallPotential::HardWallPotential(double origin, double normal)
     {
     }
 
-void HardWallPotential::compute(std::shared_ptr<State> state)
-    {
-    if (origin_ < 0 || origin_ > state->getMesh()->L())
-        {
-        // origin out of bounds
-        }
-    ExternalPotential::compute(state);
-    }
-
 void HardWallPotential::potential(std::shared_ptr<Field> V, const std::string& type, std::shared_ptr<State> state)
     {
     // edge where sphere contacts the wall

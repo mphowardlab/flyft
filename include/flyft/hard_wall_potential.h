@@ -18,8 +18,6 @@ class HardWallPotential : public WallPotential
         HardWallPotential() = delete;
         HardWallPotential(double origin, double normal);
 
-        void compute(std::shared_ptr<State> state) override;
-
         const TypeMap<double>& getDiameters();
         double getDiameter(const std::string& type) const;
         void setDiameters(const TypeMap<double>& diameters);

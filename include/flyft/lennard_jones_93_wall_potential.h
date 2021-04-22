@@ -18,8 +18,6 @@ class LennardJones93WallPotential : public WallPotential
         LennardJones93WallPotential() = delete;
         LennardJones93WallPotential(double origin, double normal);
 
-        void compute(std::shared_ptr<State> state) override;
-
         const TypeMap<double>& getEpsilons();
         double getEpsilon(const std::string& type) const;
         void setEpsilons(const TypeMap<double>& epsilons);

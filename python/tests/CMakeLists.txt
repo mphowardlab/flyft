@@ -4,6 +4,7 @@ set(FLYFT_PYTEST_SOURCES
     conftest.py
     test_composite_external_potential.py
     test_composite_functional.py
+    test_exponential_wall_potential.py
     test_field.py
     test_grand_potential.py
     test_hard_wall_potential.py

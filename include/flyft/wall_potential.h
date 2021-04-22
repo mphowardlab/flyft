@@ -15,6 +15,8 @@ class WallPotential : public ExternalPotential
         WallPotential() = delete;
         WallPotential(double origin, double normal);
 
+        void compute(std::shared_ptr<State> state) override;
+
         double getOrigin() const;
         void setOrigin(double origin);
 
