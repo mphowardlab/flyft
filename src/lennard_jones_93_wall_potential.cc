@@ -1,5 +1,7 @@
 #include "flyft/lennard_jones_93_wall_potential.h"
 
+#include <cmath>
+
 namespace flyft
 {
 
@@ -49,7 +51,11 @@ void LennardJones93WallPotential::potential(std::shared_ptr<Field> V, const std:
 
         // get 9 & 3 parts scaled by sigma
         double energy;
-        if (dx < cutoff)
+        if (dx <= 0)
+            {
+            energy = std::numeric_limits<double>::infinity();
+            }
+        else if (dx < cutoff)
             {
             const double idx = sigma/dx;
             const double idx2 = idx*idx;
