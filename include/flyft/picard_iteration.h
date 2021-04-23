@@ -10,10 +10,10 @@
 namespace flyft
 {
 
-class PiccardIteration : public Solver
+class PicardIteration : public Solver
     {
     public:
-        PiccardIteration(double mix_param,
+        PicardIteration(double mix_param,
                          int max_iterations,
                          double tolerance);
 

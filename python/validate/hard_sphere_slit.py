@@ -42,11 +42,11 @@ for t in state.fields:
     omega.constrain(t, mu(rho,d), omega.Constraint.mu)
 
 # take a short run with a small alpha to make initial changes stable
-piccard = flyft.solver.PiccardIteration(1.e-3,1000,1.e-12)
-conv = piccard.solve(omega,state)
+picard = flyft.solver.PicardIteration(1.e-3,1000,1.e-12)
+conv = picard.solve(omega,state)
 
 # if not converged after this, increase the mixing parameter and iterate longer
 if not conv:
-    piccard.mix_parameter = 1.e-2
-    piccard.max_iterations = 10000
-    conv = piccard.solve(omega,state)
+    picard.mix_parameter = 1.e-2
+    picard.max_iterations = 10000
+    conv = picard.solve(omega,state)

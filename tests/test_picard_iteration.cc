@@ -3,7 +3,7 @@
 #include "flyft/field.h"
 #include "flyft/hard_wall_potential.h"
 #include "flyft/mesh.h"
-#include "flyft/piccard_iteration.h"
+#include "flyft/picard_iteration.h"
 #include "flyft/rosenfeld_fmt.h"
 #include "flyft/state.h"
 
@@ -58,7 +58,7 @@ int main()
         omega->setConstraintType(t,flyft::GrandPotential::Constraint::N);
         }
 
-    auto slv = std::make_shared<flyft::PiccardIteration>(0.01,10000,1.e-12);
+    auto slv = std::make_shared<flyft::PicardIteration>(0.01,10000,1.e-12);
     auto conv = slv->solve(omega,state);
 
     if (!conv)

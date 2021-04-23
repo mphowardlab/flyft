@@ -22,7 +22,7 @@ void bindHarmonicWallPotential(py::module_&);
 void bindLennardJones93WallPotential(py::module_&);
 
 void bindSolver(py::module_&);
-void bindPiccardIteration(py::module_&);
+void bindPicardIteration(py::module_&);
 
 PYBIND11_MODULE(_flyft, m)
     {
@@ -47,5 +47,5 @@ PYBIND11_MODULE(_flyft, m)
     bindLennardJones93WallPotential(m);
 
     bindSolver(m);
-    bindPiccardIteration(m);
+    bindPicardIteration(m);
     }

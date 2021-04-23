@@ -1,11 +1,11 @@
-#include "flyft/piccard_iteration.h"
+#include "flyft/picard_iteration.h"
 
 #include <cmath>
 
 namespace flyft
 {
 
-PiccardIteration::PiccardIteration(double mix_param,
+PicardIteration::PicardIteration(double mix_param,
                                    int max_iterations,
                                    double tolerance)
     {
@@ -14,7 +14,7 @@ PiccardIteration::PiccardIteration(double mix_param,
     setTolerance(tolerance);
     }
 
-bool PiccardIteration::solve(std::shared_ptr<GrandPotential> grand, std::shared_ptr<State> state)
+bool PicardIteration::solve(std::shared_ptr<GrandPotential> grand, std::shared_ptr<State> state)
     {
     auto mesh = state->getMesh();
     auto alpha = getMixParameter();
@@ -36,7 +36,7 @@ bool PiccardIteration::solve(std::shared_ptr<GrandPotential> grand, std::shared_
         if (external)
             external->compute(state);
 
-        // apply piccard mixing scheme
+        // apply picard mixing scheme
         for (const auto& t : state->getTypes())
             {
             auto rho = state->getField(t)->data();
@@ -80,7 +80,7 @@ bool PiccardIteration::solve(std::shared_ptr<GrandPotential> grand, std::shared_
                 // don't know what to do
                 }
 
-            // apply Piccard mixing along with appropriate norm on value
+            // apply Picard mixing along with appropriate norm on value
             // during the same loop while checking convergence
             for (int idx=0; idx < mesh->shape(); ++idx)
                 {
@@ -96,12 +96,12 @@ bool PiccardIteration::solve(std::shared_ptr<GrandPotential> grand, std::shared_
     return converged;
     }
 
-double PiccardIteration::getMixParameter() const
+double PicardIteration::getMixParameter() const
     {
     return mix_param_;
     }
 
-void PiccardIteration::setMixParameter(double mix_param)
+void PicardIteration::setMixParameter(double mix_param)
     {
     if (mix_param <= 0 || mix_param > 1.0)
         {
@@ -110,12 +110,12 @@ void PiccardIteration::setMixParameter(double mix_param)
     mix_param_ = mix_param;
     }
 
-int PiccardIteration::getMaxIterations() const
+int PicardIteration::getMaxIterations() const
     {
     return max_iterations_;
     }
 
-void PiccardIteration::setMaxIterations(int max_iterations)
+void PicardIteration::setMaxIterations(int max_iterations)
     {
     if (max_iterations < 1)
         {
@@ -124,12 +124,12 @@ void PiccardIteration::setMaxIterations(int max_iterations)
     max_iterations_ = max_iterations;
     }
 
-double PiccardIteration::getTolerance() const
+double PicardIteration::getTolerance() const
     {
     return tolerance_;
     }
 
-void PiccardIteration::setTolerance(double tolerance)
+void PicardIteration::setTolerance(double tolerance)
     {
     if (tolerance <= 0)
         {

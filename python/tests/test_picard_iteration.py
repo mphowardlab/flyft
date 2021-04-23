@@ -7,7 +7,7 @@ from .test_rosenfeld_fmt import muex_py
 
 @pytest.fixture
 def piccard():
-    return flyft.solver.PiccardIteration(0.1,100,1.e-6)
+    return flyft.solver.PicardIteration(0.1,100,1.e-6)
 
 def test_init(piccard):
     assert piccard.mix_parameter == pytest.approx(0.1)

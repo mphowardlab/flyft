@@ -1,7 +1,7 @@
 set(TEST_NAMES
     external_potential
     fourier_transform
-    piccard_iteration
+    picard_iteration
     rosenfeld_fmt
 )
 
