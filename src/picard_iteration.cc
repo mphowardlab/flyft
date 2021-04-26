@@ -6,8 +6,8 @@ namespace flyft
 {
 
 PicardIteration::PicardIteration(double mix_param,
-                                   int max_iterations,
-                                   double tolerance)
+                                 int max_iterations,
+                                 double tolerance)
     {
     setMixParameter(mix_param);
     setMaxIterations(max_iterations);

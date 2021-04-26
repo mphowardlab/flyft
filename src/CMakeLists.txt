@@ -1,8 +1,11 @@
 add_library(flyft SHARED
+    brownian_diffusive_flux.cc
     composite_external_potential.cc
     composite_functional.cc
+    diffusive_flux.cc
     exponential_wall_potential.cc
     external_potential.cc
+    flux.cc
     fourier_transform.cc
     functional.cc
     grand_potential.cc
