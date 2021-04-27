@@ -36,18 +36,49 @@ void BrownianDiffusiveFlux::compute(std::shared_ptr<GrandPotential> grand, std::
             // explicitly apply pbcs on the index
             // TODO: add a wrapping function to the mesh
             int left = (idx > 0) ? idx-1 : mesh->shape()-1;
-            int self = idx;
 
-            // average density at left edge
-            auto rho_avg = 0.5*(rho[left]+rho[self]);
+            // handle infinite external potentials carefully, as there should be no flux in those directions
+            bool no_flux = false;
+            if (V)
+                {
+                bool Vidx_inf = std::isinf(V[idx]);
+                if (Vidx_inf)
+                    {
+                    if (V[idx] > 0 && rho[idx] > 0)
+                        {
+                        // ERROR: can't be V=+inf and have positive rho
+                        }
+                    else if(V[idx] < 0)
+                        {
+                        // ERROR: can't have V=-inf ever, it is a mass sink
+                        }
+                    }
 
-            // excess contribute at left edge
-            auto dmu_ex = 0.0;
-            if (mu_ex) dmu_ex += (mu_ex[self]-mu_ex[left]);
-            if (V) dmu_ex += (V[self]-V[left]);
+                // can't have flux along an edge normal having V = +inf at either end
+                // because we just asserted there must be no density there
+                no_flux = (Vidx_inf || std::isinf(V[left]));
+                }
 
-            // ideal (Fickian) term + excess term
-            flux[idx] = -D*((rho[self]-rho[left])/dx + rho_avg*dmu_ex/dx);
+            // if there is flux, assume density is continuous and interpolate
+            if (!no_flux)
+                {
+                // average density at left edge
+                auto rho_avg = 0.5*(rho[left]+rho[idx]);
+
+                // excess contribute at left edge
+                auto dmu_ex = 0.0;
+                if (mu_ex) dmu_ex += (mu_ex[idx]-mu_ex[left]);
+                if (V) dmu_ex += (V[idx]-V[left]);
+
+                // ideal (Fickian) term + excess term
+                // the ideal term is separated out so that we don't need to take
+                // low density limit explicitly
+                flux[idx] = -D*((rho[idx]-rho[left])/dx + rho_avg*dmu_ex/dx);
+                }
+            else
+                {
+                flux[idx] = 0.;
+                }
             }
         }
     }

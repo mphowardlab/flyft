@@ -1,6 +1,7 @@
 # python source files
 set(FLYFT_PY_SOURCES
     __init__.py
+    dynamics.py
     external.py
     functional.py
     mirror.py
@@ -11,11 +12,14 @@ set(FLYFT_PY_SOURCES
 # pull in _flyft files here to get compiled module at same level in build as python module
 set(_FLYFT_CC_SOURCES
     _flyft.cc
+    brownian_diffusive_flux.cc
     composite_external_potential.cc
     composite_functional.cc
+    diffusive_flux.cc
     exponential_wall_potential.cc
     external_potential.cc
     field.cc
+    flux.cc
     functional.cc
     grand_potential.cc
     hard_wall_potential.cc

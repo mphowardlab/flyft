@@ -28,3 +28,7 @@ def binary_state(mesh):
 @pytest.fixture
 def walls():
     return (flyft.external.HardWall(1.0,1.0),flyft.external.HardWall(9.0,-1.0))
+
+@pytest.fixture
+def bd():
+    return flyft.dynamics.BrownianDiffusiveFlux()

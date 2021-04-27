@@ -24,6 +24,10 @@ void bindLennardJones93WallPotential(py::module_&);
 void bindSolver(py::module_&);
 void bindPicardIteration(py::module_&);
 
+void bindFlux(py::module_&);
+void bindDiffusiveFlux(py::module_& m);
+void bindBrownianDiffusiveFlux(py::module_& m);
+
 PYBIND11_MODULE(_flyft, m)
     {
     bindTypeMap(m);
@@ -48,4 +52,8 @@ PYBIND11_MODULE(_flyft, m)
 
     bindSolver(m);
     bindPicardIteration(m);
+
+    bindFlux(m);
+    bindDiffusiveFlux(m);
+    bindBrownianDiffusiveFlux(m);
     }

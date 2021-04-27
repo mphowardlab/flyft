@@ -1,3 +1,4 @@
+from . import dynamics
 from . import external
 from . import functional
 from . import solver
