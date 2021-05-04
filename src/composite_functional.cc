@@ -5,23 +5,6 @@
 namespace flyft
 {
 
-CompositeFunctional::CompositeFunctional()
-    {
-    }
-
-CompositeFunctional::CompositeFunctional(std::shared_ptr<Functional> functional)
-    {
-    addFunctional(functional);
-    }
-
-CompositeFunctional::CompositeFunctional(const std::vector<std::shared_ptr<Functional>>& functionals)
-    {
-    for (const auto& f : functionals)
-        {
-        addFunctional(f);
-        }
-    }
-
 void CompositeFunctional::compute(std::shared_ptr<State> state)
     {
     allocate(state);
@@ -36,7 +19,7 @@ void CompositeFunctional::compute(std::shared_ptr<State> state)
         }
 
     // combine
-    for (const auto& f : functionals_)
+    for (const auto& f : objects_)
         {
         f->compute(state);
 
@@ -55,33 +38,6 @@ void CompositeFunctional::compute(std::shared_ptr<State> state)
                 }
             }
         }
-    }
-
-void CompositeFunctional::addFunctional(std::shared_ptr<Functional> functional)
-    {
-    if(std::find(functionals_.begin(), functionals_.end(), functional) == functionals_.end())
-        {
-        functionals_.push_back(functional);
-        }
-    }
-
-void CompositeFunctional::removeFunctional(std::shared_ptr<Functional> functional)
-    {
-    auto it = std::find(functionals_.begin(), functionals_.end(), functional);
-    if (it != functionals_.end())
-        {
-        functionals_.erase(it);
-        }
-    }
-
-void CompositeFunctional::clearFunctionals()
-    {
-    functionals_.clear();
-    }
-
-const std::vector<std::shared_ptr<Functional>>& CompositeFunctional::getFunctionals()
-    {
-    return functionals_;
     }
 
 }

@@ -107,7 +107,7 @@ def test_external(mesh,state,grand,ig,walls,bd):
     grand.ideal = ig
     for w in walls:
         w.diameters['A'] = 0.0
-    grand.external = flyft.external.Composite(walls)
+    grand.external = flyft.external.CompositeExternalPotential(walls)
 
     bd.diffusivities['A'] = 2.0
 

@@ -1,44 +1,16 @@
 from . import _flyft
 from .functional import Functional
+from . import mirror
 from . import state
 
 class ExternalPotential(Functional,mirrorclass=_flyft.ExternalPotential):
     pass
 
-class Composite(ExternalPotential,mirrorclass=_flyft.CompositeExternalPotential):
-    def __init__(self, potentials=None):
+class CompositeExternalPotential(ExternalPotential,mirror.CompositeMixin,mirrorclass=_flyft.CompositeExternalPotential):
+    def __init__(self, objects=None):
         super().__init__()
-        self._potentials = []
-
-        if potentials is not None:
-            self.potentials = potentials
-
-    @property
-    def potentials(self):
-        return self._potentials
-
-    @potentials.setter
-    def potentials(self, value):
-        self._self.clear()
-        self._potentials = []
-        try:
-            fs = list(value)
-        except TypeError:
-            fs = [value]
-        self.extend(fs)
-
-    def append(self, f):
-        if f not in self._potentials:
-            self._self.append(f._self)
-            self._potentials.append(f)
-
-    def remove(self, f):
-        self._self.remove(f._self)
-        self._potentials.remove(f)
-
-    def extend(self, potentials):
-        for f in potentials:
-            self.append(f)
+        if objects is not None:
+            self.objects = objects
 
 class WallPotential(ExternalPotential,mirrorclass=_flyft.WallPotential):
     def __init__(self, origin, normal):

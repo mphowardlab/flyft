@@ -5,48 +5,48 @@ import flyft
 
 @pytest.fixture
 def comp():
-    return flyft.external.Composite()
+    return flyft.external.CompositeExternalPotential()
 
 def test_init(walls):
-    comp = flyft.external.Composite(walls[0])
-    assert len(comp.potentials) == 1
-    assert walls[0] in comp.potentials
+    comp = flyft.external.CompositeExternalPotential(walls[0])
+    assert len(comp.objects) == 1
+    assert walls[0] in comp.objects
 
 def test_init_tuple(walls):
-    comp = flyft.external.Composite(walls)
-    assert len(comp.potentials) == 2
-    assert walls[0] in comp.potentials
-    assert walls[1] in comp.potentials
+    comp = flyft.external.CompositeExternalPotential(walls)
+    assert len(comp.objects) == 2
+    assert walls[0] in comp.objects
+    assert walls[1] in comp.objects
 
 def test_append_extend_remove(comp,walls):
     lo,hi = walls
-    assert len(comp.potentials) == 0
+    assert len(comp.objects) == 0
     comp.append(lo)
 
-    assert len(comp.potentials) == 1
-    assert len(comp._self.potentials) == 1
-    assert lo in comp.potentials
-    assert lo._self in comp._self.potentials
+    assert len(comp.objects) == 1
+    assert len(comp._self.objects) == 1
+    assert lo in comp.objects
+    assert lo._self in comp._self.objects
 
     comp.append(hi)
-    assert len(comp.potentials) == 2
-    assert len(comp._self.potentials) == 2
+    assert len(comp.objects) == 2
+    assert len(comp._self.objects) == 2
 
     comp.append(lo)
-    assert len(comp.potentials) == 2
-    assert len(comp._self.potentials) == 2
+    assert len(comp.objects) == 2
+    assert len(comp._self.objects) == 2
 
     comp.remove(hi)
-    assert len(comp.potentials) == 1
-    assert len(comp._self.potentials) == 1
+    assert len(comp.objects) == 1
+    assert len(comp._self.objects) == 1
 
     comp.remove(lo)
-    assert len(comp.potentials) == 0
-    assert len(comp._self.potentials) == 0
+    assert len(comp.objects) == 0
+    assert len(comp._self.objects) == 0
 
     comp.extend(walls)
-    assert len(comp.potentials) == 2
-    assert len(comp._self.potentials) == 2
+    assert len(comp.objects) == 2
+    assert len(comp._self.objects) == 2
 
 def test_compute(comp,walls,mesh,state):
     x = state.mesh.coordinates

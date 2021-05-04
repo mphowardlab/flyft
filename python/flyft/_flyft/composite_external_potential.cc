@@ -10,9 +10,9 @@ void bindCompositeExternalPotential(py::module_& m)
 
     py::class_<CompositeExternalPotential,std::shared_ptr<CompositeExternalPotential>,ExternalPotential>(m, "CompositeExternalPotential")
         .def(py::init())
-        .def_property_readonly("potentials",&CompositeExternalPotential::getPotentials,py::return_value_policy::reference_internal)
-        .def("append", &CompositeExternalPotential::addPotential)
-        .def("remove", &CompositeExternalPotential::removePotential)
-        .def("clear", &CompositeExternalPotential::clearPotentials)
+        .def_property_readonly("objects",&CompositeExternalPotential::getObjects,py::return_value_policy::reference_internal)
+        .def("append", &CompositeExternalPotential::addObject)
+        .def("remove", &CompositeExternalPotential::removeObject)
+        .def("clear", &CompositeExternalPotential::clearObjects)
         ;
     }

@@ -11,40 +11,11 @@ class Functional(mirror.Mirror,mirrorclass=_flyft.Functional):
 Functional.mirror_property('value')
 Functional.mirror_method('compute')
 
-class Composite(Functional,mirrorclass=_flyft.CompositeFunctional):
-    def __init__(self, functionals=None):
+class CompositeFunctional(Functional,mirror.CompositeMixin,mirrorclass=_flyft.CompositeFunctional):
+    def __init__(self, objects=None):
         super().__init__()
-        self._functionals = []
-
-        if functionals is not None:
-            self.functionals = functionals
-
-    @property
-    def functionals(self):
-        return self._functionals
-
-    @functionals.setter
-    def functionals(self, value):
-        self._self.clear()
-        self._functionals = []
-        try:
-            fs = list(value)
-        except TypeError:
-            fs = [value]
-        self.extend(fs)
-
-    def append(self, f):
-        if f not in self._functionals:
-            self._self.append(f._self)
-            self._functionals.append(f)
-
-    def remove(self, f):
-        self._self.remove(f._self)
-        self._functionals.remove(f)
-
-    def extend(self, functionals):
-        for f in functionals:
-            self.append(f)
+        if objects is not None:
+            self.objects = objects
 
 class IdealGas(Functional,mirrorclass=_flyft.IdealGasFunctional):
     pass

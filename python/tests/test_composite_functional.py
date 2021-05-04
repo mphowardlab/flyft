@@ -5,54 +5,54 @@ import flyft
 
 @pytest.fixture
 def comp():
-    return flyft.functional.Composite()
+    return flyft.functional.CompositeFunctional()
 
 def test_init(ig):
-    comp = flyft.functional.Composite(ig)
-    assert len(comp.functionals) == 1
-    assert ig in comp.functionals
+    comp = flyft.functional.CompositeFunctional(ig)
+    assert len(comp.objects) == 1
+    assert ig in comp.objects
 
 def test_init_tuple(ig):
     ig2 = flyft.functional.IdealGas()
-    comp = flyft.functional.Composite([ig,ig2])
-    assert len(comp.functionals) == 2
-    assert ig in comp.functionals
-    assert ig2 in comp.functionals
+    comp = flyft.functional.CompositeFunctional([ig,ig2])
+    assert len(comp.objects) == 2
+    assert ig in comp.objects
+    assert ig2 in comp.objects
 
 def test_append_extend_remove(comp,ig):
-    assert len(comp.functionals) == 0
+    assert len(comp.objects) == 0
     comp.append(ig)
 
-    assert len(comp.functionals) == 1
-    assert len(comp._self.functionals) == 1
-    assert ig in comp.functionals
-    assert ig._self in comp._self.functionals
+    assert len(comp.objects) == 1
+    assert len(comp._self.objects) == 1
+    assert ig in comp.objects
+    assert ig._self in comp._self.objects
 
     ig2 = flyft.functional.IdealGas()
     comp.append(ig2)
-    assert len(comp.functionals) == 2
-    assert len(comp._self.functionals) == 2
+    assert len(comp.objects) == 2
+    assert len(comp._self.objects) == 2
 
     comp.append(ig)
-    assert len(comp.functionals) == 2
-    assert len(comp._self.functionals) == 2
+    assert len(comp.objects) == 2
+    assert len(comp._self.objects) == 2
 
     comp.remove(ig2)
-    assert len(comp.functionals) == 1
-    assert len(comp._self.functionals) == 1
+    assert len(comp.objects) == 1
+    assert len(comp._self.objects) == 1
 
     comp.remove(ig)
-    assert len(comp.functionals) == 0
-    assert len(comp._self.functionals) == 0
+    assert len(comp.objects) == 0
+    assert len(comp._self.objects) == 0
 
     comp.extend([ig,ig2])
-    assert len(comp.functionals) == 2
-    assert len(comp._self.functionals) == 2
+    assert len(comp.objects) == 2
+    assert len(comp._self.objects) == 2
 
 def test_compute(comp,ig,mesh,state):
     state.fields['A'][:] = 1.0
 
-    comp = flyft.functional.Composite(ig)
+    comp.append(ig)
     ig.volumes['A'] = 1.0
 
     comp.compute(state)

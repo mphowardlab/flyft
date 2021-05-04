@@ -10,9 +10,9 @@ void bindCompositeFunctional(py::module_& m)
 
     py::class_<CompositeFunctional,std::shared_ptr<CompositeFunctional>,Functional>(m, "CompositeFunctional")
         .def(py::init())
-        .def_property_readonly("functionals",&CompositeFunctional::getFunctionals,py::return_value_policy::reference_internal)
-        .def("append", &CompositeFunctional::addFunctional)
-        .def("remove", &CompositeFunctional::removeFunctional)
-        .def("clear", &CompositeFunctional::clearFunctionals)
+        .def_property_readonly("objects",&CompositeFunctional::getObjects,py::return_value_policy::reference_internal)
+        .def("append", &CompositeFunctional::addObject)
+        .def("remove", &CompositeFunctional::removeObject)
+        .def("clear", &CompositeFunctional::clearObjects)
         ;
     }

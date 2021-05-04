@@ -43,7 +43,7 @@ def test_solve(piccard,grand,fmt,walls,mesh,state):
     # add walls
     for w in walls:
         w.diameters['A'] = 0.0
-    Vext = flyft.external.Composite(walls)
+    Vext = flyft.external.CompositeExternalPotential(walls)
     grand.external = Vext
     conv = piccard.solve(grand, state)
     assert conv
