@@ -204,6 +204,15 @@ class CompositeMixin:
             objects = [objects]
         self.extend(objects)
 
+    def __getitem__(self, key):
+        return self.objects[key]
+
+    def __iter__(self):
+        return iter(self.objects)
+
+    def __len__(self):
+        return len(self.objects)
+
     def append(self, object_):
         if object_ not in self.objects:
             self._self.append(object_._self)

@@ -24,8 +24,7 @@ class BrownianDiffusiveFlux(DiffusiveFlux,mirrorclass=_flyft.BrownianDiffusiveFl
     pass
 
 class Integrator(mirror.Mirror,mirrorclass=_flyft.Integrator):
-    def __init__(self, *args, **kwargs):
-        super().__init__()
+    pass
 Integrator.mirror_method('advance')
 
 class ExplicitEulerIntegrator(Integrator,mirrorclass=_flyft.ExplicitEulerIntegrator):
