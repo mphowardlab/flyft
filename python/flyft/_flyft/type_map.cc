@@ -13,6 +13,7 @@ void bindTypeMap(py::module& m)
     py::bind_map<TypeMap<GrandPotential::Constraint>>(m, "TypeMapConstraint");
 
     py::bind_vector<std::vector<std::string>>(m, "VectorString");
-    py::bind_vector<std::vector<Functional>>(m, "VectorFunctionals");
-    py::bind_vector<std::vector<ExternalPotential>>(m, "VectorExternalPotentials");
+    py::bind_vector<std::vector<Flux>>(m,"VectorFlux");
+    py::bind_vector<std::vector<Functional>>(m, "VectorFunctional");
+    py::bind_vector<std::vector<ExternalPotential>>(m, "VectorExternalPotential");
     }

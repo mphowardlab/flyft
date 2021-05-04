@@ -39,8 +39,8 @@ int main()
     auto Vhi = std::make_shared<flyft::HardWallPotential>(L,-1.0);
     Vlo->setDiameters(diameters);
     Vhi->setDiameters(diameters);
-    Vext->addPotential(Vlo);
-    Vext->addPotential(Vhi);
+    Vext->addObject(Vlo);
+    Vext->addObject(Vhi);
     omega->setExternalPotential(Vext);
 
     // initialize density profiles

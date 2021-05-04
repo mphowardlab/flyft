@@ -25,8 +25,12 @@ void bindSolver(py::module_&);
 void bindPicardIteration(py::module_&);
 
 void bindFlux(py::module_&);
-void bindDiffusiveFlux(py::module_& m);
-void bindBrownianDiffusiveFlux(py::module_& m);
+void bindCompositeFlux(py::module_&);
+void bindDiffusiveFlux(py::module_&);
+void bindBrownianDiffusiveFlux(py::module_&);
+
+void bindIntegrator(py::module_&);
+void bindExplicitEulerIntegrator(py::module_&);
 
 PYBIND11_MODULE(_flyft, m)
     {
@@ -54,6 +58,10 @@ PYBIND11_MODULE(_flyft, m)
     bindPicardIteration(m);
 
     bindFlux(m);
+    bindCompositeFlux(m);
     bindDiffusiveFlux(m);
     bindBrownianDiffusiveFlux(m);
+
+    bindIntegrator(m);
+    bindExplicitEulerIntegrator(m);
     }

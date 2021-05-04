@@ -1,8 +1,10 @@
 add_library(flyft SHARED
     brownian_diffusive_flux.cc
     composite_external_potential.cc
+    composite_flux.cc
     composite_functional.cc
     diffusive_flux.cc
+    explicit_euler_integrator.cc
     exponential_wall_potential.cc
     external_potential.cc
     flux.cc
@@ -12,6 +14,7 @@ add_library(flyft SHARED
     hard_wall_potential.cc
     harmonic_wall_potential.cc
     ideal_gas_functional.cc
+    integrator.cc
     lennard_jones_93_wall_potential.cc
     mesh.cc
     picard_iteration.cc
