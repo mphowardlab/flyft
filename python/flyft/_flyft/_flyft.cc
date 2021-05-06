@@ -2,6 +2,7 @@
 
 // function predeclaration in lieu of a bunch of headers
 void bindTypeMap(py::module_&);
+void bindDoubleParameters(py::module_&);
 
 void bindField(py::module_&);
 void bindMesh(py::module_&);
@@ -36,6 +37,7 @@ void bindExplicitEulerIntegrator(py::module_&);
 PYBIND11_MODULE(_flyft, m)
     {
     bindTypeMap(m);
+    bindDoubleParameters(m);
 
     bindField(m);
     bindMesh(m);

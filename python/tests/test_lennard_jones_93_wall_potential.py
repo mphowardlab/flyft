@@ -107,6 +107,30 @@ def test_shifts(lj):
     assert lj._self.shifts['A'] == True
     assert lj._self.shifts['B'] == False
 
+def test_origin(lj,state):
+    param = flyft.parameter.LinearParameter(2.0,0.0,0.1)
+    lj.origin = param
+    assert lj.origin is param
+    assert lj._self.origin is param._self
+
+    # check origin evaluates properly at both levels
+    assert lj.origin(state) == pytest.approx(2.0)
+    assert lj._self.origin(state._self) == pytest.approx(2.0)
+
+    # change time and check again
+    state.time = 10.0
+    assert lj.origin(state) == pytest.approx(3.0)
+
+    # convert the origin back to a float
+    lj.origin = 2.0
+    assert isinstance(lj.origin, float)
+    assert lj.origin == pytest.approx(2.0)
+
+    # construct another wall using a parameter
+    lj2 = flyft.external.LennardJones93Wall(param, 1.0)
+    assert lj2.origin is param
+    assert lj2._self.origin is param._self
+
 def test_potential(lj,mesh,state):
     lj.epsilons['A'] = 2.0
     lj.sigmas['A'] = 1.5

@@ -26,7 +26,33 @@ void bindWallPotential(py::module_& m)
 
     py::class_<WallPotential,std::shared_ptr<WallPotential>,WallPotentialTrampoline,ExternalPotential>(m, "WallPotential")
         .def(py::init<double,double>())
-        .def_property("origin", &WallPotential::getOrigin, &WallPotential::setOrigin)
+        .def(py::init<std::shared_ptr<DoubleParameter>,double>())
+        .def_property("origin",
+                      [](WallPotential& self) -> py::object {
+                        auto origin = self.getOrigin();
+                        auto const_origin = std::dynamic_pointer_cast<ConstantDoubleParameter>(origin);
+                        if (const_origin)
+                            {
+                            return py::cast(const_origin->getValue());
+                            }
+                        else
+                            {
+                            return py::cast(origin);
+                            }
+                      },
+                      [](WallPotential& self, py::object obj) {
+                        try
+                            {
+                            auto origin = obj.cast<double>();
+                            self.setOrigin(origin);
+                            }
+                        catch (const pybind11::cast_error& e)
+                            {
+                            auto origin = obj.cast<std::shared_ptr<DoubleParameter>>();
+                            self.setOrigin(origin);
+                            }
+                      }
+                      )
         .def_property("normal", &WallPotential::getNormal, &WallPotential::setNormal)
         ;
     }

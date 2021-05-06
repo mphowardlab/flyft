@@ -15,8 +15,7 @@ namespace flyft
 class LennardJones93WallPotential : public WallPotential
     {
     public:
-        LennardJones93WallPotential() = delete;
-        LennardJones93WallPotential(double origin, double normal);
+        using WallPotential::WallPotential;
 
         const TypeMap<double>& getEpsilons();
         double getEpsilon(const std::string& type) const;

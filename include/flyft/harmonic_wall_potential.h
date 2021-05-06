@@ -15,8 +15,7 @@ namespace flyft
 class HarmonicWallPotential : public WallPotential
     {
     public:
-        HarmonicWallPotential() = delete;
-        HarmonicWallPotential(double origin, double normal);
+        using WallPotential::WallPotential;
 
         const TypeMap<double>& getSpringConstants();
         double getSpringConstant(const std::string& type) const;

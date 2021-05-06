@@ -41,6 +41,30 @@ def test_diameters(hw):
     assert hw._self.diameters['A'] == pytest.approx(1.5)
     assert hw._self.diameters['B'] == pytest.approx(2.5)
 
+def test_origin(hw,state):
+    param = flyft.parameter.LinearParameter(2.0,0.0,0.1)
+    hw.origin = param
+    assert hw.origin is param
+    assert hw._self.origin is param._self
+
+    # check origin evaluates properly at both levels
+    assert hw.origin(state) == pytest.approx(2.0)
+    assert hw._self.origin(state._self) == pytest.approx(2.0)
+
+    # change time and check again
+    state.time = 10.0
+    assert hw.origin(state) == pytest.approx(3.0)
+
+    # convert the origin back to a float
+    hw.origin = 2.0
+    assert isinstance(hw.origin, float)
+    assert hw.origin == pytest.approx(2.0)
+
+    # construct another wall using a parameter
+    hw2 = flyft.external.HardWall(param, 1.0)
+    assert hw2.origin is param
+    assert hw2._self.origin is param._self
+
 def test_potential(hw,mesh,state):
     hw.diameters['A'] = 1.0
     state.fields['A'][:] = 2.0

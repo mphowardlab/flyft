@@ -17,6 +17,7 @@ set(FLYFT_PYTEST_SOURCES
     test_linear_potential.py
     test_mesh.py
     test_mirror.py
+    test_parameter.py
     test_picard_iteration.py
     test_rosenfeld_fmt.py
     test_state.py

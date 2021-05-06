@@ -5,17 +5,13 @@
 namespace flyft
 {
 
-LennardJones93WallPotential::LennardJones93WallPotential(double origin, double normal)
-    : WallPotential(origin,normal)
-    {
-    }
-
 void LennardJones93WallPotential::potential(std::shared_ptr<Field> V, const std::string& type, std::shared_ptr<State> state)
     {
     // get potential parameters for this type
     const auto epsilon = epsilons_.at(type);
     const auto sigma = sigmas_.at(type);
     const auto cutoff = cutoffs_.at(type);
+    const auto x0 = origin_->evaluate(state);
 
     // precompute energy shift
     bool shift = shifts_.at(type);
@@ -38,7 +34,7 @@ void LennardJones93WallPotential::potential(std::shared_ptr<Field> V, const std:
     for (int idx=0; idx < mesh->shape(); ++idx)
         {
         const auto x = mesh->coordinate(idx);
-        const double dx = normal_*(x-origin_);
+        const double dx = normal_*(x-x0);
 
         // get 9 & 3 parts scaled by sigma
         double energy;
