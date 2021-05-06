@@ -16,6 +16,7 @@ add_library(flyft SHARED
     ideal_gas_functional.cc
     integrator.cc
     lennard_jones_93_wall_potential.cc
+    linear_potential.cc
     mesh.cc
     picard_iteration.cc
     reciprocal_mesh.cc

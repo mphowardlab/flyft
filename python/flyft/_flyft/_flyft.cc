@@ -15,6 +15,7 @@ void bindRosenfeldFMT(py::module_&);
 
 void bindExternalPotential(py::module_&);
 void bindCompositeExternalPotential(py::module_&);
+void bindLinearPotential(py::module_&);
 void bindWallPotential(py::module_&);
 void bindExponentialWallPotential(py::module_&);
 void bindHardWallPotential(py::module_&);
@@ -48,6 +49,7 @@ PYBIND11_MODULE(_flyft, m)
 
     bindExternalPotential(m);
     bindCompositeExternalPotential(m);
+    bindLinearPotential(m);
     bindWallPotential(m);
     bindExponentialWallPotential(m);
     bindHardWallPotential(m);

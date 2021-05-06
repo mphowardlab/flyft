@@ -102,7 +102,7 @@ def test_excess(grand,ig,fmt,bd):
     j = jid + jex
     assert np.allclose(bd.fluxes['A'], j, rtol=1e-3, atol=5e-2)
 
-def test_external(mesh,state,grand,ig,walls,bd):
+def test_external(mesh,state,grand,ig,walls,linear,bd):
     ig.volumes['A'] = 1.0
     grand.ideal = ig
     for w in walls:
@@ -121,14 +121,23 @@ def test_external(mesh,state,grand,ig,walls,bd):
     x = mesh.coordinates
     inside = np.logical_and(x > walls[0].origin, x < walls[1].origin)
     state.fields['A'][inside] = 1.
+    grand.constrain('A', np.sum(state.fields['A'])*mesh.step, grand.Constraint.N)
     bd.compute(grand,state)
     assert np.allclose(bd.fluxes['A'], 0.)
 
     # try linear gradient between walls
     slope = (2.0-1.0)/(walls[1].origin-walls[0].origin)
     state.fields['A'][inside] = 1.0+slope*(x[inside]-walls[0].origin)
-    grand.constrain('A', (walls[1].origin-walls[0].origin)*1.5, grand.Constraint.N)
+    grand.constrain('A', np.sum(state.fields['A'])*mesh.step, grand.Constraint.N)
     bd.compute(grand,state)
     assert np.allclose(bd.fluxes['A'][3:-2], -2.0*slope)
 
-    # TODO: add linear potential to check gradient calculation is right
+    # use linear potential to check gradient calculation between walls
+    state.fields['A'][inside] = 3.
+    grand.constrain('A', np.sum(state.fields['A'])*mesh.step, grand.Constraint.N)
+    linear.xs['A'] = walls[0].origin
+    linear.ys['A'] = 0.
+    linear.slopes['A'] = 0.25
+    grand.external.append(linear)
+    bd.compute(grand,state)
+    assert np.allclose(bd.fluxes['A'][3:-2], 3.*2.*-0.25)

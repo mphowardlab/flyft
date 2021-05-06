@@ -26,6 +26,10 @@ def binary_state(mesh):
     return flyft.State(mesh,('A','B'))
 
 @pytest.fixture
+def linear():
+    return flyft.external.LinearPotential()
+
+@pytest.fixture
 def walls():
     return (flyft.external.HardWall(1.0,1.0),flyft.external.HardWall(9.0,-1.0))
 

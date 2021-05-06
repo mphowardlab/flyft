@@ -12,6 +12,12 @@ class CompositeExternalPotential(ExternalPotential,mirror.CompositeMixin,mirrorc
         if objects is not None:
             self.objects = objects
 
+class LinearPotential(ExternalPotential,mirrorclass=_flyft.LinearPotential):
+    pass
+LinearPotential.mirror_mapped_property('xs')
+LinearPotential.mirror_mapped_property('ys')
+LinearPotential.mirror_mapped_property('slopes')
+
 class WallPotential(ExternalPotential,mirrorclass=_flyft.WallPotential):
     def __init__(self, origin, normal):
         super().__init__(origin, normal)
