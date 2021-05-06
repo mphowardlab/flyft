@@ -14,6 +14,11 @@ class CompositeExternalPotential(ExternalPotential,mirror.CompositeMixin,mirrorc
 
 class LinearPotential(ExternalPotential,mirrorclass=_flyft.LinearPotential):
     pass
+
+    def set_line(self, type_, x, y, slope):
+        self.xs[type_] = x
+        self.ys[type_] = y
+        self.slopes[type_] = slope
 LinearPotential.mirror_mapped_property('xs')
 LinearPotential.mirror_mapped_property('ys')
 LinearPotential.mirror_mapped_property('slopes')

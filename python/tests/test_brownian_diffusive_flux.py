@@ -135,9 +135,7 @@ def test_external(mesh,state,grand,ig,walls,linear,bd):
     # use linear potential to check gradient calculation between walls
     state.fields['A'][inside] = 3.
     grand.constrain('A', np.sum(state.fields['A'])*mesh.step, grand.Constraint.N)
-    linear.xs['A'] = walls[0].origin
-    linear.ys['A'] = 0.
-    linear.slopes['A'] = 0.25
+    linear.set_line('A', x=walls[0].origin, y=0., slope=0.25)
     grand.external.append(linear)
     bd.compute(grand,state)
     assert np.allclose(bd.fluxes['A'][3:-2], 3.*2.*-0.25)
