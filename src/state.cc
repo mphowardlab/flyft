@@ -8,7 +8,7 @@ State::State(std::shared_ptr<const Mesh> mesh, const std::string& type)
     {}
 
 State::State(std::shared_ptr<const Mesh> mesh, const std::vector<std::string>& types)
-    : mesh_(mesh), types_(types)
+    : mesh_(mesh), types_(types), time_(0)
     {
     for (const auto& t : types_)
         {
@@ -59,6 +59,21 @@ std::shared_ptr<Field> State::getField(const std::string& type)
 std::shared_ptr<const Field> State::getField(const std::string& type) const
     {
     return fields_.at(type);
+    }
+
+double State::getTime() const
+    {
+    return time_;
+    }
+
+void State::setTime(double time)
+    {
+    time_ = time;
+    }
+
+void State::advanceTime(double timestep)
+    {
+    time_ += timestep;
     }
 
 }

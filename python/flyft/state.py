@@ -70,3 +70,4 @@ class State(mirror.Mirror,mirrorclass=_flyft.State):
             self._fields = Fields(self._self.fields)
         return self._fields
 State.mirror_property('mesh')
+State.mirror_property('time')

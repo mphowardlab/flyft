@@ -36,10 +36,15 @@ class State
         std::shared_ptr<Field> getField(const std::string& type);
         std::shared_ptr<const Field> getField(const std::string& type) const;
 
+        double getTime() const;
+        void setTime(double time);
+        void advanceTime(double timestep);
+
     private:
         std::shared_ptr<const Mesh> mesh_;
         std::vector<std::string> types_;
         TypeMap<std::shared_ptr<Field>> fields_;
+        double time_;
     };
 
 }
