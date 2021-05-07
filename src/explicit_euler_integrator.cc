@@ -50,6 +50,7 @@ bool ExplicitEulerIntegrator::advance(std::shared_ptr<Flux> flux,
                 }
             }
 
+        state->advanceTime(time_sign*dt);
         time_remain -= dt;
         if (error)
             {

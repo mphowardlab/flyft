@@ -25,9 +25,11 @@ def test_advance(mesh,state,grand,ig,linear,bd,euler):
     grand.constrain('A', 1.0*mesh.L, grand.Constraint.N)
     # run forward one step
     euler.advance(bd, grand, state, euler.timestep)
+    assert state.time == pytest.approx(1.e-3)
     assert np.allclose(state.fields['A'], 1.0)
     # run backward one step
     euler.advance(bd, grand, state, -euler.timestep)
+    assert state.time == pytest.approx(0.)
     assert np.allclose(state.fields['A'], 1.0)
 
     # add a linear field flux, but this is bulk so there should still be no change
@@ -35,6 +37,7 @@ def test_advance(mesh,state,grand,ig,linear,bd,euler):
     linear.set_line('A', x=0., y=0., slope=0.25)
     grand.external = linear
     euler.advance(bd, grand, state, euler.timestep)
+    assert state.time == pytest.approx(1.e-3)
     assert np.allclose(state.fields['A'][1:-1], 1.0)
 
     # check everywhere using the flux computed by bd
@@ -44,14 +47,20 @@ def test_advance(mesh,state,grand,ig,linear,bd,euler):
     right = np.roll(bd.fluxes['A'], -1)
     rho = state.fields['A'].data+euler.timestep*(left-right)/mesh.step
     euler.advance(bd, grand, state, euler.timestep)
+    assert state.time == pytest.approx(2.e-3)
     assert np.allclose(rho, state.fields['A'])
 
     # run forwards multiple steps
+    state.time = 0.
     state.fields['A'][:] = 1.0
     grand.external = None
     euler.advance(bd, grand, state, 0.1)
+    assert state.time == pytest.approx(0.1)
     euler.advance(bd, grand, state, -0.1)
+    assert state.time == pytest.approx(0.)
 
     # run forwards for a partial step
     euler.advance(bd, grand, state, 1.5e-4)
+    assert state.time == pytest.approx(1.5e-4)
     euler.advance(bd, grand, state, -1.5e-4)
+    assert state.time == pytest.approx(0.)
