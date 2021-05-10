@@ -26,6 +26,8 @@ LinearPotential.mirror_mapped_property('slopes')
 class WallPotential(ExternalPotential,mirrorclass=_flyft.WallPotential):
     def __init__(self, origin, normal):
         super().__init__(origin, normal)
+        # force a second time to cache origin if needed
+        self.origin = origin
 WallPotential.mirror_property('origin')
 WallPotential.mirror_property('normal')
 

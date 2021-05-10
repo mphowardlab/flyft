@@ -7,6 +7,7 @@ void bindHarmonicWallPotential(py::module_& m)
 
     py::class_<HarmonicWallPotential,std::shared_ptr<HarmonicWallPotential>,WallPotential>(m, "HarmonicWallPotential")
         .def(py::init<double,double>())
+        .def(py::init<std::shared_ptr<DoubleParameter>,double>())
         .def_property("spring_constants", &HarmonicWallPotential::getSpringConstants, &HarmonicWallPotential::setSpringConstants)
         .def_property("shifts", &HarmonicWallPotential::getShifts, &HarmonicWallPotential::setShifts)
         ;

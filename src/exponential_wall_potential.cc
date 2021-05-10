@@ -3,18 +3,13 @@
 namespace flyft
 {
 
-ExponentialWallPotential::ExponentialWallPotential(double origin, double normal)
-    : WallPotential(origin,normal)
-    {
-    }
-
 void ExponentialWallPotential::potential(std::shared_ptr<Field> V, const std::string& type, std::shared_ptr<State> state)
     {
     // get potential parameters for this type
     const auto epsilon = epsilons_.at(type);
     const auto kappa = kappas_.at(type);
     const auto shift = shifts_.at(type);
-    const double x0 = origin_ + shift;
+    const double x0 = origin_->evaluate(state) + shift;
 
     auto mesh = state->getMesh();
     auto data = V->data();

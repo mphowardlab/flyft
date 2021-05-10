@@ -4,26 +4,43 @@ namespace flyft
 {
 
 WallPotential::WallPotential(double origin, double normal)
-    : origin_(origin)
     {
+    setOrigin(origin);
+    setNormal(normal);
+    }
+
+WallPotential::WallPotential(std::shared_ptr<DoubleParameter> origin, double normal)
+    {
+    setOrigin(origin);
     setNormal(normal);
     }
 
 void WallPotential::compute(std::shared_ptr<State> state)
     {
-    if (origin_ < 0 || origin_ > state->getMesh()->L())
+    const auto x0 = origin_->evaluate(state);
+    if (x0 < 0 || x0 > state->getMesh()->L())
         {
         // origin out of bounds
         }
     ExternalPotential::compute(state);
     }
 
-double WallPotential::getOrigin() const
+std::shared_ptr<DoubleParameter> WallPotential::getOrigin()
+    {
+    return origin_;
+    }
+
+std::shared_ptr<const DoubleParameter> WallPotential::getOrigin() const
     {
     return origin_;
     }
 
 void WallPotential::setOrigin(double origin)
+    {
+    origin_ = std::make_shared<ConstantDoubleParameter>(origin);
+    }
+
+void WallPotential::setOrigin(std::shared_ptr<DoubleParameter> origin)
     {
     origin_ = origin;
     }

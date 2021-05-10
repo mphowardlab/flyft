@@ -5,6 +5,7 @@ set(FLYFT_PY_SOURCES
     external.py
     functional.py
     mirror.py
+    parameter.py
     solver.py
     state.py
     )
@@ -31,6 +32,7 @@ set(_FLYFT_CC_SOURCES
     lennard_jones_93_wall_potential.cc
     linear_potential.cc
     mesh.cc
+    parameter.cc
     picard_iteration.cc
     rosenfeld_fmt.cc
     solver.cc

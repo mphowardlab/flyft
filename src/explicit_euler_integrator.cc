@@ -26,7 +26,6 @@ bool ExplicitEulerIntegrator::advance(std::shared_ptr<Flux> flux,
         const auto mesh = state->getMesh();
         flux->compute(grand,state);
 
-        bool error = false;
         for (const auto& t : state->getTypes())
             {
             auto rho = state->getField(t)->data();
@@ -40,21 +39,19 @@ bool ExplicitEulerIntegrator::advance(std::shared_ptr<Flux> flux,
                 int right = (idx+1) % mesh->shape();
 
                 // change in density is flux in - flux out over time
-                rho[idx] += (time_sign*dt)*(j[left]-j[right])/mesh->step();
+                const auto rate = (j[left]-j[right])/mesh->step();
+                rho[idx] += (time_sign*dt)*rate;
                 if (rho[idx] < 0)
                     {
-                    // ERROR: cannot get negative density (timestep is too big)
-                    // TODO: modify this to do step size control (shrink to acceptable dt)
-                    error = true;
+                    // densities are strictly non-negative, clamp
+                    // TODO: make this a tolerance so that huge negative numbers are an error
+                    rho[idx] = 0.;
                     }
                 }
             }
 
+        state->advanceTime(time_sign*dt);
         time_remain -= dt;
-        if (error)
-            {
-            return false;
-            }
         }
 
     return true;

@@ -3,17 +3,12 @@
 namespace flyft
 {
 
-HarmonicWallPotential::HarmonicWallPotential(double origin, double normal)
-    : WallPotential(origin,normal)
-    {
-    }
-
 void HarmonicWallPotential::potential(std::shared_ptr<Field> V, const std::string& type, std::shared_ptr<State> state)
     {
     // get potential parameters for this type
     const auto k = spring_constants_.at(type);
     const auto shift = shifts_.at(type);
-    const double x0 = origin_ + shift;
+    const double x0 = origin_->evaluate(state) + shift;
 
     auto mesh = state->getMesh();
     auto data = V->data();

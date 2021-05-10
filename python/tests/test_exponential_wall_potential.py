@@ -85,6 +85,30 @@ def test_shifts(ew):
     assert ew._self.shifts['A'] == pytest.approx(1.5)
     assert ew._self.shifts['B'] == pytest.approx(2.5)
 
+def test_origin(ew,state):
+    param = flyft.parameter.LinearParameter(2.0,0.0,0.1)
+    ew.origin = param
+    assert ew.origin is param
+    assert ew._self.origin is param._self
+
+    # check origin evaluates properly at both levels
+    assert ew.origin(state) == pytest.approx(2.0)
+    assert ew._self.origin(state._self) == pytest.approx(2.0)
+
+    # change time and check again
+    state.time = 10.0
+    assert ew.origin(state) == pytest.approx(3.0)
+
+    # convert the origin back to a float
+    ew.origin = 2.0
+    assert isinstance(ew.origin, float)
+    assert ew.origin == pytest.approx(2.0)
+
+    # construct another wall using a parameter
+    ew2 = flyft.external.ExponentialWall(param, 1.0)
+    assert ew2.origin is param
+    assert ew2._self.origin is param._self
+
 def test_potential(ew,mesh,state):
     ew.epsilons['A'] = 4.0
     ew.kappas['A'] = 1.5
