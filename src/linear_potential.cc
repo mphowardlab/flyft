@@ -14,7 +14,7 @@ void LinearPotential::potential(std::shared_ptr<Field> V,
     const auto mesh = *(state->getMesh());
     auto data = V->data();
 
-    #pragma omp parallel for default(none) shared(mesh,data,y0,m,x0)
+    #pragma omp parallel for schedule(static) default(none) shared(mesh,data,y0,m,x0)
     for (int idx=0; idx < mesh.shape(); ++idx)
         {
         const auto x = mesh.coordinate(idx);

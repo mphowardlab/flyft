@@ -12,7 +12,7 @@ void HarmonicWallPotential::potential(std::shared_ptr<Field> V, const std::strin
 
     const auto mesh = *(state->getMesh());
     auto data = V->data();
-    #pragma omp parallel for default(none) shared(mesh,k,x0,data)
+    #pragma omp parallel for schedule(static) default(none) shared(mesh,k,x0,data)
     for (int idx=0; idx < mesh.shape(); ++idx)
         {
         const auto x = mesh.coordinate(idx);

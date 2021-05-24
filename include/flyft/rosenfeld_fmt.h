@@ -82,7 +82,7 @@ class RosenfeldFMT : public Functional
         template<typename T>
         void parallel_copy(const T* src, int size, T* dest)
             {
-            #pragma omp parallel for default(none) shared(src,dest,size)
+            #pragma omp parallel for simd schedule(static) default(none) shared(src,dest,size)
             for (int idx=0; idx < size; ++idx)
                 {
                 dest[idx] = src[idx];

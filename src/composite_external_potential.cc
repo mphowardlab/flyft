@@ -25,7 +25,7 @@ void CompositeExternalPotential::potential(std::shared_ptr<Field> V, const std::
         auto tmp = Vtmp_->data();
 
         const auto shape = mesh->shape();
-        #pragma omp parallel for default(none) shared(data,tmp,shape)
+        #pragma omp parallel for simd schedule(static) default(none) shared(data,tmp,shape)
         for (int idx=0; idx < shape; ++idx)
             {
             data[idx] += tmp[idx];

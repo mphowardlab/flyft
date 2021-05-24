@@ -14,7 +14,7 @@ void HardWallPotential::potential(std::shared_ptr<Field> V, const std::string& t
     const auto mesh = *(state->getMesh());
     auto data = V->data();
 
-    #pragma omp parallel for default(none) shared(mesh,normal_,edge,data)
+    #pragma omp parallel for schedule(static) default(none) shared(mesh,normal_,edge,data)
     for (int idx=0; idx < mesh.shape(); ++idx)
         {
         const auto x = mesh.coordinate(idx);

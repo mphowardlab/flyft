@@ -27,7 +27,7 @@ void CompositeFlux::compute(std::shared_ptr<GrandPotential> grand, std::shared_p
             auto jo = o->getFlux(t)->data();
 
             const auto shape = mesh->shape();
-            #pragma omp parallel for default(none) shared(j,jo,shape)
+            #pragma omp parallel for simd schedule(static) default(none) shared(j,jo,shape)
             for (int idx=0; idx < shape; ++idx)
                 {
                 j[idx] += jo[idx];

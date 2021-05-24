@@ -34,7 +34,7 @@ void CompositeFunctional::compute(std::shared_ptr<State> state)
             auto df = f->getDerivative(t)->data();
 
             const auto shape = mesh->shape();
-            #pragma omp parallel for default(none) shared(d,df,shape)
+            #pragma omp parallel for simd schedule(static) default(none) shared(d,df,shape)
             for (int idx=0; idx < shape; ++idx)
                 {
                 d[idx] += df[idx];

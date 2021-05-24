@@ -51,7 +51,7 @@ bool PicardIteration::solve(std::shared_ptr<GrandPotential> grand, std::shared_p
                 {
                 auto N = grand->getConstraint(t);
                 double sum = 0.0;
-                #pragma omp parallel for default(none) shared(shape,mu_ex,V,rho_tmp) reduction(+:sum)
+                #pragma omp parallel for schedule(static) default(none) shared(shape,mu_ex,V,rho_tmp) reduction(+:sum)
                 for (int idx=0; idx < shape; ++idx)
                     {
                     double eff_energy = 0.0;
@@ -67,7 +67,7 @@ bool PicardIteration::solve(std::shared_ptr<GrandPotential> grand, std::shared_p
             else if (constraint_type == GrandPotential::Constraint::mu)
                 {
                 auto mu_bulk = grand->getConstraint(t);
-                #pragma omp parallel for default(none) shared(shape,mu_ex,V,rho_tmp,mu_bulk)
+                #pragma omp parallel for schedule(static) default(none) shared(shape,mu_ex,V,rho_tmp,mu_bulk)
                 for (int idx=0; idx < shape; ++idx)
                     {
                     double eff_energy = 0.0;
@@ -85,7 +85,7 @@ bool PicardIteration::solve(std::shared_ptr<GrandPotential> grand, std::shared_p
 
             // apply Picard mixing along with appropriate norm on value
             // during the same loop while checking convergence
-            #pragma omp parallel for default(none) shared(shape,rho,rho_tmp,converged,alpha,norm,tol)
+            #pragma omp parallel for schedule(static) default(none) shared(shape,rho,rho_tmp,converged,alpha,norm,tol)
             for (int idx=0; idx < shape; ++idx)
                 {
                 const double drho = alpha*(norm*rho_tmp[idx]-rho[idx]);
@@ -94,7 +94,7 @@ bool PicardIteration::solve(std::shared_ptr<GrandPotential> grand, std::shared_p
                 // check on convergence from absolute change in rho (might also want a percentage check)
                 if (std::abs(drho) > tol)
                     {
-                    #pragma omp critical
+                    // this will be a race in parallel code, but it doesn't matter because only one thread needs to hit false
                     converged = false;
                     }
                 }

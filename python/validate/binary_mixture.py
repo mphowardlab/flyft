@@ -47,4 +47,3 @@ for t in state.fields:
 # iterate to convergence
 picard = flyft.solver.PicardIteration(1.e-4,200000,1.e-8)
 picard.solve(omega,state)
-np.savetxt('density.dat',np.column_stack((x,state.fields['A'].data,state.fields['B'].data)))

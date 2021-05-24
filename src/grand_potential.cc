@@ -41,7 +41,7 @@ void GrandPotential::compute(std::shared_ptr<State> state)
         auto dext = (external_) ? external_->getDerivative(t)->data() : nullptr;
 
         const auto shape = mesh->shape();
-        #pragma omp parallel for default(none) shared(d,did,dex,dext,shape)
+        #pragma omp parallel for schedule(static) default(none) shared(d,did,dex,dext,shape)
         for (int idx=0; idx < shape; ++idx)
             {
             double deriv = 0.;

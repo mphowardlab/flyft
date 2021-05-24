@@ -32,7 +32,7 @@ void BrownianDiffusiveFlux::compute(std::shared_ptr<GrandPotential> grand, std::
         const auto shape = mesh->shape();
         auto flux = fluxes_.at(t)->data();
 
-        #pragma omp parallel for default(none) shared(D,rho,mu_ex,V,dx,shape,flux)
+        #pragma omp parallel for schedule(static) default(none) shared(D,rho,mu_ex,V,dx,shape,flux)
         for (int idx=0; idx < shape; ++idx)
             {
             // explicitly apply pbcs on the index
