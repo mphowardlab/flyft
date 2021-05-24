@@ -29,13 +29,15 @@ void BrownianDiffusiveFlux::compute(std::shared_ptr<GrandPotential> grand, std::
         auto V = (external) ? external->getDerivative(t)->data() : nullptr;
 
         const auto dx = mesh->step();
+        const auto shape = mesh->shape();
         auto flux = fluxes_.at(t)->data();
 
-        for (int idx=0; idx < mesh->shape(); ++idx)
+        #pragma omp parallel for default(none) shared(D,rho,mu_ex,V,dx,shape,flux)
+        for (int idx=0; idx < shape; ++idx)
             {
             // explicitly apply pbcs on the index
             // TODO: add a wrapping function to the mesh
-            int left = (idx > 0) ? idx-1 : mesh->shape()-1;
+            int left = (idx > 0) ? idx-1 : shape-1;
 
             // handle infinite external potentials carefully, as there should be no flux in those directions
             bool no_flux = false;

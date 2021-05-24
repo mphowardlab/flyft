@@ -78,6 +78,16 @@ class RosenfeldFMT : public Functional
                             std::complex<double>& wv2,
                             double k,
                             double R) const;
+
+        template<typename T>
+        void parallel_copy(const T* src, int size, T* dest)
+            {
+            #pragma omp parallel for default(none) shared(src,dest,size)
+            for (int idx=0; idx < size; ++idx)
+                {
+                dest[idx] = src[idx];
+                }
+            }
     };
 
 }

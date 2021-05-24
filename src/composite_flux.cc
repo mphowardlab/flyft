@@ -25,7 +25,10 @@ void CompositeFlux::compute(std::shared_ptr<GrandPotential> grand, std::shared_p
             {
             auto j = fluxes_.at(t)->data();
             auto jo = o->getFlux(t)->data();
-            for (int idx=0; idx < mesh->shape(); ++idx)
+
+            const auto shape = mesh->shape();
+            #pragma omp parallel for default(none) shared(j,jo,shape)
+            for (int idx=0; idx < shape; ++idx)
                 {
                 j[idx] += jo[idx];
                 }

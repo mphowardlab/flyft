@@ -11,11 +11,13 @@ void ExponentialWallPotential::potential(std::shared_ptr<Field> V, const std::st
     const auto shift = shifts_.at(type);
     const double x0 = origin_->evaluate(state) + shift;
 
-    auto mesh = state->getMesh();
+    const auto mesh = *(state->getMesh());
     auto data = V->data();
-    for (int idx=0; idx < mesh->shape(); ++idx)
+
+    #pragma omp parallel for default(none) shared(epsilon,kappa,x0,mesh,data,normal_)
+    for (int idx=0; idx < mesh.shape(); ++idx)
         {
-        const auto x = mesh->coordinate(idx);
+        const auto x = mesh.coordinate(idx);
         const double dx = normal_*(x-x0);
         data[idx] = epsilon*std::exp(-kappa*dx);
         }

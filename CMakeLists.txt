@@ -5,11 +5,18 @@ project(
     LANGUAGES CXX
     )
 
+option(FLYFT_OPENMP "Use OpenMP threading." ON)
 option(FLYFT_PYTHON "Build Python package." ON)
 option(FLYFT_TESTING "Build testing." ON)
 
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 find_package(FFTW3 MODULE REQUIRED)
+if(FLYFT_OPENMP)
+    find_package(OpenMP REQUIRED)
+    if(NOT TARGET FFTW3::fftw3_omp)
+        message(FATAL_ERROR "Unable to locate FFTW3 OpenMP library")
+    endif()
+endif()
 
 if(FLYFT_TESTING)
     enable_testing()

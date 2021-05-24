@@ -11,11 +11,13 @@ void HardWallPotential::potential(std::shared_ptr<Field> V, const std::string& t
     const double R = 0.5*diameters_.at(type);
     const double edge = origin_->evaluate(state) + normal_*R;
 
-    auto mesh = state->getMesh();
+    const auto mesh = *(state->getMesh());
     auto data = V->data();
-    for (int idx=0; idx < mesh->shape(); ++idx)
+
+    #pragma omp parallel for default(none) shared(mesh,normal_,edge,data)
+    for (int idx=0; idx < mesh.shape(); ++idx)
         {
-        const auto x = mesh->coordinate(idx);
+        const auto x = mesh.coordinate(idx);
         data[idx] = (normal_*(x-edge) < 0) ? std::numeric_limits<double>::infinity() : 0.0;
         }
     }

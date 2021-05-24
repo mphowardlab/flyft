@@ -31,15 +31,18 @@ bool ExplicitEulerIntegrator::advance(std::shared_ptr<Flux> flux,
             auto rho = state->getField(t)->data();
             auto j = flux->getFlux(t)->data();
 
-            for (int idx=0; idx < mesh->shape(); ++idx)
+            const auto dx = mesh->step();
+            const auto shape = mesh->shape();
+            #pragma omp parallel for default(none) shared(time_sign,dt,rho,j,dx,shape)
+            for (int idx=0; idx < shape; ++idx)
                 {
                 // explicitly apply pbcs on the index
                 // TODO: add a wrapping function to the mesh
                 int left = idx;
-                int right = (idx+1) % mesh->shape();
+                int right = (idx+1) % shape;
 
                 // change in density is flux in - flux out over time
-                const auto rate = (j[left]-j[right])/mesh->step();
+                const auto rate = (j[left]-j[right])/dx;
                 rho[idx] += (time_sign*dt)*rate;
                 if (rho[idx] < 0)
                     {

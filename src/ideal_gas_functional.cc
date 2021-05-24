@@ -17,20 +17,27 @@ void IdealGasFunctional::compute(std::shared_ptr<State> state)
         // compute the total potential by integration
         auto f = state->getField(t)->data();
         auto d = derivatives_.at(t)->data();
-        for (int idx=0; idx < mesh->shape(); ++idx)
+
+        const auto shape = mesh->shape();
+        const auto dx = mesh->step();
+        #pragma omp parallel for default(none) shared(f,d,shape,dx,vol) reduction(+:value_)
+        for (int idx=0; idx < shape; ++idx)
             {
             const double rho = f[idx];
+            double energy;
             if (rho > 0)
                 {
                 d[idx] = std::log(vol*rho);
-                value_ += mesh->step()*rho*(d[idx]-1.);
+                energy = dx*rho*(d[idx]-1.);
                 }
             else
                 {
                 d[idx] = -std::numeric_limits<double>::infinity();
                 // no contribution to total in limit rho -> 0
-                // value_ += 0.0
+                energy = 0.0;
                 }
+
+            value_ += energy;
             }
         }
     }
