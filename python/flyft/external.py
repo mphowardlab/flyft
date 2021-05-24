@@ -13,42 +13,38 @@ class CompositeExternalPotential(ExternalPotential,mirror.CompositeMixin,mirrorc
             self.objects = objects
 
 class LinearPotential(ExternalPotential,mirrorclass=_flyft.LinearPotential):
-    pass
-
     def set_line(self, type_, x, y, slope):
         self.xs[type_] = x
         self.ys[type_] = y
         self.slopes[type_] = slope
-LinearPotential.mirror_mapped_property('xs')
-LinearPotential.mirror_mapped_property('ys')
-LinearPotential.mirror_mapped_property('slopes')
+
+    xs = mirror.WrappedProperty(mirror.MutableMapping)
+    ys = mirror.WrappedProperty(mirror.MutableMapping)
+    slopes = mirror.WrappedProperty(mirror.MutableMapping)
 
 class WallPotential(ExternalPotential,mirrorclass=_flyft.WallPotential):
     def __init__(self, origin, normal):
         super().__init__(origin, normal)
         # force a second time to cache origin if needed
         self.origin = origin
-WallPotential.mirror_property('origin')
-WallPotential.mirror_property('normal')
+
+    origin = mirror.Property()
+    normal = mirror.Property()
 
 class ExponentialWall(WallPotential,mirrorclass=_flyft.ExponentialWallPotential):
-    pass
-ExponentialWall.mirror_mapped_property('epsilons')
-ExponentialWall.mirror_mapped_property('kappas')
-ExponentialWall.mirror_mapped_property('shifts')
+    epsilons = mirror.WrappedProperty(mirror.MutableMapping)
+    kappas = mirror.WrappedProperty(mirror.MutableMapping)
+    shifts = mirror.WrappedProperty(mirror.MutableMapping)
 
 class HardWall(WallPotential,mirrorclass=_flyft.HardWallPotential):
-    pass
-HardWall.mirror_mapped_property('diameters')
+    diameters = mirror.WrappedProperty(mirror.MutableMapping)
 
 class HarmonicWall(WallPotential,mirrorclass=_flyft.HarmonicWallPotential):
-    pass
-HarmonicWall.mirror_mapped_property('spring_constants')
-HarmonicWall.mirror_mapped_property('shifts')
+    spring_constants = mirror.WrappedProperty(mirror.MutableMapping)
+    shifts = mirror.WrappedProperty(mirror.MutableMapping)
 
 class LennardJones93Wall(WallPotential,mirrorclass=_flyft.LennardJones93WallPotential):
-    pass
-LennardJones93Wall.mirror_mapped_property('epsilons')
-LennardJones93Wall.mirror_mapped_property('sigmas')
-LennardJones93Wall.mirror_mapped_property('cutoffs')
-LennardJones93Wall.mirror_mapped_property('shifts')
+    epsilons = mirror.WrappedProperty(mirror.MutableMapping)
+    sigmas = mirror.WrappedProperty(mirror.MutableMapping)
+    cutoffs = mirror.WrappedProperty(mirror.MutableMapping)
+    shifts = mirror.WrappedProperty(mirror.MutableMapping)

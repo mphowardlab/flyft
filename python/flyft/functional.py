@@ -3,13 +3,9 @@ from . import mirror
 from . import state
 
 class Functional(mirror.Mirror,mirrorclass=_flyft.Functional):
-    @property
-    def derivatives(self):
-        if not hasattr(self, '_derivatives') or self._derivatives._self is not self._self.derivatives:
-            self._derivatives = state.Fields(self._self.derivatives)
-        return self._derivatives
-Functional.mirror_property('value')
-Functional.mirror_method('compute')
+    compute = mirror.Method()
+    derivatives = mirror.WrappedProperty(state.Fields)
+    value = mirror.Property()
 
 class CompositeFunctional(Functional,mirror.CompositeMixin,mirrorclass=_flyft.CompositeFunctional):
     def __init__(self, objects=None):
@@ -18,12 +14,10 @@ class CompositeFunctional(Functional,mirror.CompositeMixin,mirrorclass=_flyft.Co
             self.objects = objects
 
 class IdealGas(Functional,mirrorclass=_flyft.IdealGasFunctional):
-    pass
-IdealGas.mirror_mapped_property('volumes')
+    volumes = mirror.WrappedProperty(mirror.MutableMapping)
 
 class RosenfeldFMT(Functional,mirrorclass=_flyft.RosenfeldFMT):
-    pass
-RosenfeldFMT.mirror_mapped_property('diameters')
+    diameters = mirror.WrappedProperty(mirror.MutableMapping)
 
 class GrandPotential(Functional,mirrorclass=_flyft.GrandPotential):
     def __init__(self, ideal=None, excess=None, external=None):
@@ -40,8 +34,9 @@ class GrandPotential(Functional,mirrorclass=_flyft.GrandPotential):
     def constrain(self, key, value, constraint_type):
         self.constraints[key] = value
         self.constraint_types[key] = constraint_type
-GrandPotential.mirror_property('ideal')
-GrandPotential.mirror_property('excess')
-GrandPotential.mirror_property('external')
-GrandPotential.mirror_mapped_property('constraints')
-GrandPotential.mirror_mapped_property('constraint_types')
+
+    ideal = mirror.Property()
+    excess = mirror.Property()
+    external = mirror.Property()
+    constraints = mirror.WrappedProperty(mirror.MutableMapping)
+    constraint_types = mirror.WrappedProperty(mirror.MutableMapping)

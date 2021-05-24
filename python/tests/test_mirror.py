@@ -26,9 +26,11 @@ class _A:
 class A(flyft.mirror.Mirror,mirrorclass=_A):
     def __init__(self, x, y):
         super().__init__(x,y)
-A.mirror_property("x")
-A.mirror_property("y")
-A.mirror_method("add")
+
+    x = flyft.mirror.Property()
+    y = flyft.mirror.Property()
+
+    add = flyft.mirror.Method()
 
 def test_Mirror():
     a = A(1,2)

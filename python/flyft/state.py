@@ -28,7 +28,8 @@ class Field(mirror.Mirror,mirrorclass=_flyft.Field):
         if v.shape != (self.shape,):
             raise TypeError('Array shapes must match')
         np.copyto(self.data, v)
-Field.mirror_property('shape')
+
+    shape = mirror.Property()
 
 class Fields(mirror.Mapping):
     def __init__(self, _self):
@@ -50,9 +51,10 @@ class Mesh(mirror.Mirror,mirrorclass=_flyft.Mesh):
         if not hasattr(self, '_coordinates'):
             self._coordinates = np.array([self._self.coordinate(i) for i in range(self.shape)])
         return self._coordinates
-Mesh.mirror_property('L')
-Mesh.mirror_property('shape')
-Mesh.mirror_property('step')
+
+    L = mirror.Property()
+    shape = mirror.Property()
+    step = mirror.Property()
 
 class State(mirror.Mirror,mirrorclass=_flyft.State):
     def __init__(self, mesh, types):
@@ -64,10 +66,6 @@ class State(mirror.Mirror,mirrorclass=_flyft.State):
         # manually store input mesh into the cache
         self._mesh = mesh
 
-    @property
-    def fields(self):
-        if not hasattr(self, '_fields') or self._fields._self is not self._self.fields:
-            self._fields = Fields(self._self.fields)
-        return self._fields
-State.mirror_property('mesh')
-State.mirror_property('time')
+    fields = mirror.WrappedProperty(Fields)
+    mesh = mirror.Property()
+    time = mirror.Property()
