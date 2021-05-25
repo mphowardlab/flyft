@@ -14,7 +14,9 @@ void LinearPotential::potential(std::shared_ptr<Field> V,
     const auto mesh = *(state->getMesh());
     auto data = V->data();
 
+    #ifdef FLYFT_OPENMP
     #pragma omp parallel for schedule(static) default(none) shared(mesh,data,y0,m,x0)
+    #endif
     for (int idx=0; idx < mesh.shape(); ++idx)
         {
         const auto x = mesh.coordinate(idx);

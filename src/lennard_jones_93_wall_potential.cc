@@ -32,7 +32,9 @@ void LennardJones93WallPotential::potential(std::shared_ptr<Field> V, const std:
     const auto mesh = *(state->getMesh());
     auto data = V->data();
 
+    #ifdef FLYFT_OPENMP
     #pragma omp parallel for schedule(static) default(none) shared(mesh,data,epsilon,sigma,cutoff,x0,normal_,energy_shift)
+    #endif
     for (int idx=0; idx < mesh.shape(); ++idx)
         {
         const auto x = mesh.coordinate(idx);

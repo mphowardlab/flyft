@@ -51,7 +51,9 @@ bool PicardIteration::solve(std::shared_ptr<GrandPotential> grand, std::shared_p
                 {
                 auto N = grand->getConstraint(t);
                 double sum = 0.0;
+                #ifdef FLYFT_OPENMP
                 #pragma omp parallel for schedule(static) default(none) shared(shape,mu_ex,V,rho_tmp) reduction(+:sum)
+                #endif
                 for (int idx=0; idx < shape; ++idx)
                     {
                     double eff_energy = 0.0;
@@ -67,7 +69,9 @@ bool PicardIteration::solve(std::shared_ptr<GrandPotential> grand, std::shared_p
             else if (constraint_type == GrandPotential::Constraint::mu)
                 {
                 auto mu_bulk = grand->getConstraint(t);
+                #ifdef FLYFT_OPENMP
                 #pragma omp parallel for schedule(static) default(none) shared(shape,mu_ex,V,rho_tmp,mu_bulk)
+                #endif
                 for (int idx=0; idx < shape; ++idx)
                     {
                     double eff_energy = 0.0;
@@ -85,7 +89,9 @@ bool PicardIteration::solve(std::shared_ptr<GrandPotential> grand, std::shared_p
 
             // apply Picard mixing along with appropriate norm on value
             // during the same loop while checking convergence
+            #ifdef FLYFT_OPENMP
             #pragma omp parallel for schedule(static) default(none) shared(shape,rho,rho_tmp,converged,alpha,norm,tol)
+            #endif
             for (int idx=0; idx < shape; ++idx)
                 {
                 const double drho = alpha*(norm*rho_tmp[idx]-rho[idx]);

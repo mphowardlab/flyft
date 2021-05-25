@@ -34,7 +34,9 @@ void CompositeFunctional::compute(std::shared_ptr<State> state)
             auto df = f->getDerivative(t)->data();
 
             const auto shape = mesh->shape();
+            #ifdef FLYFT_OPENMP
             #pragma omp parallel for schedule(static) default(none) shared(d,df,shape)
+            #endif
             for (int idx=0; idx < shape; ++idx)
                 {
                 d[idx] += df[idx];

@@ -82,7 +82,9 @@ class RosenfeldFMT : public Functional
         template<typename T>
         void parallel_copy(const T* src, int size, T* dest)
             {
+            #ifdef FLYFT_OPENMP
             #pragma omp parallel for schedule(static) default(none) shared(src,dest,size)
+            #endif
             for (int idx=0; idx < size; ++idx)
                 {
                 dest[idx] = src[idx];

@@ -41,7 +41,7 @@ target_compile_features(flyft PUBLIC cxx_std_14)
 # selectively turn on compile options for gcc & clang
 target_compile_options(flyft PRIVATE
      $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>:
-          -Werror -Wall -Wextra -Wno-unknown-pragmas>
+          -Werror -Wall -Wextra>
      $<$<CXX_COMPILER_ID:GNU>:-fdiagnostics-color=always>
      $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>>:-fcolor-diagnostics>)
 

@@ -41,7 +41,9 @@ void GrandPotential::compute(std::shared_ptr<State> state)
         auto dext = (external_) ? external_->getDerivative(t)->data() : nullptr;
 
         const auto shape = mesh->shape();
+        #ifdef FLYFT_OPENMP
         #pragma omp parallel for schedule(static) default(none) shared(d,did,dex,dext,shape)
+        #endif
         for (int idx=0; idx < shape; ++idx)
             {
             double deriv = 0.;
@@ -57,10 +59,14 @@ void GrandPotential::compute(std::shared_ptr<State> state)
             {
             auto mu_bulk = constraints_.at(t);
             auto rho = state->getField(t)->data();
-            for (int idx=0; idx < mesh->shape(); ++idx)
+            const auto dx = mesh->step();
+            #ifdef FLYFT_OPENMP
+            #pragma omp parallel for schedule(static) default(none) shared(shape,dx,mu_bulk,rho,d) reduction(-:value_)
+            #endif
+            for (int idx=0; idx < shape; ++idx)
                 {
-                value_ -= mesh->step()*mu_bulk*rho[idx];
                 d[idx] -= mu_bulk;
+                value_ -= dx*mu_bulk*rho[idx];
                 }
             }
         }
