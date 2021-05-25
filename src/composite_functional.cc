@@ -1,4 +1,5 @@
 #include "flyft/composite_functional.h"
+#include "flyft/parallel.h"
 
 #include <algorithm>
 
@@ -15,7 +16,7 @@ void CompositeFunctional::compute(std::shared_ptr<State> state)
     for (const auto& t : state->getTypes())
         {
         auto d = derivatives_.at(t)->data();
-        std::fill(d,d+mesh->shape(),0.);
+        parallel::fill(d,mesh->shape(),0.);
         }
 
     // combine

@@ -1,4 +1,5 @@
 #include "flyft/composite_flux.h"
+#include "flyft/parallel.h"
 
 #include <algorithm>
 
@@ -14,7 +15,7 @@ void CompositeFlux::compute(std::shared_ptr<GrandPotential> grand, std::shared_p
     for (const auto& t : state->getTypes())
         {
         auto j = fluxes_.at(t)->data();
-        std::fill(j,j+mesh->shape(),0.);
+        parallel::fill(j,mesh->shape(),0.);
         }
 
     // combine

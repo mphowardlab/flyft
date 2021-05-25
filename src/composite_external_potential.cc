@@ -1,4 +1,5 @@
 #include "flyft/composite_external_potential.h"
+#include "flyft/parallel.h"
 
 #include <algorithm>
 
@@ -17,7 +18,7 @@ void CompositeExternalPotential::potential(std::shared_ptr<Field> V, const std::
 
     // fill total potential with zeros
     auto data = V->data();
-    std::fill(data,data+mesh->shape(),0.);
+    parallel::fill(data,mesh->shape(),0.);
 
     for (const auto& potential : objects_)
         {
