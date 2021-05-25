@@ -43,6 +43,7 @@ bool PicardIteration::solve(std::shared_ptr<GrandPotential> grand, std::shared_p
             auto rho_tmp = tmp.data();
             auto mu_ex = (excess) ? excess->getDerivative(t)->data() : nullptr;
             auto V = (external) ? external->getDerivative(t)->data() : nullptr;
+            const auto shape = mesh->shape();
 
             double norm = 1.0;
             auto constraint_type = grand->getConstraintType(t);
@@ -50,7 +51,10 @@ bool PicardIteration::solve(std::shared_ptr<GrandPotential> grand, std::shared_p
                 {
                 auto N = grand->getConstraint(t);
                 double sum = 0.0;
-                for (int idx=0; idx < mesh->shape(); ++idx)
+                #ifdef FLYFT_OPENMP
+                #pragma omp parallel for schedule(static) default(none) shared(shape,mu_ex,V,rho_tmp) reduction(+:sum)
+                #endif
+                for (int idx=0; idx < shape; ++idx)
                     {
                     double eff_energy = 0.0;
                     if (mu_ex) eff_energy += mu_ex[idx];
@@ -65,7 +69,10 @@ bool PicardIteration::solve(std::shared_ptr<GrandPotential> grand, std::shared_p
             else if (constraint_type == GrandPotential::Constraint::mu)
                 {
                 auto mu_bulk = grand->getConstraint(t);
-                for (int idx=0; idx < mesh->shape(); ++idx)
+                #ifdef FLYFT_OPENMP
+                #pragma omp parallel for schedule(static) default(none) shared(shape,mu_ex,V,rho_tmp,mu_bulk)
+                #endif
+                for (int idx=0; idx < shape; ++idx)
                     {
                     double eff_energy = 0.0;
                     if (mu_ex) eff_energy += mu_ex[idx];
@@ -82,13 +89,20 @@ bool PicardIteration::solve(std::shared_ptr<GrandPotential> grand, std::shared_p
 
             // apply Picard mixing along with appropriate norm on value
             // during the same loop while checking convergence
-            for (int idx=0; idx < mesh->shape(); ++idx)
+            #ifdef FLYFT_OPENMP
+            #pragma omp parallel for schedule(static) default(none) shared(shape,rho,rho_tmp,converged,alpha,norm,tol)
+            #endif
+            for (int idx=0; idx < shape; ++idx)
                 {
                 const double drho = alpha*(norm*rho_tmp[idx]-rho[idx]);
                 rho[idx] += drho;
 
                 // check on convergence from absolute change in rho (might also want a percentage check)
-                if (std::abs(drho) > tol) converged = false;
+                if (std::abs(drho) > tol)
+                    {
+                    // this will be a race in parallel code, but it doesn't matter because only one thread needs to hit false
+                    converged = false;
+                    }
                 }
             }
         }

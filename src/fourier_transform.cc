@@ -1,12 +1,21 @@
 #include "flyft/fourier_transform.h"
 
 #include <algorithm>
+#ifdef FLYFT_OPENMP
+#include <omp.h>
+#endif
 
 namespace flyft
 {
 FourierTransform::FourierTransform(int N)
     : N_(N), space_(RealSpace)
     {
+    #ifdef FLYFT_OPENMP
+    // use all available OpenMP threads
+    fftw_init_threads();
+    fftw_plan_with_nthreads(omp_get_max_threads());
+    #endif
+
     // this is the doc'd size of "real" memory required for the r2c / c2r transform
     data_ = fftw_alloc_real(2*(N_/2+1));
 
@@ -44,7 +53,14 @@ const double* FourierTransform::getRealData() const
 
 void FourierTransform::setRealData(const double* data)
     {
-    std::copy(data,data+getRealSize(),data_);
+    const auto size = getRealSize();
+    #ifdef FLYFT_OPENMP
+    #pragma omp parallel for schedule(static) default(none) shared(size,data_,data)
+    #endif
+    for (int idx=0; idx < size; ++idx)
+        {
+        data_[idx] = data[idx];
+        }
     space_ = RealSpace;
     }
 
@@ -65,7 +81,14 @@ const std::complex<double>* FourierTransform::getReciprocalData() const
 void FourierTransform::setReciprocalData(const std::complex<double>* data)
     {
     auto p = reinterpret_cast<const double*>(data);
-    std::copy(p,p+2*getReciprocalSize(),data_);
+    const auto size = 2*getReciprocalSize();
+    #ifdef FLYFT_OPENMP
+    #pragma omp parallel for schedule(static) default(none) shared(size,data_,p)
+    #endif
+    for (int idx=0; idx < size; ++idx)
+        {
+        data_[idx] = p[idx];
+        }
     space_ = ReciprocalSpace;
     }
 
@@ -85,6 +108,9 @@ void FourierTransform::transform()
         {
         // execute inverse FFT and renormalize by N (FFTW does not)
         fftw_execute(c2r_plan_);
+        #ifdef FLYFT_OPENMP
+        #pragma omp parallel for schedule(static) default(none) shared(data_,N_)
+        #endif
         for (int i=0; i < N_; ++i)
             {
             data_[i] /= N_;

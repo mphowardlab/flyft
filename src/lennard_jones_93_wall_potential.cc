@@ -29,11 +29,15 @@ void LennardJones93WallPotential::potential(std::shared_ptr<Field> V, const std:
         energy_shift = 0.;
         }
 
-    auto mesh = state->getMesh();
+    const auto mesh = *(state->getMesh());
     auto data = V->data();
-    for (int idx=0; idx < mesh->shape(); ++idx)
+
+    #ifdef FLYFT_OPENMP
+    #pragma omp parallel for schedule(static) default(none) shared(mesh,data,epsilon,sigma,cutoff,x0,normal_,energy_shift)
+    #endif
+    for (int idx=0; idx < mesh.shape(); ++idx)
         {
-        const auto x = mesh->coordinate(idx);
+        const auto x = mesh.coordinate(idx);
         const double dx = normal_*(x-x0);
 
         // get 9 & 3 parts scaled by sigma

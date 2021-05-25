@@ -10,11 +10,14 @@ void HarmonicWallPotential::potential(std::shared_ptr<Field> V, const std::strin
     const auto shift = shifts_.at(type);
     const double x0 = origin_->evaluate(state) + shift;
 
-    auto mesh = state->getMesh();
+    const auto mesh = *(state->getMesh());
     auto data = V->data();
-    for (int idx=0; idx < mesh->shape(); ++idx)
+    #ifdef FLYFT_OPENMP
+    #pragma omp parallel for schedule(static) default(none) shared(mesh,k,x0,data)
+    #endif
+    for (int idx=0; idx < mesh.shape(); ++idx)
         {
-        const auto x = mesh->coordinate(idx);
+        const auto x = mesh.coordinate(idx);
         const double dx = normal_*(x-x0);
 
         // potential acts only if dx < 0 (x is "inside" the wall)

@@ -11,11 +11,15 @@ void LinearPotential::potential(std::shared_ptr<Field> V,
     auto y0 = ys_.at(type);
     auto m = slopes_.at(type);
 
-    auto mesh = state->getMesh();
+    const auto mesh = *(state->getMesh());
     auto data = V->data();
-    for (int idx=0; idx < mesh->shape(); ++idx)
+
+    #ifdef FLYFT_OPENMP
+    #pragma omp parallel for schedule(static) default(none) shared(mesh,data,y0,m,x0)
+    #endif
+    for (int idx=0; idx < mesh.shape(); ++idx)
         {
-        const auto x = mesh->coordinate(idx);
+        const auto x = mesh.coordinate(idx);
         data[idx] = y0+m*(x-x0);
         }
     }

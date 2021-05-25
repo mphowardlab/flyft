@@ -32,6 +32,10 @@ target_include_directories(
         $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:flyft/include>
     )
+if(FLYFT_OPENMP)
+    target_link_libraries(flyft PRIVATE OpenMP::OpenMP_CXX FFTW3::fftw3_omp)
+    target_compile_definitions(flyft PRIVATE FLYFT_OPENMP)
+endif()
 target_link_libraries(flyft PUBLIC FFTW3::fftw3)
 target_compile_features(flyft PUBLIC cxx_std_14)
 # selectively turn on compile options for gcc & clang

@@ -1,6 +1,6 @@
-#include "flyft/rosenfeld_fmt.h"
-
+#include "flyft/parallel.h"
 #include "flyft/reciprocal_mesh.h"
+#include "flyft/rosenfeld_fmt.h"
 
 #include <algorithm>
 #include <cmath>
@@ -28,12 +28,12 @@ void RosenfeldFMT::compute(std::shared_ptr<State> state)
         auto nv2k = nv2k_->data();
 
         // zero the weights before accumulating by type
-        std::fill(n0k, n0k+ft_->getReciprocalSize(), 0.);
-        std::fill(n1k, n1k+ft_->getReciprocalSize(), 0.);
-        std::fill(n2k, n2k+ft_->getReciprocalSize(), 0.);
-        std::fill(n3k, n3k+ft_->getReciprocalSize(), 0.);
-        std::fill(nv1k, nv1k+ft_->getReciprocalSize(), 0.);
-        std::fill(nv2k, nv2k+ft_->getReciprocalSize(), 0.);
+        parallel::fill(n0k, ft_->getReciprocalSize(), 0.);
+        parallel::fill(n1k, ft_->getReciprocalSize(), 0.);
+        parallel::fill(n2k, ft_->getReciprocalSize(), 0.);
+        parallel::fill(n3k, ft_->getReciprocalSize(), 0.);
+        parallel::fill(nv1k, ft_->getReciprocalSize(), 0.);
+        parallel::fill(nv2k, ft_->getReciprocalSize(), 0.);
 
         for (const auto& t : state->getTypes())
             {
@@ -51,7 +51,11 @@ void RosenfeldFMT::compute(std::shared_ptr<State> state)
             const auto rhok = ft_->getReciprocalData();
 
             // accumulate the fourier transformed densities into n
-            for (int idx=0; idx < ft_->getReciprocalSize(); ++idx)
+            const auto size = ft_->getReciprocalSize();
+            #ifdef FLYFT_OPENMP
+            #pragma omp parallel for schedule(static) default(none) shared(R,size,kmesh,rhok,n0k,n1k,n2k,n3k,nv1k,nv2k)
+            #endif
+            for (int idx=0; idx < size; ++idx)
                 {
                 const double k = kmesh.coordinate(idx);
 
@@ -74,27 +78,27 @@ void RosenfeldFMT::compute(std::shared_ptr<State> state)
         {
         ft_->setReciprocalData(n0k_->data());
         ft_->transform();
-        std::copy(ft_->getRealData(),ft_->getRealData()+mesh->shape(),n0_->data());
+        parallel::copy(ft_->getRealData(),mesh->shape(),n0_->data());
 
         ft_->setReciprocalData(n1k_->data());
         ft_->transform();
-        std::copy(ft_->getRealData(),ft_->getRealData()+mesh->shape(),n1_->data());
+        parallel::copy(ft_->getRealData(),mesh->shape(),n1_->data());
 
         ft_->setReciprocalData(n2k_->data());
         ft_->transform();
-        std::copy(ft_->getRealData(),ft_->getRealData()+mesh->shape(),n2_->data());
+        parallel::copy(ft_->getRealData(),mesh->shape(),n2_->data());
 
         ft_->setReciprocalData(n3k_->data());
         ft_->transform();
-        std::copy(ft_->getRealData(),ft_->getRealData()+mesh->shape(),n3_->data());
+        parallel::copy(ft_->getRealData(),mesh->shape(),n3_->data());
 
         ft_->setReciprocalData(nv1k_->data());
         ft_->transform();
-        std::copy(ft_->getRealData(),ft_->getRealData()+mesh->shape(),nv1_->data());
+        parallel::copy(ft_->getRealData(),mesh->shape(),nv1_->data());
 
         ft_->setReciprocalData(nv2k_->data());
         ft_->transform();
-        std::copy(ft_->getRealData(),ft_->getRealData()+mesh->shape(),nv2_->data());
+        parallel::copy(ft_->getRealData(),mesh->shape(),nv2_->data());
         }
 
     // evaluate phi and partial derivatives in real space using n
@@ -115,7 +119,11 @@ void RosenfeldFMT::compute(std::shared_ptr<State> state)
         auto dphi_dnv2 = dphi_dnv2_->data();
 
         //////////////// The functions in here could be templated out too
-        for (int idx=0; idx < mesh->shape(); ++idx)
+        const auto shape = mesh->shape();
+        #ifdef FLYFT_OPENMP
+        #pragma omp parallel for schedule(static) default(none) shared(shape,n0,n1,n2,n3,nv1,nv2,phi,dphi_dn0,dphi_dn1,dphi_dn2,dphi_dn3,dphi_dnv1,dphi_dnv2)
+        #endif
+        for (int idx=0; idx < shape; ++idx)
             {
             // precompute the "void fraction" vf, which is only a function of n3
             const double vf = 1.-n3[idx];
@@ -156,27 +164,27 @@ void RosenfeldFMT::compute(std::shared_ptr<State> state)
         {
         ft_->setRealData(dphi_dn0_->data());
         ft_->transform();
-        std::copy(ft_->getReciprocalData(),ft_->getReciprocalData()+ft_->getReciprocalSize(),dphi_dn0k_->data());
+        parallel::copy(ft_->getReciprocalData(),ft_->getReciprocalSize(),dphi_dn0k_->data());
 
         ft_->setRealData(dphi_dn1_->data());
         ft_->transform();
-        std::copy(ft_->getReciprocalData(),ft_->getReciprocalData()+ft_->getReciprocalSize(),dphi_dn1k_->data());
+        parallel::copy(ft_->getReciprocalData(),ft_->getReciprocalSize(),dphi_dn1k_->data());
 
         ft_->setRealData(dphi_dn2_->data());
         ft_->transform();
-        std::copy(ft_->getReciprocalData(),ft_->getReciprocalData()+ft_->getReciprocalSize(),dphi_dn2k_->data());
+        parallel::copy(ft_->getReciprocalData(),ft_->getReciprocalSize(),dphi_dn2k_->data());
 
         ft_->setRealData(dphi_dn3_->data());
         ft_->transform();
-        std::copy(ft_->getReciprocalData(),ft_->getReciprocalData()+ft_->getReciprocalSize(),dphi_dn3k_->data());
+        parallel::copy(ft_->getReciprocalData(),ft_->getReciprocalSize(),dphi_dn3k_->data());
 
         ft_->setRealData(dphi_dnv1_->data());
         ft_->transform();
-        std::copy(ft_->getReciprocalData(),ft_->getReciprocalData()+ft_->getReciprocalSize(),dphi_dnv1k_->data());
+        parallel::copy(ft_->getReciprocalData(),ft_->getReciprocalSize(),dphi_dnv1k_->data());
 
         ft_->setRealData(dphi_dnv2_->data());
         ft_->transform();
-        std::copy(ft_->getReciprocalData(),ft_->getReciprocalData()+ft_->getReciprocalSize(),dphi_dnv2k_->data());
+        parallel::copy(ft_->getReciprocalData(),ft_->getReciprocalSize(),dphi_dnv2k_->data());
         }
 
     // convolve phi derivatives with weights to get functional derivatives
@@ -199,11 +207,16 @@ void RosenfeldFMT::compute(std::shared_ptr<State> state)
                 {
                 // no radius, no contribution to energy
                 // need to set here as we are not prefilling the array with zeros
-                std::fill(derivatives_.at(t)->data(), derivatives_.at(t)->data()+mesh->shape(),0.0);
+                parallel::fill(derivatives_.at(t)->data(), mesh->shape(),0.0);
                 continue;
                 }
 
-            for (int idx=0; idx < ft_->getReciprocalSize(); ++idx)
+            const auto size = ft_->getReciprocalSize();
+            #ifdef FLYFT_OPENMP
+            #pragma omp parallel for schedule(static) default(none) shared(size,kmesh,derivativek,dphi_dn0k,\
+            dphi_dn1k,dphi_dn2k,dphi_dn3k,dphi_dnv1k,dphi_dnv2k,R)
+            #endif
+            for (int idx=0; idx < size; ++idx)
                 {
                 const double k = kmesh.coordinate(idx);
 
@@ -217,12 +230,12 @@ void RosenfeldFMT::compute(std::shared_ptr<State> state)
                 }
             ft_->setReciprocalData(derivativek);
             ft_->transform();
-            std::copy(ft_->getRealData(),ft_->getRealData()+mesh->shape(),derivatives_.at(t)->data());
+            parallel::copy(ft_->getRealData(),mesh->shape(),derivatives_.at(t)->data());
             }
         }
 
     // total value of free energy is integral of phi, which we do by simple quadrature
-    value_ = mesh->step()*std::accumulate(phi_->data(), phi_->data()+mesh->shape(), 0.0);
+    value_ = mesh->step()*parallel::accumulate(phi_->data(), mesh->shape(), 0.0);
     }
 
 void RosenfeldFMT::allocate(std::shared_ptr<State> state)

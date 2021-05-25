@@ -20,9 +20,9 @@ for t in state.fields:
 fmt = flyft.functional.RosenfeldFMT()
 fmt.diameters = diameters
 
-Vext = flyft.external.Composite((flyft.external.ExponentialWall(padding,1.0),
-                                 flyft.external.ExponentialWall(mesh.L-padding,-1.0)))
-for p in Vext.potentials:
+Vext = flyft.external.CompositeExternalPotential((flyft.external.ExponentialWall(padding,1.0),
+                                                  flyft.external.ExponentialWall(mesh.L-padding,-1.0)))
+for p in Vext:
     for t in state.fields:
         p.epsilons[t] = 7400.
         p.kappas[t] = 2.
@@ -35,8 +35,8 @@ x = state.mesh.coordinates
 mus = {}
 for t in state.fields:
     d = diameters[t]
-    inside = np.logical_and(x >= Vext.potentials[0].origin,
-                            x <= Vext.potentials[1].origin)
+    inside = np.logical_and(x >= Vext[0].origin,
+                            x <= Vext[1].origin)
     rho = (6*etas[t])/(np.pi*d**3)
     state.fields[t][inside] = rho
     state.fields[t][~inside] = 0.
