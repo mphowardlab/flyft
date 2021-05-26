@@ -6,7 +6,6 @@
 #include "flyft/pair_map.h"
 
 #include <memory>
-#include <string>
 
 namespace flyft
 {
@@ -25,4 +24,4 @@ class VirialExpansion : public Functional
 
 }
 
-#endif // IDEAL_GAS_FUNCTIONAL_H_
+#endif // VIRIAL_EXPANSION_H_
