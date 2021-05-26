@@ -1,6 +1,7 @@
 #include "_flyft.h"
 
 // function predeclaration in lieu of a bunch of headers
+void bindPairMap(py::module_&);
 void bindTypeMap(py::module_&);
 void bindDoubleParameters(py::module_&);
 
@@ -13,6 +14,7 @@ void bindCompositeFunctional(py::module_&);
 void bindGrandPotential(py::module_&);
 void bindIdealGasFunctional(py::module_&);
 void bindRosenfeldFMT(py::module_&);
+void bindVirialExpansion(py::module_&);
 
 void bindExternalPotential(py::module_&);
 void bindCompositeExternalPotential(py::module_&);
@@ -36,6 +38,7 @@ void bindExplicitEulerIntegrator(py::module_&);
 
 PYBIND11_MODULE(_flyft, m)
     {
+    bindPairMap(m);
     bindTypeMap(m);
     bindDoubleParameters(m);
 
@@ -48,6 +51,7 @@ PYBIND11_MODULE(_flyft, m)
     bindGrandPotential(m);
     bindIdealGasFunctional(m);
     bindRosenfeldFMT(m);
+    bindVirialExpansion(m);
 
     bindExternalPotential(m);
     bindCompositeExternalPotential(m);

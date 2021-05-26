@@ -32,12 +32,14 @@ set(_FLYFT_CC_SOURCES
     lennard_jones_93_wall_potential.cc
     linear_potential.cc
     mesh.cc
+    pair_map.cc
     parameter.cc
     picard_iteration.cc
     rosenfeld_fmt.cc
     solver.cc
     state.cc
     type_map.cc
+    virial_expansion.cc
     wall_potential.cc
     )
 list(TRANSFORM _FLYFT_CC_SOURCES PREPEND _flyft/)

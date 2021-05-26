@@ -19,6 +19,9 @@ class IdealGas(Functional,mirrorclass=_flyft.IdealGasFunctional):
 class RosenfeldFMT(Functional,mirrorclass=_flyft.RosenfeldFMT):
     diameters = mirror.WrappedProperty(mirror.MutableMapping)
 
+class VirialExpansion(Functional,mirrorclass=_flyft.VirialExpansion):
+    coefficients = mirror.WrappedProperty(mirror.MutableMapping)
+
 class GrandPotential(Functional,mirrorclass=_flyft.GrandPotential):
     def __init__(self, ideal=None, excess=None, external=None):
         super().__init__()
