@@ -23,6 +23,7 @@ add_library(flyft SHARED
     rosenfeld_fmt.cc
     solver.cc
     state.cc
+    virial_expansion.cc
     wall_potential.cc
     )
 

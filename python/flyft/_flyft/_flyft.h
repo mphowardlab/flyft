@@ -6,6 +6,7 @@
 #include "flyft/flux.h"
 #include "flyft/functional.h"
 #include "flyft/grand_potential.h"
+#include "flyft/pair_map.h"
 #include "flyft/type_map.h"
 
 #include <pybind11/pybind11.h>
@@ -24,5 +25,6 @@ PYBIND11_MAKE_OPAQUE(flyft::TypeMap<bool>);
 PYBIND11_MAKE_OPAQUE(flyft::TypeMap<double>);
 PYBIND11_MAKE_OPAQUE(flyft::TypeMap<flyft::Field>);
 PYBIND11_MAKE_OPAQUE(flyft::TypeMap<flyft::GrandPotential::Constraint>);
+PYBIND11_MAKE_OPAQUE(flyft::PairMap<double>);
 
 #endif // FLYFT_PYTHON__FLYFT_H_
