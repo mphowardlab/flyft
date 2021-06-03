@@ -2,6 +2,7 @@
 set(FLYFT_PYTEST_SOURCES
     __init__.py
     conftest.py
+    test_bmcsl_hard_sphere.py
     test_brownian_diffusive_flux.py
     test_composite_external_potential.py
     test_composite_flux.py
