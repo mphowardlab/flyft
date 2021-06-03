@@ -1,11 +1,11 @@
-#include "flyft/bmcsl_hard_sphere_functional.h"
+#include "flyft/boublik_hard_sphere_functional.h"
 
 #include <cmath>
 
 namespace flyft
 {
 
-void BMCSLHardSphereFunctional::compute(std::shared_ptr<State> state)
+void BoublikHardSphereFunctional::compute(std::shared_ptr<State> state)
     {
     allocate(state);
 
@@ -99,22 +99,22 @@ void BMCSLHardSphereFunctional::compute(std::shared_ptr<State> state)
         }
     }
 
-const TypeMap<double>& BMCSLHardSphereFunctional::getDiameters()
+const TypeMap<double>& BoublikHardSphereFunctional::getDiameters()
     {
     return diameters_;
     }
 
-double BMCSLHardSphereFunctional::getDiameter(const std::string& type) const
+double BoublikHardSphereFunctional::getDiameter(const std::string& type) const
     {
     return diameters_.at(type);
     }
 
-void BMCSLHardSphereFunctional::setDiameters(const TypeMap<double>& diameters)
+void BoublikHardSphereFunctional::setDiameters(const TypeMap<double>& diameters)
     {
     diameters_ = TypeMap<double>(diameters);
     }
 
-void BMCSLHardSphereFunctional::setDiameter(const std::string& type, double diameter)
+void BoublikHardSphereFunctional::setDiameter(const std::string& type, double diameter)
     {
     if (diameter >= 0.)
         {

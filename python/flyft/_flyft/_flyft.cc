@@ -10,7 +10,7 @@ void bindMesh(py::module_&);
 void bindState(py::module_&);
 
 void bindFunctional(py::module_&);
-void bindBMCSLHardSphereFunctional(py::module_&);
+void bindBoublikHardSphereFunctional(py::module_&);
 void bindCompositeFunctional(py::module_&);
 void bindGrandPotential(py::module_&);
 void bindIdealGasFunctional(py::module_&);
@@ -48,7 +48,7 @@ PYBIND11_MODULE(_flyft, m)
     bindState(m);
 
     bindFunctional(m);
-    bindBMCSLHardSphereFunctional(m);
+    bindBoublikHardSphereFunctional(m);
     bindCompositeFunctional(m);
     bindGrandPotential(m);
     bindIdealGasFunctional(m);

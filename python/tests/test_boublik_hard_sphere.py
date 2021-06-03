@@ -13,7 +13,7 @@ def muex_cs(eta):
 
 @pytest.fixture
 def bmcsl():
-    return flyft.functional.BMCSLHardSphere()
+    return flyft.functional.BoublikHardSphere()
 
 def test_diameters(bmcsl):
     assert len(bmcsl.diameters) == 0

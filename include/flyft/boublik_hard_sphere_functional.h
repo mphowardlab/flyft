@@ -1,5 +1,5 @@
-#ifndef BMCSL_HARD_SPHERE_FUNCTIONAL_H_
-#define BMCSL_HARD_SPHERE_FUNCTIONAL_H_
+#ifndef BOUBLIK_HARD_SPHERE_FUNCTIONAL_H_
+#define BOUBLIK_HARD_SPHERE_FUNCTIONAL_H_
 
 #include "flyft/functional.h"
 #include "flyft/state.h"
@@ -11,7 +11,7 @@
 namespace flyft
 {
 
-class BMCSLHardSphereFunctional : public Functional
+class BoublikHardSphereFunctional : public Functional
     {
     public:
         void compute(std::shared_ptr<State> state) override;
@@ -27,4 +27,4 @@ class BMCSLHardSphereFunctional : public Functional
 
 }
 
-#endif // BMCSL_HARD_SPHERE_FUNCTIONAL_H_
+#endif // BOUBLIK_HARD_SPHERE_FUNCTIONAL_H_

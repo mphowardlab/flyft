@@ -7,7 +7,7 @@ class Functional(mirror.Mirror,mirrorclass=_flyft.Functional):
     derivatives = mirror.WrappedProperty(state.Fields)
     value = mirror.Property()
 
-class BMCSLHardSphere(Functional,mirrorclass=_flyft.BMCSLHardSphereFunctional):
+class BoublikHardSphere(Functional,mirrorclass=_flyft.BoublikHardSphereFunctional):
     diameters = mirror.WrappedProperty(mirror.MutableMapping)
 
 class CompositeFunctional(Functional,mirror.CompositeMixin,mirrorclass=_flyft.CompositeFunctional):
