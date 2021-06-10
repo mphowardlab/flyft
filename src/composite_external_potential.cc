@@ -27,7 +27,7 @@ void CompositeExternalPotential::potential(std::shared_ptr<Field> V, const std::
 
         const auto shape = mesh->shape();
         #ifdef FLYFT_OPENMP
-        #pragma omp parallel for schedule(static) default(none) shared(data,tmp,shape)
+        #pragma omp parallel for schedule(static) default(none) firstprivate(shape) shared(data,tmp)
         #endif
         for (int idx=0; idx < shape; ++idx)
             {

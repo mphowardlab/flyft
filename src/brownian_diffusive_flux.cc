@@ -33,7 +33,7 @@ void BrownianDiffusiveFlux::compute(std::shared_ptr<GrandPotential> grand, std::
         auto flux = fluxes_.at(t)->data();
 
         #ifdef FLYFT_OPENMP
-        #pragma omp parallel for schedule(static) default(none) shared(D,rho,mu_ex,V,dx,shape,flux)
+        #pragma omp parallel for schedule(static) default(none) firstprivate(D,dx,shape) shared(rho,mu_ex,V,flux)
         #endif
         for (int idx=0; idx < shape; ++idx)
             {

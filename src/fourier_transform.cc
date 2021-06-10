@@ -55,7 +55,7 @@ void FourierTransform::setRealData(const double* data)
     {
     const auto size = getRealSize();
     #ifdef FLYFT_OPENMP
-    #pragma omp parallel for schedule(static) default(none) shared(size,data_,data)
+    #pragma omp parallel for schedule(static) default(none) firstprivate(size) shared(data_,data)
     #endif
     for (int idx=0; idx < size; ++idx)
         {
@@ -83,7 +83,7 @@ void FourierTransform::setReciprocalData(const std::complex<double>* data)
     auto p = reinterpret_cast<const double*>(data);
     const auto size = 2*getReciprocalSize();
     #ifdef FLYFT_OPENMP
-    #pragma omp parallel for schedule(static) default(none) shared(size,data_,p)
+    #pragma omp parallel for schedule(static) default(none) firstprivate(size) shared(data_,p)
     #endif
     for (int idx=0; idx < size; ++idx)
         {

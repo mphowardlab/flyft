@@ -48,12 +48,12 @@ void RosenfeldFMT::compute(std::shared_ptr<State> state)
             // fft the density
             ft_->setRealData(state->getField(t)->data());
             ft_->transform();
-            const auto rhok = ft_->getReciprocalData();
+            auto rhok = ft_->getReciprocalData();
 
             // accumulate the fourier transformed densities into n
             const auto size = ft_->getReciprocalSize();
             #ifdef FLYFT_OPENMP
-            #pragma omp parallel for schedule(static) default(none) shared(R,size,kmesh,rhok,n0k,n1k,n2k,n3k,nv1k,nv2k)
+            #pragma omp parallel for schedule(static) default(none) firstprivate(R,size,kmesh) shared(rhok,n0k,n1k,n2k,n3k,nv1k,nv2k)
             #endif
             for (int idx=0; idx < size; ++idx)
                 {
@@ -121,7 +121,7 @@ void RosenfeldFMT::compute(std::shared_ptr<State> state)
         //////////////// The functions in here could be templated out too
         const auto shape = mesh->shape();
         #ifdef FLYFT_OPENMP
-        #pragma omp parallel for schedule(static) default(none) shared(shape,n0,n1,n2,n3,nv1,nv2,phi,dphi_dn0,dphi_dn1,dphi_dn2,dphi_dn3,dphi_dnv1,dphi_dnv2)
+        #pragma omp parallel for schedule(static) default(none) firstprivate(shape) shared(n0,n1,n2,n3,nv1,nv2,phi,dphi_dn0,dphi_dn1,dphi_dn2,dphi_dn3,dphi_dnv1,dphi_dnv2)
         #endif
         for (int idx=0; idx < shape; ++idx)
             {
@@ -213,8 +213,8 @@ void RosenfeldFMT::compute(std::shared_ptr<State> state)
 
             const auto size = ft_->getReciprocalSize();
             #ifdef FLYFT_OPENMP
-            #pragma omp parallel for schedule(static) default(none) shared(size,kmesh,derivativek,dphi_dn0k,\
-            dphi_dn1k,dphi_dn2k,dphi_dn3k,dphi_dnv1k,dphi_dnv2k,R)
+            #pragma omp parallel for schedule(static) default(none) firstprivate(size,kmesh,R) \
+            shared(derivativek,dphi_dn0k,dphi_dn1k,dphi_dn2k,dphi_dn3k,dphi_dnv1k,dphi_dnv2k)
             #endif
             for (int idx=0; idx < size; ++idx)
                 {

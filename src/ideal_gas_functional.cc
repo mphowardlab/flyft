@@ -21,7 +21,7 @@ void IdealGasFunctional::compute(std::shared_ptr<State> state)
         const auto shape = mesh->shape();
         const auto dx = mesh->step();
         #ifdef FLYFT_OPENMP
-        #pragma omp parallel for schedule(static) default(none) shared(f,d,shape,dx,vol) reduction(+:value_)
+        #pragma omp parallel for schedule(static) default(none) firstprivate(shape,dx,vol) shared(f,d) reduction(+:value_)
         #endif
         for (int idx=0; idx < shape; ++idx)
             {
