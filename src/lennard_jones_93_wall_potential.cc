@@ -12,6 +12,7 @@ void LennardJones93WallPotential::potential(std::shared_ptr<Field> V, const std:
     const auto sigma = sigmas_.at(type);
     const auto cutoff = cutoffs_.at(type);
     const auto x0 = origin_->evaluate(state);
+    const auto normal = normal_;
 
     // precompute energy shift
     bool shift = shifts_.at(type);
@@ -33,12 +34,12 @@ void LennardJones93WallPotential::potential(std::shared_ptr<Field> V, const std:
     auto data = V->data();
 
     #ifdef FLYFT_OPENMP
-    #pragma omp parallel for schedule(static) default(none) shared(mesh,data,epsilon,sigma,cutoff,x0,normal_,energy_shift)
+    #pragma omp parallel for schedule(static) default(none) firstprivate(epsilon,sigma,cutoff,x0,energy_shift,normal,mesh) shared(data)
     #endif
     for (int idx=0; idx < mesh.shape(); ++idx)
         {
         const auto x = mesh.coordinate(idx);
-        const double dx = normal_*(x-x0);
+        const double dx = normal*(x-x0);
 
         // get 9 & 3 parts scaled by sigma
         double energy;

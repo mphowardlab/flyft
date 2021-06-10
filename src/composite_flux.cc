@@ -29,7 +29,7 @@ void CompositeFlux::compute(std::shared_ptr<GrandPotential> grand, std::shared_p
 
             const auto shape = mesh->shape();
             #ifdef FLYFT_OPENMP
-            #pragma omp parallel for schedule(static) default(none) shared(j,jo,shape)
+            #pragma omp parallel for schedule(static) default(none) firstprivate(shape) shared(j,jo)
             #endif
             for (int idx=0; idx < shape; ++idx)
                 {

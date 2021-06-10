@@ -34,7 +34,7 @@ void VirialExpansion::compute(std::shared_ptr<State> state)
             const auto shape = mesh->shape();
             const auto dx = mesh->step();
             #ifdef FLYFT_OPENMP
-            #pragma omp parallel for schedule(static) default(none) shared(fi,di,fj,dj,Bij,shape,dx) reduction(+:value_)
+            #pragma omp parallel for schedule(static) default(none) firstprivate(Bij,shape,dx) shared(fi,di,fj,dj) reduction(+:value_)
             #endif
             for (int idx=0; idx < shape; ++idx)
                 {

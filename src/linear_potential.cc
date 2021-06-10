@@ -7,15 +7,15 @@ void LinearPotential::potential(std::shared_ptr<Field> V,
                                 const std::string& type,
                                 std::shared_ptr<State> state)
     {
-    auto x0 = xs_.at(type);
-    auto y0 = ys_.at(type);
-    auto m = slopes_.at(type);
+    const auto x0 = xs_.at(type);
+    const auto y0 = ys_.at(type);
+    const auto m = slopes_.at(type);
 
     const auto mesh = *(state->getMesh());
     auto data = V->data();
 
     #ifdef FLYFT_OPENMP
-    #pragma omp parallel for schedule(static) default(none) shared(mesh,data,y0,m,x0)
+    #pragma omp parallel for schedule(static) default(none) firstprivate(x0,y0,m,mesh) shared(data)
     #endif
     for (int idx=0; idx < mesh.shape(); ++idx)
         {

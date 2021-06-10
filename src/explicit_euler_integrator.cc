@@ -34,7 +34,7 @@ bool ExplicitEulerIntegrator::advance(std::shared_ptr<Flux> flux,
             const auto dx = mesh->step();
             const auto shape = mesh->shape();
             #ifdef FLYFT_OPENMP
-            #pragma omp parallel for schedule(static) default(none) shared(time_sign,dt,rho,j,dx,shape)
+            #pragma omp parallel for schedule(static) default(none) firstprivate(time_sign,dt,dx,shape) shared(rho,j)
             #endif
             for (int idx=0; idx < shape; ++idx)
                 {
