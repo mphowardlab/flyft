@@ -1,4 +1,5 @@
 add_library(flyft SHARED
+    boublik_hard_sphere_functional.cc
     brownian_diffusive_flux.cc
     composite_external_potential.cc
     composite_flux.cc

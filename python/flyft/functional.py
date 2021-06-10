@@ -7,20 +7,14 @@ class Functional(mirror.Mirror,mirrorclass=_flyft.Functional):
     derivatives = mirror.WrappedProperty(state.Fields)
     value = mirror.Property()
 
+class BoublikHardSphere(Functional,mirrorclass=_flyft.BoublikHardSphereFunctional):
+    diameters = mirror.WrappedProperty(mirror.MutableMapping)
+
 class CompositeFunctional(Functional,mirror.CompositeMixin,mirrorclass=_flyft.CompositeFunctional):
     def __init__(self, objects=None):
         super().__init__()
         if objects is not None:
             self.objects = objects
-
-class IdealGas(Functional,mirrorclass=_flyft.IdealGasFunctional):
-    volumes = mirror.WrappedProperty(mirror.MutableMapping)
-
-class RosenfeldFMT(Functional,mirrorclass=_flyft.RosenfeldFMT):
-    diameters = mirror.WrappedProperty(mirror.MutableMapping)
-
-class VirialExpansion(Functional,mirrorclass=_flyft.VirialExpansion):
-    coefficients = mirror.WrappedProperty(mirror.MutableMapping)
 
 class GrandPotential(Functional,mirrorclass=_flyft.GrandPotential):
     def __init__(self, ideal=None, excess=None, external=None):
@@ -43,3 +37,12 @@ class GrandPotential(Functional,mirrorclass=_flyft.GrandPotential):
     external = mirror.Property()
     constraints = mirror.WrappedProperty(mirror.MutableMapping)
     constraint_types = mirror.WrappedProperty(mirror.MutableMapping)
+
+class IdealGas(Functional,mirrorclass=_flyft.IdealGasFunctional):
+    volumes = mirror.WrappedProperty(mirror.MutableMapping)
+
+class RosenfeldFMT(Functional,mirrorclass=_flyft.RosenfeldFMT):
+    diameters = mirror.WrappedProperty(mirror.MutableMapping)
+
+class VirialExpansion(Functional,mirrorclass=_flyft.VirialExpansion):
+    coefficients = mirror.WrappedProperty(mirror.MutableMapping)
