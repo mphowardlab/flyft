@@ -55,6 +55,11 @@ target_include_directories(
     )
 target_compile_features(_flyft PUBLIC cxx_std_14)
 target_link_libraries(_flyft PUBLIC flyft)
+if (APPLE)
+set_target_properties(_flyft PROPERTIES INSTALL_RPATH "@loader_path/lib")
+else()
+set_target_properties(_flyft PROPERTIES INSTALL_RPATH "\$ORIGIN/lib")
+endif()
 
 # copy python sources to build directory for testing (not strictly necessary)
 foreach(file IN LISTS FLYFT_PY_SOURCES)
