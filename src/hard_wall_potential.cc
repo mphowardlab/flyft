@@ -10,17 +10,18 @@ void HardWallPotential::potential(std::shared_ptr<Field> V, const std::string& t
     // edge where sphere contacts the wall
     const double R = 0.5*diameters_.at(type);
     const double edge = origin_->evaluate(state) + normal_*R;
+    const auto normal = normal_;
 
     const auto mesh = *(state->getMesh());
     auto data = V->data();
 
     #ifdef FLYFT_OPENMP
-    #pragma omp parallel for schedule(static) default(none) shared(mesh,normal_,edge,data)
+    #pragma omp parallel for schedule(static) default(none) firstprivate(mesh,edge,normal) shared(data)
     #endif
     for (int idx=0; idx < mesh.shape(); ++idx)
         {
         const auto x = mesh.coordinate(idx);
-        data[idx] = (normal_*(x-edge) < 0) ? std::numeric_limits<double>::infinity() : 0.0;
+        data[idx] = (normal*(x-edge) < 0) ? std::numeric_limits<double>::infinity() : 0.0;
         }
     }
 
