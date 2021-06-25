@@ -21,6 +21,15 @@ class BrownianDiffusiveFlux(DiffusiveFlux,mirrorclass=_flyft.BrownianDiffusiveFl
 class Integrator(mirror.Mirror,mirrorclass=_flyft.Integrator):
     advance = mirror.Method()
 
+class CrankNicolsonIntegrator(Integrator,mirrorclass=_flyft.CrankNicolsonIntegrator):
+    def __init__(self, timestep, mix_parameter, max_iterations, tolerance):
+        super().__init__(timestep, mix_parameter, max_iterations, tolerance)
+
+    timestep = mirror.Property()
+    mix_parameter = mirror.Property()
+    max_iterations = mirror.Property()
+    tolerance = mirror.Property()
+
 class ExplicitEulerIntegrator(Integrator,mirrorclass=_flyft.ExplicitEulerIntegrator):
     def __init__(self, timestep):
         super().__init__(timestep)

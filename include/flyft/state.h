@@ -35,6 +35,7 @@ class State
         const TypeMap<std::shared_ptr<Field>>& getFields();
         std::shared_ptr<Field> getField(const std::string& type);
         std::shared_ptr<const Field> getField(const std::string& type) const;
+        void syncFields(TypeMap<std::shared_ptr<Field>>& fields) const;
 
         double getTime() const;
         void setTime(double time);

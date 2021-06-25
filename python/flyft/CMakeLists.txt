@@ -18,6 +18,7 @@ set(_FLYFT_CC_SOURCES
     composite_external_potential.cc
     composite_flux.cc
     composite_functional.cc
+    crank_nicolson_integrator.cc
     diffusive_flux.cc
     explicit_euler_integrator.cc
     exponential_wall_potential.cc

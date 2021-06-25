@@ -1,5 +1,7 @@
 #include "flyft/state.h"
 
+#include <algorithm>
+
 namespace flyft
 {
 
@@ -59,6 +61,33 @@ std::shared_ptr<Field> State::getField(const std::string& type)
 std::shared_ptr<const Field> State::getField(const std::string& type) const
     {
     return fields_.at(type);
+    }
+
+void State::syncFields(TypeMap<std::shared_ptr<Field>>& fields) const
+    {
+    // purge stored types that are not in the state
+    for (auto it = fields.cbegin(); it != fields.cend(); /* no increment here */)
+        {
+        auto t = it->first;
+        if (std::find(types_.begin(), types_.end(), t) == types_.end())
+            {
+            it = fields.erase(it);
+            }
+        else
+            {
+            ++it;
+            }
+        }
+
+    // ensure every type has a field with the right shape
+    for (const auto& t : types_)
+        {
+        if (fields.find(t) == fields.end())
+            {
+            fields[t] = std::make_shared<Field>(mesh_->shape());
+            }
+        fields[t]->reshape(mesh_->shape());
+        }
     }
 
 double State::getTime() const

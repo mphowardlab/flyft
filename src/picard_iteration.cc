@@ -8,10 +8,9 @@ namespace flyft
 PicardIteration::PicardIteration(double mix_param,
                                  int max_iterations,
                                  double tolerance)
+    : IterativeAlgorithmMixin(max_iterations,tolerance)
     {
     setMixParameter(mix_param);
-    setMaxIterations(max_iterations);
-    setTolerance(tolerance);
     }
 
 bool PicardIteration::solve(std::shared_ptr<GrandPotential> grand, std::shared_ptr<State> state)
@@ -122,34 +121,6 @@ void PicardIteration::setMixParameter(double mix_param)
         // error: mix parameter must be between 0 and 1
         }
     mix_param_ = mix_param;
-    }
-
-int PicardIteration::getMaxIterations() const
-    {
-    return max_iterations_;
-    }
-
-void PicardIteration::setMaxIterations(int max_iterations)
-    {
-    if (max_iterations < 1)
-        {
-        // error: mix parameter must be at least 1
-        }
-    max_iterations_ = max_iterations;
-    }
-
-double PicardIteration::getTolerance() const
-    {
-    return tolerance_;
-    }
-
-void PicardIteration::setTolerance(double tolerance)
-    {
-    if (tolerance <= 0)
-        {
-        // error: tolerance must be positive
-        }
-    tolerance_ = tolerance;
     }
 
 }

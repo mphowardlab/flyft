@@ -7,6 +7,7 @@ set(FLYFT_PYTEST_SOURCES
     test_composite_external_potential.py
     test_composite_flux.py
     test_composite_functional.py
+    test_crank_nicolson_integrator.py
     test_explicit_euler_integrator.py
     test_exponential_wall_potential.py
     test_field.py
