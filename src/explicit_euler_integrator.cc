@@ -1,4 +1,5 @@
 #include "flyft/explicit_euler_integrator.h"
+#include "flyft/parallel.h"
 
 #include <cmath>
 
@@ -53,6 +54,12 @@ bool ExplicitEulerIntegrator::advance(std::shared_ptr<Flux> flux,
                     rho[idx] = 0.;
                     }
                 }
+            #if 0
+            // fix up normalization of proposed solution
+            const double sum = parallel::accumulate(rho, shape, 0.)*dx;
+            const auto N = grand->getConstraint(t);
+            parallel::transform(rho, shape, rho, parallel::ScaleOperation<double>(N/sum));
+            #endif
             }
 
         state->advanceTime(time_sign*dt);

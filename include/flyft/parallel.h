@@ -59,7 +59,7 @@ class ScaleOperation
         template<typename U>
         auto operator()(const U& x) const
             {
-            return x/value_;
+            return value_*x;
             }
 
     private:

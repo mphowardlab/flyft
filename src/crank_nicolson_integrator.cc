@@ -28,6 +28,7 @@ bool CrankNicolsonIntegrator::advance(std::shared_ptr<Flux> flux,
     const auto mesh = state->getMesh();
     const auto dx = mesh->step();
     const auto shape = mesh->shape();
+    Field tmp(shape);
 
     // sign(time) = -1, 0, or +1
     const char time_sign = (time > 0) - (time < 0);
@@ -68,15 +69,13 @@ bool CrankNicolsonIntegrator::advance(std::shared_ptr<Flux> flux,
                     rho[idx] = 0.;
                     }
                 }
-            }
-        // fix up normalization of proposed solution
-        for (const auto& t : state->getTypes())
-            {
-            auto rho = state->getField(t)->data();
+
+            #if 0
+            // fix up normalization of proposed solution
             const double sum = parallel::accumulate(rho, shape, 0.)*dx;
-            // rescale to get right number
             const auto N = grand->getConstraint(t);
             parallel::transform(rho, shape, rho, parallel::ScaleOperation<double>(N/sum));
+            #endif
             }
 
         // solve nonlinear equation for **next** timestep by picard iteration
@@ -95,12 +94,13 @@ bool CrankNicolsonIntegrator::advance(std::shared_ptr<Flux> flux,
             for (const auto& t : state->getTypes())
                 {
                 auto rho = state->getField(t)->data();
+                auto rho_tmp = tmp.data();
                 auto j = flux->getFlux(t)->data();
                 auto cur_rho = current_fields_.at(t)->data();
                 auto cur_rate = current_rates_.at(t)->data();
 
                 #ifdef FLYFT_OPENMP
-                #pragma omp parallel for schedule(static) default(none) firstprivate(time_sign,dt,dx,shape) shared(rho,j,cur_rho,cur_rate)
+                #pragma omp parallel for schedule(static) default(none) firstprivate(time_sign,dt,dx,shape) shared(rho_tmp,j,cur_rho,cur_rate)
                 #endif
                 for (int idx=0; idx < shape; ++idx)
                     {
@@ -115,21 +115,23 @@ bool CrankNicolsonIntegrator::advance(std::shared_ptr<Flux> flux,
                         {
                         new_rho = 0.;
                         }
-                    rho[idx] = new_rho;
+                    rho_tmp[idx] = new_rho;
                     }
 
+                #if 0
                 // fix up normalization of proposed solution
-                const double sum = parallel::accumulate(rho, shape, 0.)*dx;
+                const double sum = parallel::accumulate(rho_tmp, shape, 0.)*dx;
                 const auto N = grand->getConstraint(t);
-                parallel::transform(rho, shape, rho, parallel::ScaleOperation<double>(N/sum));
+                parallel::transform(rho_tmp, shape, rho_tmp, parallel::ScaleOperation<double>(N/sum));
+                #endif
 
                 // apply change
                 #ifdef FLYFT_OPENMP
-                #pragma omp parallel for schedule(static) default(none) firstprivate(shape,alpha,tol) shared(rho,cur_rho,converged)
+                #pragma omp parallel for schedule(static) default(none) firstprivate(shape,alpha,tol) shared(rho,rho_tmp,converged)
                 #endif
                 for (int idx=0; idx < shape; ++idx)
                     {
-                    const double drho = alpha*(rho[idx]-cur_rho[idx]);
+                    const double drho = alpha*(rho_tmp[idx]-rho[idx]);
                     if (drho > tol)
                         {
                         converged = false;

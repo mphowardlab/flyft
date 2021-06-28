@@ -55,7 +55,7 @@ def test_advance(mesh,state,grand,ig,linear,bd,cn):
     grand.external = linear
     cn.advance(bd, grand, state, cn.timestep)
     assert state.time == pytest.approx(1.e-3)
-    assert np.allclose(state.fields['A'][1:-1], 1.0, 1e-3)
+    assert np.allclose(state.fields['A'][1:-1], 1.0, atol=1e-4)
 
     # run forwards multiple steps
     state.time = 0.
