@@ -32,8 +32,8 @@ class CrankNicolsonIntegrator : public Integrator, public IterativeAlgorithmMixi
 
     private:
         double timestep_;
-        TypeMap<std::shared_ptr<Field>> current_fields_;
-        TypeMap<std::shared_ptr<Field>> current_rates_;
+        TypeMap<std::shared_ptr<Field>> last_fields_;
+        TypeMap<std::shared_ptr<Field>> last_rates_;
         double mix_param_;
     };
 
