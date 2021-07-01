@@ -16,6 +16,7 @@ add_library(flyft SHARED
     hard_wall_potential.cc
     harmonic_wall_potential.cc
     ideal_gas_functional.cc
+    implicit_euler_integrator.cc
     integrator.cc
     lennard_jones_93_wall_potential.cc
     linear_potential.cc

@@ -35,3 +35,12 @@ class ExplicitEulerIntegrator(Integrator,mirrorclass=_flyft.ExplicitEulerIntegra
         super().__init__(timestep)
 
     timestep = mirror.Property()
+
+class ImplicitEulerIntegrator(Integrator,mirrorclass=_flyft.ImplicitEulerIntegrator):
+    def __init__(self, timestep, mix_parameter, max_iterations, tolerance):
+        super().__init__(timestep, mix_parameter, max_iterations, tolerance)
+
+    timestep = mirror.Property()
+    mix_parameter = mirror.Property()
+    max_iterations = mirror.Property()
+    tolerance = mirror.Property()
