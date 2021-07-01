@@ -1,5 +1,4 @@
 #include "flyft/crank_nicolson_integrator.h"
-#include "flyft/parallel.h"
 
 #include <cmath>
 
@@ -60,23 +59,11 @@ bool CrankNicolsonIntegrator::advance(std::shared_ptr<Flux> flux,
                 // change in density is flux in - flux out over time
                 cur_rho[idx] = rho[idx];
                 cur_rate[idx] = (j[left]-j[right])/dx;
-
-                // propose next density using explicit Euler step
-                rho[idx] += (time_sign*dt)*cur_rate[idx];
-                // ensure densities stay bounded
-                if (rho[idx] < 0)
-                    {
-                    rho[idx] = 0.;
-                    }
                 }
-
-            #if 0
-            // fix up normalization of proposed solution
-            const double sum = parallel::accumulate(rho, shape, 0.)*dx;
-            const auto N = grand->getConstraint(t);
-            parallel::transform(rho, shape, rho, parallel::ScaleOperation<double>(N/sum));
-            #endif
             }
+
+        // advance time of state to *next* point
+        state->advanceTime(time_sign*dt);
 
         // solve nonlinear equation for **next** timestep by picard iteration
         const auto alpha = getMixParameter();
@@ -108,22 +95,10 @@ bool CrankNicolsonIntegrator::advance(std::shared_ptr<Flux> flux,
                     // TODO: add a wrapping function to the mesh
                     int left = idx;
                     int right = (idx+1) % shape;
-
                     const double new_rate = (j[left]-j[right])/dx;
                     double new_rho = cur_rho[idx] + 0.5*(time_sign*dt)*(cur_rate[idx]+new_rate);
-                    if (new_rho < 0.)
-                        {
-                        new_rho = 0.;
-                        }
                     rho_tmp[idx] = new_rho;
                     }
-
-                #if 0
-                // fix up normalization of proposed solution
-                const double sum = parallel::accumulate(rho_tmp, shape, 0.)*dx;
-                const auto N = grand->getConstraint(t);
-                parallel::transform(rho_tmp, shape, rho_tmp, parallel::ScaleOperation<double>(N/sum));
-                #endif
 
                 // apply change
                 #ifdef FLYFT_OPENMP
@@ -145,7 +120,6 @@ bool CrankNicolsonIntegrator::advance(std::shared_ptr<Flux> flux,
             // TODO: Decide how to handle failed convergence... warning, error?
             }
 
-        state->advanceTime(time_sign*dt);
         time_remain -= dt;
         }
 
