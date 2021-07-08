@@ -13,7 +13,7 @@ namespace flyft
 class Integrator
     {
     public:
-        Integrator();
+        Integrator(double timestep);
         virtual ~Integrator();
 
         // noncopyable / nonmovable
@@ -25,7 +25,18 @@ class Integrator
         virtual bool advance(std::shared_ptr<Flux> flux,
                              std::shared_ptr<GrandPotential> grand,
                              std::shared_ptr<State> state,
-                             double time) = 0;
+                             double time);
+
+        double getTimestep() const;
+        void setTimestep(double timestep);
+
+    protected:
+        double timestep_;
+
+        virtual void step(std::shared_ptr<Flux> flux,
+                          std::shared_ptr<GrandPotential> grand,
+                          std::shared_ptr<State> state,
+                          double timestep) = 0;
     };
 
 }

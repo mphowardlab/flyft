@@ -7,7 +7,6 @@ void bindCrankNicolsonIntegrator(py::module_& m)
 
     py::class_<CrankNicolsonIntegrator,std::shared_ptr<CrankNicolsonIntegrator>,Integrator>(m, "CrankNicolsonIntegrator")
         .def(py::init<double,double,int,double>())
-        .def_property("timestep", &CrankNicolsonIntegrator::getTimestep, &CrankNicolsonIntegrator::setTimestep)
         .def_property("mix_parameter", &CrankNicolsonIntegrator::getMixParameter, &CrankNicolsonIntegrator::setMixParameter)
         .def_property("max_iterations", &CrankNicolsonIntegrator::getMaxIterations, &CrankNicolsonIntegrator::setMaxIterations)
         .def_property("tolerance", &CrankNicolsonIntegrator::getTolerance, &CrankNicolsonIntegrator::setTolerance)

@@ -5,6 +5,7 @@ set(FLYFT_PY_SOURCES
     external.py
     functional.py
     mirror.py
+    mixins.py
     parameter.py
     solver.py
     state.py

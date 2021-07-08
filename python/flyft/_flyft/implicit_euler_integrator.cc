@@ -7,7 +7,6 @@ void bindImplicitEulerIntegrator(py::module_& m)
 
     py::class_<ImplicitEulerIntegrator,std::shared_ptr<ImplicitEulerIntegrator>,Integrator>(m, "ImplicitEulerIntegrator")
         .def(py::init<double,double,int,double>())
-        .def_property("timestep", &ImplicitEulerIntegrator::getTimestep, &ImplicitEulerIntegrator::setTimestep)
         .def_property("mix_parameter", &ImplicitEulerIntegrator::getMixParameter, &ImplicitEulerIntegrator::setMixParameter)
         .def_property("max_iterations", &ImplicitEulerIntegrator::getMaxIterations, &ImplicitEulerIntegrator::setMaxIterations)
         .def_property("tolerance", &ImplicitEulerIntegrator::getTolerance, &ImplicitEulerIntegrator::setTolerance)

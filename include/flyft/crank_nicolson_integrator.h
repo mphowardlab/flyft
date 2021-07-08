@@ -1,9 +1,9 @@
 #ifndef FLYFT_CRANK_NICOLSON_INTEGRATOR_H_
 #define FLYFT_CRANK_NICOLSON_INTEGRATOR_H_
 
+#include "flyft/fixed_point_algorithm_mixin.h"
 #include "flyft/grand_potential.h"
 #include "flyft/integrator.h"
-#include "flyft/iterative_algorithm_mixin.h"
 #include "flyft/state.h"
 
 #include <memory>
@@ -11,7 +11,7 @@
 namespace flyft
 {
 
-class CrankNicolsonIntegrator : public Integrator, public IterativeAlgorithmMixin
+class CrankNicolsonIntegrator : public Integrator, public FixedPointAlgorithmMixin
     {
     public:
         CrankNicolsonIntegrator(double timestep,
@@ -24,17 +24,15 @@ class CrankNicolsonIntegrator : public Integrator, public IterativeAlgorithmMixi
                      std::shared_ptr<State> state,
                      double time) override;
 
-        double getTimestep() const;
-        void setTimestep(double timestep);
-
-        double getMixParameter() const;
-        void setMixParameter(double mix_param);
+    protected:
+        void step(std::shared_ptr<Flux> flux,
+                  std::shared_ptr<GrandPotential> grand,
+                  std::shared_ptr<State> state,
+                  double timestep) override;
 
     private:
-        double timestep_;
         TypeMap<std::shared_ptr<Field>> last_fields_;
         TypeMap<std::shared_ptr<Field>> last_rates_;
-        double mix_param_;
     };
 
 }
