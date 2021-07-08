@@ -18,6 +18,9 @@ class MirrorMeta(abc.ABCMeta):
 
 class Mirror(metaclass=MirrorMeta):
     def __init__(self, *args, **kwargs):
+        self.init_mirror(*args,**kwargs)
+
+    def init_mirror(self, *args, **kwargs):
         args_ = []
         for a in args:
             if isinstance(a, Mirror):
