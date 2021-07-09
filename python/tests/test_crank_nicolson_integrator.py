@@ -5,9 +5,7 @@ import flyft
 
 @pytest.fixture
 def cn():
-    ig = flyft.dynamics.CrankNicolsonIntegrator(1.e-3,1.,2,1.e-6)
-    ig.adaptive = False
-    return ig
+    return flyft.dynamics.CrankNicolsonIntegrator(1.e-3,1.,2,1.e-6)
 
 def test_init(cn):
     assert cn.timestep == pytest.approx(1.e-3)

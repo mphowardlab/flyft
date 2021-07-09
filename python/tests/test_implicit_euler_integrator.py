@@ -5,9 +5,7 @@ import flyft
 
 @pytest.fixture
 def euler():
-    ig = flyft.dynamics.ImplicitEulerIntegrator(1.e-3,1.,2,1.e-6)
-    ig.adaptive = False
-    return ig
+    return flyft.dynamics.ImplicitEulerIntegrator(1.e-3,1.,2,1.e-6)
 
 def test_init(euler):
     assert euler.timestep == pytest.approx(1.e-3)

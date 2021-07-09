@@ -27,7 +27,7 @@ class Integrator(mirror.Mirror,mirrorclass=_flyft.Integrator):
     adapt_tolerance = mirror.Property()
     adapt_minimum = mirror.Property()
 
-    def use_adaptive(delay=0, tolerance=1.e-8, minimum=1.e-8):
+    def use_adaptive(self, delay=0, tolerance=1.e-8, minimum=1.e-8):
         self.adaptive = True
         self.adapt_delay = delay
         self.adapt_tolerance = tolerance

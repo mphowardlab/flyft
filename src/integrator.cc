@@ -1,10 +1,11 @@
 #include "flyft/integrator.h"
+#include <stdexcept>
 
 namespace flyft
 {
 
 Integrator::Integrator(double timestep)
-    : use_adaptive_timestep_(true), adaptive_timestep_delay_(0),
+    : use_adaptive_timestep_(false), adaptive_timestep_delay_(0),
       adaptive_timestep_tol_(1e-8), adaptive_timestep_min_(1e-8)
     {
     setTimestep(timestep);
@@ -47,6 +48,7 @@ bool Integrator::advance(std::shared_ptr<Flux> flux,
             std::abs(adaptive_last_remain-time_remain) >= adaptive_timestep_delay_ &&
             2.*timestep_ < time_remain)
             {
+            adaptive_last_remain = time_remain;
             const auto shape = state->getMesh()->shape();
 
             *adaptive_cur_state_ = *state;
@@ -58,8 +60,7 @@ bool Integrator::advance(std::shared_ptr<Flux> flux,
                 {
                 if (dt_try < adaptive_timestep_min_)
                     {
-                    // error: decreased too much
-                    break;
+                    throw std::runtime_error("timestep decreased too much");
                     }
 
                 // take two normal steps
@@ -122,7 +123,7 @@ bool Integrator::advance(std::shared_ptr<Flux> flux,
 
             if (!converged)
                 {
-                // ERROR: failed to converge timestep
+                throw std::runtime_error("failed to converge");
                 }
             time_remain -= 2*dt_try;
             timestep_ = dt_next;
