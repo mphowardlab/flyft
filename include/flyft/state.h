@@ -18,12 +18,10 @@ class State
         State() = delete;
         State(std::shared_ptr<const Mesh> mesh, const std::string& type);
         State(std::shared_ptr<const Mesh> mesh, const std::vector<std::string>& types);
-
-        // noncopyable / nonmovable
-        State(const State&) = delete;
-        State(State&&) = delete;
-        State& operator=(const State&) = delete;
-        State& operator=(State&&) = delete;
+        State(const State& other);
+        State(State&& other);
+        State& operator=(const State& other);
+        State& operator=(State&& other);
 
         std::shared_ptr<const Mesh> getMesh() const;
 

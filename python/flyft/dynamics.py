@@ -22,6 +22,16 @@ class BrownianDiffusiveFlux(DiffusiveFlux,mirrorclass=_flyft.BrownianDiffusiveFl
 class Integrator(mirror.Mirror,mirrorclass=_flyft.Integrator):
     advance = mirror.Method()
     timestep = mirror.Property()
+    adaptive = mirror.Property()
+    adapt_delay = mirror.Property()
+    adapt_tolerance = mirror.Property()
+    adapt_minimum = mirror.Property()
+
+    def use_adaptive(delay=0, tolerance=1.e-8, minimum=1.e-8):
+        self.adaptive = True
+        self.adapt_delay = delay
+        self.adapt_tolerance = tolerance
+        self.adapt_minimum = minimum
 
 class CrankNicolsonIntegrator(Integrator,FixedPointAlgorithmMixin,mirrorclass=_flyft.CrankNicolsonIntegrator):
     def __init__(self, timestep, mix_parameter, max_iterations, tolerance):

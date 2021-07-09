@@ -30,6 +30,11 @@ class CrankNicolsonIntegrator : public Integrator, public FixedPointAlgorithmMix
                   std::shared_ptr<State> state,
                   double timestep) override;
 
+        int getLocalErrorExponent() const override
+            {
+            return 3;
+            }
+
     private:
         TypeMap<std::shared_ptr<Field>> last_fields_;
         TypeMap<std::shared_ptr<Field>> last_rates_;

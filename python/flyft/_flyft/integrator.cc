@@ -17,6 +17,11 @@ class IntegratorTrampoline : public Integrator
             {
             PYBIND11_OVERRIDE_PURE(void, Integrator, advance, flux, grand, state, timestep);
             }
+
+        int getLocalErrorExponent() const override
+            {
+            PYBIND11_OVERRIDE_PURE(int, Integrator, localErrorExponent);
+            }
     };
 }
 
@@ -28,5 +33,9 @@ void bindIntegrator(py::module_& m)
         .def(py::init<double>())
         .def("advance", &Integrator::advance)
         .def_property("timestep", &Integrator::getTimestep, &Integrator::setTimestep)
+        .def_property("adaptive", &Integrator::usingAdaptiveTimestep, &Integrator::enableAdaptiveTimestep)
+        .def_property("adapt_delay", &Integrator::getAdaptiveTimestepDelay, &Integrator::setAdaptiveTimestepDelay)
+        .def_property("adapt_tolerance", &Integrator::getAdaptiveTimestepTolerance, &Integrator::setAdaptiveTimestepTolerance)
+        .def_property("adapt_minimum", &Integrator::getAdaptiveTimestepMinimum, &Integrator::setAdaptiveTimestepMinimum)
         ;
     }

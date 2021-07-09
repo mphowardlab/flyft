@@ -20,6 +20,11 @@ class ExplicitEulerIntegrator : public Integrator
                   std::shared_ptr<GrandPotential> grand,
                   std::shared_ptr<State> state,
                   double timestep) override;
+
+        int getLocalErrorExponent() const override
+            {
+            return 2;
+            }
     };
 
 }

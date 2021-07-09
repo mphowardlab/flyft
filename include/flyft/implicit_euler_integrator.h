@@ -30,6 +30,11 @@ class ImplicitEulerIntegrator : public Integrator, public FixedPointAlgorithmMix
                   std::shared_ptr<State> state,
                   double timestep) override;
 
+        int getLocalErrorExponent() const override
+            {
+            return 2;
+            }
+
     private:
         TypeMap<std::shared_ptr<Field>> last_fields_;
     };

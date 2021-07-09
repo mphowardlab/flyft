@@ -5,7 +5,9 @@ import flyft
 
 @pytest.fixture
 def cn():
-    return flyft.dynamics.CrankNicolsonIntegrator(1.e-3,1.,2,1.e-6)
+    ig = flyft.dynamics.CrankNicolsonIntegrator(1.e-3,1.,2,1.e-6)
+    ig.adaptive = False
+    return ig
 
 def test_init(cn):
     assert cn.timestep == pytest.approx(1.e-3)
@@ -71,3 +73,31 @@ def test_advance(mesh,state,grand,ig,linear,bd,cn):
     assert state.time == pytest.approx(1.5e-4)
     cn.advance(bd, grand, state, -1.5e-4)
     assert state.time == pytest.approx(0.)
+
+@pytest.mark.parametrize("adapt",[False,True])
+def test_sine(adapt,cn):
+    mesh = flyft.Mesh(2.,100)
+    state = flyft.State(mesh,'A')
+    x = state.mesh.coordinates
+    state.fields['A'][:] = 0.5*np.sin(2*np.pi*x/mesh.L)+1.
+
+    ig = flyft.functional.IdealGas()
+    ig.volumes['A'] = 1.
+    grand = flyft.functional.GrandPotential(ig)
+    grand.constrain('A', 1.0*mesh.L, grand.Constraint.N)
+
+    bd = flyft.dynamics.BrownianDiffusiveFlux()
+    bd.diffusivities['A'] = 0.5
+
+    if adapt:
+        cn.adaptive = True
+    else:
+        cn.adaptive = False
+        cn.timestep = 1.e-5
+
+    tau = mesh.L**2/(4*np.pi**2*bd.diffusivities['A'])
+    t = 1.5*tau
+    cn.advance(bd, grand, state, t)
+
+    sol = 0.5*np.exp(-t/tau)*np.sin(2*np.pi*x/mesh.L)+1
+    assert np.allclose(state.fields['A'],sol,atol=1.e-4)
