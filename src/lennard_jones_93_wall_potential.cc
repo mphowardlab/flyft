@@ -30,13 +30,12 @@ void LennardJones93WallPotential::potential(std::shared_ptr<Field> V, const std:
         energy_shift = 0.;
         }
 
-    const auto mesh = *(state->getMesh());
+    const auto mesh = *state->getMesh();
     auto data = V->data();
-
     #ifdef FLYFT_OPENMP
     #pragma omp parallel for schedule(static) default(none) firstprivate(epsilon,sigma,cutoff,x0,energy_shift,normal,mesh) shared(data)
     #endif
-    for (int idx=0; idx < mesh.shape(); ++idx)
+    for (auto idx=mesh.first(); idx != mesh.last(); ++idx)
         {
         const auto x = mesh.coordinate(idx);
         const double dx = normal*(x-x0);

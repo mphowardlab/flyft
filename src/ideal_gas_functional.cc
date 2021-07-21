@@ -8,7 +8,7 @@ void IdealGasFunctional::compute(std::shared_ptr<State> state)
     allocate(state);
 
     // compute derivatives and accumulate energy
-    auto mesh = state->getMesh();
+    const auto mesh = *state->getMesh();
     value_ = 0.0;
     for (const auto& t : state->getTypes())
         {
@@ -17,20 +17,17 @@ void IdealGasFunctional::compute(std::shared_ptr<State> state)
         // compute the total potential by integration
         auto f = state->getField(t)->data();
         auto d = derivatives_.at(t)->data();
-
-        const auto shape = mesh->shape();
-        const auto dx = mesh->step();
         #ifdef FLYFT_OPENMP
-        #pragma omp parallel for schedule(static) default(none) firstprivate(shape,dx,vol) shared(f,d) reduction(+:value_)
+        #pragma omp parallel for schedule(static) default(none) firstprivate(mesh,vol) shared(f,d) reduction(+:value_)
         #endif
-        for (int idx=0; idx < shape; ++idx)
+        for (auto idx=mesh.first(); idx != mesh.last(); ++idx)
             {
             const double rho = f[idx];
             double energy;
             if (rho > 0)
                 {
                 d[idx] = std::log(vol*rho);
-                energy = dx*rho*(d[idx]-1.);
+                energy = mesh.step()*rho*(d[idx]-1.);
                 }
             else
                 {

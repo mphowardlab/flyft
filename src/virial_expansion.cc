@@ -9,13 +9,13 @@ void VirialExpansion::compute(std::shared_ptr<State> state)
     allocate(state);
 
     auto types = state->getTypes();
-    auto mesh = state->getMesh();
+    const auto mesh = *state->getMesh();
 
     // reset energy and chemical potentials to zero before accumulating
     value_ = 0.0;
     for (const auto& t : types)
         {
-        parallel::fill(derivatives_.at(t)->data(),mesh->shape(),0.);
+        parallel::fill(derivatives_.at(t)->data(),mesh.capacity(),0.);
         }
 
     for (auto it_i=types.cbegin(); it_i != types.cend(); ++it_i)
@@ -31,12 +31,10 @@ void VirialExpansion::compute(std::shared_ptr<State> state)
             auto dj = derivatives_.at(j)->data();
 
             const double Bij = coeffs_(i,j);
-            const auto shape = mesh->shape();
-            const auto dx = mesh->step();
             #ifdef FLYFT_OPENMP
-            #pragma omp parallel for schedule(static) default(none) firstprivate(Bij,shape,dx) shared(fi,di,fj,dj) reduction(+:value_)
+            #pragma omp parallel for schedule(static) default(none) firstprivate(Bij,mesh) shared(fi,di,fj,dj) reduction(+:value_)
             #endif
-            for (int idx=0; idx < shape; ++idx)
+            for (auto idx=mesh.first(); idx != mesh.last(); ++idx)
                 {
                 const double rhoi = fi[idx];
                 const double rhoj = fj[idx];
@@ -48,7 +46,7 @@ void VirialExpansion::compute(std::shared_ptr<State> state)
                     dj[idx] += 2*Bij*rhoi;
                     factor = 2.0;
                     }
-                value_ += dx*(factor*Bij*rhoi*rhoj);
+                value_ += mesh.step()*(factor*Bij*rhoi*rhoj);
                 }
             }
         }

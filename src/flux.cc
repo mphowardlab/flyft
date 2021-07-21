@@ -46,14 +46,14 @@ void Flux::allocate(std::shared_ptr<State> state)
         }
 
     // ensure every type has a field with the right shape
-    auto mesh = state->getMesh();
+    auto mesh = *state->getMesh();
     for (const auto& t : state->getTypes())
         {
         if (fluxes_.find(t) == fluxes_.end())
             {
-            fluxes_[t] = std::make_shared<Field>(mesh->shape());
+            fluxes_[t] = std::make_shared<Field>(mesh.capacity());
             }
-        fluxes_[t]->reshape(mesh->shape());
+        fluxes_[t]->reshape(mesh.capacity());
         }
     }
 

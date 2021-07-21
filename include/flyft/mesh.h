@@ -10,6 +10,18 @@ class Mesh
         Mesh() = delete;
         Mesh(double L, int shape);
 
+        //! Get first index of mesh
+        int begin() const;
+
+        //! Get last index (exclusive) of mesh
+        int end() const;
+
+        //! Get first index of local mesh
+        int first() const;
+
+        //! Get last index (exclusive) of local mesh
+        int last() const;
+
         //! Get position on the mesh, defined as center of bin
         double coordinate(int i) const;
 
@@ -19,7 +31,10 @@ class Mesh
         // Length of the mesh
         double L() const;
 
-        //! Shape the mesh
+        //! Capacity of the mesh
+        int capacity() const;
+
+        //! Shape of the mesh
         int shape() const;
 
         //! Step size of the mesh

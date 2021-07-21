@@ -28,15 +28,11 @@ void ImplicitEulerIntegrator::step(std::shared_ptr<Flux> flux,
                                    std::shared_ptr<State> state,
                                    double timestep)
     {
-    // mesh properties
-    const auto mesh = state->getMesh();
-    const auto dx = mesh->step();
-    const auto shape = mesh->shape();
-
     // copy densities at the **current** timestep
+    const auto mesh = *state->getMesh();
     for (const auto& t : state->getTypes())
         {
-        parallel::copy(state->getField(t)->data(),shape,last_fields_.at(t)->data());
+        parallel::copy(state->getField(t)->data(),mesh.capacity(),last_fields_.at(t)->data());
         }
 
     // advance time of state to *next* point
@@ -62,15 +58,15 @@ void ImplicitEulerIntegrator::step(std::shared_ptr<Flux> flux,
             auto last_rho = last_fields_.at(t)->data();
 
             #ifdef FLYFT_OPENMP
-            #pragma omp parallel for schedule(static) default(none) firstprivate(timestep,dx,shape,alpha,tol) shared(next_rho,next_j,last_rho,converged)
+            #pragma omp parallel for schedule(static) default(none) firstprivate(timestep,mesh,alpha,tol) shared(next_rho,next_j,last_rho,converged)
             #endif
-            for (int idx=0; idx < shape; ++idx)
+            for (auto idx=mesh.first(); idx != mesh.last(); ++idx)
                 {
                 // explicitly apply pbcs on the index
-                // TODO: add a wrapping function to the mesh
+                // TODO: remove this wrapping
                 int left = idx;
-                int right = (idx+1) % shape;
-                const double next_rate = (next_j[left]-next_j[right])/dx;
+                int right = (idx+1) % mesh.capacity();
+                const double next_rate = (next_j[left]-next_j[right])/mesh.step();
                 double try_rho = last_rho[idx] + timestep*next_rate;
                 const double drho = alpha*(try_rho-next_rho[idx]);
                 if (drho > tol)

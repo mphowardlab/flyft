@@ -10,7 +10,7 @@ void ExternalPotential::compute(std::shared_ptr<State> state)
     allocate(state);
 
     // compute derivatives and accumulate energy
-    auto mesh = state->getMesh();
+    const auto mesh = *state->getMesh();
     value_ = 0.0;
     for (const auto& t : state->getTypes())
         {
@@ -20,7 +20,7 @@ void ExternalPotential::compute(std::shared_ptr<State> state)
         // compute the total potential by integration
         auto f = state->getField(t)->data();
         auto d = derivatives_.at(t)->data();
-        for (int idx=0; idx < mesh->shape(); ++idx)
+        for (auto idx=mesh.first(); idx != mesh.last(); ++idx)
             {
             const double V = d[idx];
             const double rho = f[idx];
@@ -39,7 +39,7 @@ void ExternalPotential::compute(std::shared_ptr<State> state)
                 }
             else
                 {
-                value_ += mesh->step()*rho*V;
+                value_ += mesh.step()*rho*V;
                 }
             }
         }

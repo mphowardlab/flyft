@@ -10,7 +10,7 @@ void BoublikHardSphereFunctional::compute(std::shared_ptr<State> state)
     allocate(state);
 
     auto types = state->getTypes();
-    auto mesh = state->getMesh();
+    const auto mesh = *state->getMesh();
 
     // process maps into indexed arrays for quicker access inside loop
     const auto num_types = types.size();
@@ -28,17 +28,15 @@ void BoublikHardSphereFunctional::compute(std::shared_ptr<State> state)
     // reset energy to zero before accumulating
     value_ = 0.0;
 
-    const auto shape = mesh->shape();
-    const auto dx = mesh->step();
     if (num_types > 1)
         {
         // General Boublik equation for more than 1 type
         double xi[4];
         #ifdef FLYFT_OPENMP
-        #pragma omp parallel for schedule(static) default(none) private(xi) firstprivate(num_types,shape,dx) \
+        #pragma omp parallel for schedule(static) default(none) private(xi) firstprivate(num_types,mesh) \
         shared(fields,derivs,diams) reduction(+:value_)
         #endif
-        for (int idx=0; idx < shape; ++idx)
+        for (auto idx=mesh.first(); idx != mesh.last(); ++idx)
             {
             // compute scaled particle variables
             for (int m=0; m < 4; ++m)
@@ -89,7 +87,7 @@ void BoublikHardSphereFunctional::compute(std::shared_ptr<State> state)
                     }
 
                 // compute free energy
-                energy = dx*(6./M_PI)*((xi2_3/xi3_2-xi[0])*logvf + 3.*xi[1]*xi[2]/vf + xi2_3/(xi[3]*vf_2));
+                energy = mesh.step()*(6./M_PI)*((xi2_3/xi3_2-xi[0])*logvf + 3.*xi[1]*xi[2]/vf + xi2_3/(xi[3]*vf_2));
                 }
             else
                 {
@@ -106,9 +104,9 @@ void BoublikHardSphereFunctional::compute(std::shared_ptr<State> state)
         {
         // Carnahan-Starling simplification for 1 type
         #ifdef FLYFT_OPENMP
-        #pragma omp parallel for schedule(static) default(none) firstprivate(shape,dx) shared(fields,derivs,diams) reduction(+:value_)
+        #pragma omp parallel for schedule(static) default(none) firstprivate(mesh) shared(fields,derivs,diams) reduction(+:value_)
         #endif
-        for (int idx=0; idx < shape; ++idx)
+        for (auto idx=mesh.first(); idx != mesh.last(); ++idx)
             {
             const auto rho = fields[0][idx];
             const auto d = diams[0];
@@ -127,7 +125,7 @@ void BoublikHardSphereFunctional::compute(std::shared_ptr<State> state)
                 derivs[0][idx] = eta*(8.+eta*(-9.+eta*3.))/vf_3;
 
                 // compute free energy
-                energy = dx*rho*eta*(4.-3.*eta)/vf_2;
+                energy = mesh.step()*rho*eta*(4.-3.*eta)/vf_2;
                 }
             else
                 {

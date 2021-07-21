@@ -20,26 +20,23 @@ void BrownianDiffusiveFlux::compute(std::shared_ptr<GrandPotential> grand, std::
         external->compute(state);
 
     // compute fluxes on the left edge of the volumes
-    auto mesh = state->getMesh();
+    const auto mesh = *state->getMesh();
     for (const auto& t : state->getTypes())
         {
         const auto D = diffusivities_.at(t);
         auto rho = state->getField(t)->data();
         auto mu_ex = (excess) ? excess->getDerivative(t)->data() : nullptr;
         auto V = (external) ? external->getDerivative(t)->data() : nullptr;
-
-        const auto dx = mesh->step();
-        const auto shape = mesh->shape();
         auto flux = fluxes_.at(t)->data();
 
         #ifdef FLYFT_OPENMP
-        #pragma omp parallel for schedule(static) default(none) firstprivate(D,dx,shape) shared(rho,mu_ex,V,flux)
+        #pragma omp parallel for schedule(static) default(none) firstprivate(D,mesh) shared(rho,mu_ex,V,flux)
         #endif
-        for (int idx=0; idx < shape; ++idx)
+        for (auto idx=mesh.first(); idx != mesh.last(); ++idx)
             {
             // explicitly apply pbcs on the index
-            // TODO: add a wrapping function to the mesh
-            int left = (idx > 0) ? idx-1 : shape-1;
+            // TODO: remove this wrapping
+            int left = (idx > mesh.begin()) ? idx-1 : mesh.end()-1;
 
             // handle infinite external potentials carefully, as there should be no flux in those directions
             bool no_flux = false;
@@ -77,7 +74,7 @@ void BrownianDiffusiveFlux::compute(std::shared_ptr<GrandPotential> grand, std::
                 // ideal (Fickian) term + excess term
                 // the ideal term is separated out so that we don't need to take
                 // low density limit explicitly
-                flux[idx] = -D*((rho[idx]-rho[left])/dx + rho_avg*dmu_ex/dx);
+                flux[idx] = -D*((rho[idx]-rho[left])/mesh.step() + rho_avg*dmu_ex/mesh.step());
                 }
             else
                 {

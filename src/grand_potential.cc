@@ -12,7 +12,7 @@ GrandPotential::GrandPotential()
 void GrandPotential::compute(std::shared_ptr<State> state)
     {
     allocate(state);
-    auto mesh = state->getMesh();
+    const auto mesh = *state->getMesh();
 
     // evaluate functionals
     value_ = 0.0;
@@ -39,12 +39,10 @@ void GrandPotential::compute(std::shared_ptr<State> state)
         auto did = (ideal_) ? ideal_->getDerivative(t)->data() : nullptr;
         auto dex = (excess_) ? excess_->getDerivative(t)->data() : nullptr;
         auto dext = (external_) ? external_->getDerivative(t)->data() : nullptr;
-
-        const auto shape = mesh->shape();
         #ifdef FLYFT_OPENMP
-        #pragma omp parallel for schedule(static) default(none) firstprivate(shape) shared(d,did,dex,dext)
+        #pragma omp parallel for schedule(static) default(none) firstprivate(mesh) shared(d,did,dex,dext)
         #endif
-        for (int idx=0; idx < shape; ++idx)
+        for (auto idx=mesh.first(); idx != mesh.last(); ++idx)
             {
             double deriv = 0.;
             if (did) deriv += did[idx];
@@ -59,14 +57,13 @@ void GrandPotential::compute(std::shared_ptr<State> state)
             {
             const auto mu_bulk = constraints_.at(t);
             auto rho = state->getField(t)->data();
-            const auto dx = mesh->step();
             #ifdef FLYFT_OPENMP
-            #pragma omp parallel for schedule(static) default(none) firstprivate(shape,dx,mu_bulk) shared(rho,d) reduction(-:value_)
+            #pragma omp parallel for schedule(static) default(none) firstprivate(mesh,mu_bulk) shared(rho,d) reduction(-:value_)
             #endif
-            for (int idx=0; idx < shape; ++idx)
+            for (auto idx=mesh.first(); idx != mesh.last(); ++idx)
                 {
                 d[idx] -= mu_bulk;
-                value_ -= dx*mu_bulk*rho[idx];
+                value_ -= mesh.step()*mu_bulk*rho[idx];
                 }
             }
         }
