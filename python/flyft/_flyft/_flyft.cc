@@ -35,7 +35,9 @@ void bindDiffusiveFlux(py::module_&);
 void bindBrownianDiffusiveFlux(py::module_&);
 
 void bindIntegrator(py::module_&);
+void bindCrankNicolsonIntegrator(py::module_&);
 void bindExplicitEulerIntegrator(py::module_&);
+void bindImplicitEulerIntegrator(py::module_&);
 
 PYBIND11_MODULE(_flyft, m)
     {
@@ -73,5 +75,7 @@ PYBIND11_MODULE(_flyft, m)
     bindBrownianDiffusiveFlux(m);
 
     bindIntegrator(m);
+    bindCrankNicolsonIntegrator(m);
     bindExplicitEulerIntegrator(m);
+    bindImplicitEulerIntegrator(m);
     }

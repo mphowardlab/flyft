@@ -1,4 +1,7 @@
+#include "flyft/parallel.h"
 #include "flyft/state.h"
+
+#include <algorithm>
 
 namespace flyft
 {
@@ -14,6 +17,51 @@ State::State(std::shared_ptr<const Mesh> mesh, const std::vector<std::string>& t
         {
         fields_[t] = std::make_shared<Field>(mesh_->shape());
         }
+    }
+
+State::State(const State& other)
+    : mesh_(other.mesh_),
+      types_(other.types_),
+      time_(other.time_)
+    {
+    for (const auto& t : types_)
+        {
+        fields_[t] = std::make_shared<Field>(mesh_->shape());
+        parallel::copy(other.fields_.at(t)->data(), mesh_->shape(), fields_.at(t)->data());
+        }
+    }
+
+State::State(State&& other)
+    : mesh_(std::move(other.mesh_)),
+      types_(std::move(other.types_)),
+      fields_(std::move(other.fields_)),
+      time_(std::move(other.time_))
+    {
+    }
+
+State& State::operator=(const State& other)
+    {
+    if (&other != this)
+        {
+        mesh_ = other.mesh_;
+        types_ = other.types_;
+        syncFields(fields_);
+        for (const auto& t : types_)
+            {
+            parallel::copy(other.fields_.at(t)->data(), mesh_->shape(), fields_.at(t)->data());
+            }
+        time_ = other.time_;
+        }
+    return *this;
+    }
+
+State& State::operator=(State&& other)
+    {
+    mesh_ = std::move(other.mesh_);
+    types_ = std::move(other.types_);
+    fields_ = std::move(other.fields_);
+    time_ = std::move(other.time_);
+    return *this;
     }
 
 std::shared_ptr<const Mesh> State::getMesh() const
@@ -59,6 +107,33 @@ std::shared_ptr<Field> State::getField(const std::string& type)
 std::shared_ptr<const Field> State::getField(const std::string& type) const
     {
     return fields_.at(type);
+    }
+
+void State::syncFields(TypeMap<std::shared_ptr<Field>>& fields) const
+    {
+    // purge stored types that are not in the state
+    for (auto it = fields.cbegin(); it != fields.cend(); /* no increment here */)
+        {
+        auto t = it->first;
+        if (std::find(types_.begin(), types_.end(), t) == types_.end())
+            {
+            it = fields.erase(it);
+            }
+        else
+            {
+            ++it;
+            }
+        }
+
+    // ensure every type has a field with the right shape
+    for (const auto& t : types_)
+        {
+        if (fields.find(t) == fields.end())
+            {
+            fields[t] = std::make_shared<Field>(mesh_->shape());
+            }
+        fields[t]->reshape(mesh_->shape());
+        }
     }
 
 double State::getTime() const

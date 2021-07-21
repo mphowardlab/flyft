@@ -2,6 +2,7 @@
 #define FLYFT_PICCARD_ITERATION_H_
 
 #include "flyft/grand_potential.h"
+#include "flyft/iterative_algorithm_mixin.h"
 #include "flyft/state.h"
 #include "flyft/solver.h"
 
@@ -10,7 +11,7 @@
 namespace flyft
 {
 
-class PicardIteration : public Solver
+class PicardIteration : public Solver, public IterativeAlgorithmMixin
     {
     public:
         PicardIteration(double mix_param,
@@ -22,16 +23,8 @@ class PicardIteration : public Solver
         double getMixParameter() const;
         void setMixParameter(double mix_param);
 
-        int getMaxIterations() const;
-        void setMaxIterations(int max_iterations);
-
-        double getTolerance() const;
-        void setTolerance(double tolerance);
-
     private:
         double mix_param_;
-        int max_iterations_;
-        double tolerance_;
     };
 
 }

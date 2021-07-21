@@ -1,16 +1,17 @@
 from . import _flyft
 from . import mirror
-from . import state
+from .mixins import CompositeMixin
+from .state import Fields
 
 class Functional(mirror.Mirror,mirrorclass=_flyft.Functional):
     compute = mirror.Method()
-    derivatives = mirror.WrappedProperty(state.Fields)
+    derivatives = mirror.WrappedProperty(Fields)
     value = mirror.Property()
 
 class BoublikHardSphere(Functional,mirrorclass=_flyft.BoublikHardSphereFunctional):
     diameters = mirror.WrappedProperty(mirror.MutableMapping)
 
-class CompositeFunctional(Functional,mirror.CompositeMixin,mirrorclass=_flyft.CompositeFunctional):
+class CompositeFunctional(Functional,CompositeMixin,mirrorclass=_flyft.CompositeFunctional):
     def __init__(self, objects=None):
         super().__init__()
         if objects is not None:

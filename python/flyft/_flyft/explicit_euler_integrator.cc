@@ -7,6 +7,5 @@ void bindExplicitEulerIntegrator(py::module_& m)
 
     py::class_<ExplicitEulerIntegrator,std::shared_ptr<ExplicitEulerIntegrator>,Integrator>(m, "ExplicitEulerIntegrator")
         .def(py::init<double>())
-        .def_property("timestep", &ExplicitEulerIntegrator::getTimestep, &ExplicitEulerIntegrator::setTimestep)
         ;
     }

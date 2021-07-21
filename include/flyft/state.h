@@ -18,12 +18,10 @@ class State
         State() = delete;
         State(std::shared_ptr<const Mesh> mesh, const std::string& type);
         State(std::shared_ptr<const Mesh> mesh, const std::vector<std::string>& types);
-
-        // noncopyable / nonmovable
-        State(const State&) = delete;
-        State(State&&) = delete;
-        State& operator=(const State&) = delete;
-        State& operator=(State&&) = delete;
+        State(const State& other);
+        State(State&& other);
+        State& operator=(const State& other);
+        State& operator=(State&& other);
 
         std::shared_ptr<const Mesh> getMesh() const;
 
@@ -35,6 +33,7 @@ class State
         const TypeMap<std::shared_ptr<Field>>& getFields();
         std::shared_ptr<Field> getField(const std::string& type);
         std::shared_ptr<const Field> getField(const std::string& type) const;
+        void syncFields(TypeMap<std::shared_ptr<Field>>& fields) const;
 
         double getTime() const;
         void setTime(double time);

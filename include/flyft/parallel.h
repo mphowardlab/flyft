@@ -46,6 +46,50 @@ void fill(T* dest, size_t size, const U& value)
         }
     }
 
+template<typename T>
+class ScaleOperation
+    {
+    public:
+        template<typename U>
+        ScaleOperation(const U& value)
+            : value_(value)
+            {
+            }
+
+        template<typename U>
+        auto operator()(const U& x) const
+            {
+            return value_*x;
+            }
+
+    private:
+        T value_;
+    };
+
+template<typename T, typename U, class UnaryOperation>
+void transform(T* input, size_t size, U* output, const UnaryOperation& unary_op)
+    {
+    #ifdef FLYFT_OPENMP
+    #pragma omp parallel for schedule(static) default(none) shared(input,size,output,unary_op)
+    #endif
+    for (size_t idx=0; idx < size; ++idx)
+        {
+        output[idx] = unary_op(input[idx]);
+        }
+    }
+
+template<typename T, typename U, typename V, class BinaryOperation>
+void transform(T* input1, size_t size, U* input2, V* output, const BinaryOperation& binary_op)
+    {
+    #ifdef FLYFT_OPENMP
+    #pragma omp parallel for schedule(static) default(none) shared(input1,size,input2,output,binary_op)
+    #endif
+    for (size_t idx=0; idx < size; ++idx)
+        {
+        output[idx] = binary_op(input1[idx],input2[idx]);
+        }
+    }
+
 }
 }
 

@@ -5,15 +5,32 @@ import flyft
 
 @pytest.fixture
 def euler():
-    return flyft.dynamics.ExplicitEulerIntegrator(1.e-3)
+    return flyft.dynamics.ImplicitEulerIntegrator(1.e-3,1.,2,1.e-6)
 
-def test_timestep(euler):
+def test_init(euler):
     assert euler.timestep == pytest.approx(1.e-3)
+    assert euler.mix_parameter == pytest.approx(1.0)
+    assert euler.max_iterations == 2
+    assert euler.tolerance == pytest.approx(1.e-6)
 
+    # change time step
     euler.timestep = 1.e-2
     assert euler.timestep == pytest.approx(1.e-2)
 
-    # TODO: test raises error if timestep <= 0
+    # change mix param
+    euler.mix_parameter = 0.05
+    assert euler.mix_parameter == pytest.approx(0.05)
+    assert euler._self.mix_parameter == pytest.approx(0.05)
+
+    # change max iterations
+    euler.max_iterations = 20
+    assert euler.max_iterations == 20
+    assert euler._self.max_iterations == 20
+
+    # change tolerance
+    euler.tolerance = 1.e-7
+    assert euler.tolerance == pytest.approx(1.e-7)
+    assert euler._self.tolerance == pytest.approx(1.e-7)
 
 def test_advance(mesh,state,grand,ig,linear,bd,euler):
     ig.volumes['A'] = 1.0
@@ -38,17 +55,7 @@ def test_advance(mesh,state,grand,ig,linear,bd,euler):
     grand.external = linear
     euler.advance(bd, grand, state, euler.timestep)
     assert state.time == pytest.approx(1.e-3)
-    assert np.allclose(state.fields['A'][1:-1], 1.0)
-
-    # check everywhere using the flux computed by bd
-    state.fields['A'][:] = 1.0
-    bd.compute(grand,state)
-    left = bd.fluxes['A']
-    right = np.roll(bd.fluxes['A'], -1)
-    rho = state.fields['A'].data+euler.timestep*(left-right)/mesh.step
-    euler.advance(bd, grand, state, euler.timestep)
-    assert state.time == pytest.approx(2.e-3)
-    assert np.allclose(rho, state.fields['A'])
+    assert np.allclose(state.fields['A'][1:-1], 1.0, atol=1e-3)
 
     # run forwards multiple steps
     state.time = 0.

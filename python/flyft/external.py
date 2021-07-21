@@ -1,12 +1,12 @@
 from . import _flyft
 from .functional import Functional
 from . import mirror
-from . import state
+from .mixins import CompositeMixin
 
 class ExternalPotential(Functional,mirrorclass=_flyft.ExternalPotential):
     pass
 
-class CompositeExternalPotential(ExternalPotential,mirror.CompositeMixin,mirrorclass=_flyft.CompositeExternalPotential):
+class CompositeExternalPotential(ExternalPotential,CompositeMixin,mirrorclass=_flyft.CompositeExternalPotential):
     def __init__(self, objects=None):
         super().__init__()
         if objects is not None:

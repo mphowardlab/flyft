@@ -15,16 +15,16 @@ class ExplicitEulerIntegrator : public Integrator
     public:
         ExplicitEulerIntegrator(double timestep);
 
-        bool advance(std::shared_ptr<Flux> flux,
-                     std::shared_ptr<GrandPotential> grand,
-                     std::shared_ptr<State> state,
-                     double time) override;
+    protected:
+        void step(std::shared_ptr<Flux> flux,
+                  std::shared_ptr<GrandPotential> grand,
+                  std::shared_ptr<State> state,
+                  double timestep) override;
 
-        double getTimestep() const;
-        void setTimestep(double timestep);
-
-    private:
-        double timestep_;
+        int getLocalErrorExponent() const override
+            {
+            return 2;
+            }
     };
 
 }
