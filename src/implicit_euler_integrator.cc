@@ -32,7 +32,7 @@ void ImplicitEulerIntegrator::step(std::shared_ptr<Flux> flux,
     const auto mesh = *state->getMesh();
     for (const auto& t : state->getTypes())
         {
-        parallel::copy(state->getField(t)->data(),mesh.capacity(),last_fields_.at(t)->data());
+        parallel::copy(state->getField(t)->data(),mesh.shape(),last_fields_.at(t)->data());
         }
 
     // advance time of state to *next* point
@@ -65,7 +65,7 @@ void ImplicitEulerIntegrator::step(std::shared_ptr<Flux> flux,
                 // explicitly apply pbcs on the index
                 // TODO: remove this wrapping
                 int left = idx;
-                int right = (idx+1) % mesh.capacity();
+                int right = (idx+1) % mesh.shape();
                 const double next_rate = (next_j[left]-next_j[right])/mesh.step();
                 double try_rho = last_rho[idx] + timestep*next_rate;
                 const double drho = alpha*(try_rho-next_rho[idx]);

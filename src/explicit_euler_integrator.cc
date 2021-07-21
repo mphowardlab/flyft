@@ -30,7 +30,7 @@ void ExplicitEulerIntegrator::step(std::shared_ptr<Flux> flux,
             // explicitly apply pbcs on the index
             // TODO: remove this wrapping
             int left = idx;
-            int right = (idx+1) % mesh.capacity();
+            int right = (idx+1) % mesh.shape();
 
             // change in density is flux in - flux out over time
             const auto rate = (j[left]-j[right])/mesh.step();

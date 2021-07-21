@@ -51,9 +51,9 @@ void Flux::allocate(std::shared_ptr<State> state)
         {
         if (fluxes_.find(t) == fluxes_.end())
             {
-            fluxes_[t] = std::make_shared<Field>(mesh.capacity());
+            fluxes_[t] = std::make_shared<Field>(mesh.shape());
             }
-        fluxes_[t]->reshape(mesh.capacity());
+        fluxes_[t]->reshape(mesh.shape());
         }
     }
 

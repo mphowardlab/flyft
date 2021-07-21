@@ -80,27 +80,27 @@ void RosenfeldFMT::compute(std::shared_ptr<State> state)
         {
         ft_->setReciprocalData(n0k_->data());
         ft_->transform();
-        parallel::copy(ft_->getRealData()+mesh.begin(),mesh.capacity(),n0_->data());
+        parallel::copy(ft_->getRealData(),mesh.shape(),n0_->data());
 
         ft_->setReciprocalData(n1k_->data());
         ft_->transform();
-        parallel::copy(ft_->getRealData()+mesh.begin(),mesh.capacity(),n1_->data());
+        parallel::copy(ft_->getRealData(),mesh.shape(),n1_->data());
 
         ft_->setReciprocalData(n2k_->data());
         ft_->transform();
-        parallel::copy(ft_->getRealData()+mesh.begin(),mesh.capacity(),n2_->data());
+        parallel::copy(ft_->getRealData(),mesh.shape(),n2_->data());
 
         ft_->setReciprocalData(n3k_->data());
         ft_->transform();
-        parallel::copy(ft_->getRealData()+mesh.begin(),mesh.capacity(),n3_->data());
+        parallel::copy(ft_->getRealData(),mesh.shape(),n3_->data());
 
         ft_->setReciprocalData(nv1k_->data());
         ft_->transform();
-        parallel::copy(ft_->getRealData()+mesh.begin(),mesh.capacity(),nv1_->data());
+        parallel::copy(ft_->getRealData(),mesh.shape(),nv1_->data());
 
         ft_->setReciprocalData(nv2k_->data());
         ft_->transform();
-        parallel::copy(ft_->getRealData()+mesh.begin(),mesh.capacity(),nv2_->data());
+        parallel::copy(ft_->getRealData(),mesh.shape(),nv2_->data());
         }
 
     // evaluate phi and partial derivatives in real space using n
@@ -208,7 +208,7 @@ void RosenfeldFMT::compute(std::shared_ptr<State> state)
                 {
                 // no radius, no contribution to energy
                 // need to set here as we are not prefilling the array with zeros
-                parallel::fill(derivatives_.at(t)->data(), mesh.capacity(),0.0);
+                parallel::fill(derivatives_.at(t)->data(), mesh.shape(),0.0);
                 continue;
                 }
 
@@ -246,28 +246,28 @@ void RosenfeldFMT::allocate(std::shared_ptr<State> state)
     const auto mesh = *state->getMesh();
 
     // update Fourier transform to mesh shape
-    if (!ft_ || (ft_->getRealSize() != mesh.capacity()))
+    if (!ft_ || (ft_->getRealSize() != mesh.shape()))
         {
-        ft_ = std::make_unique<FourierTransform>(mesh.capacity());
+        ft_ = std::make_unique<FourierTransform>(mesh.shape());
         }
 
     // update shape of internal fields (alloc handled in a smart way by Field)
-    setupFourierFields(n0_, n0k_, mesh.capacity(), ft_->getReciprocalSize());
-    setupFourierFields(n1_, n1k_, mesh.capacity(), ft_->getReciprocalSize());
-    setupFourierFields(n2_, n2k_, mesh.capacity(), ft_->getReciprocalSize());
-    setupFourierFields(n3_, n3k_, mesh.capacity(), ft_->getReciprocalSize());
-    setupFourierFields(nv1_, nv1k_, mesh.capacity(), ft_->getReciprocalSize());
-    setupFourierFields(nv2_, nv2k_, mesh.capacity(), ft_->getReciprocalSize());
+    setupFourierFields(n0_, n0k_, mesh.shape(), ft_->getReciprocalSize());
+    setupFourierFields(n1_, n1k_, mesh.shape(), ft_->getReciprocalSize());
+    setupFourierFields(n2_, n2k_, mesh.shape(), ft_->getReciprocalSize());
+    setupFourierFields(n3_, n3k_, mesh.shape(), ft_->getReciprocalSize());
+    setupFourierFields(nv1_, nv1k_, mesh.shape(), ft_->getReciprocalSize());
+    setupFourierFields(nv2_, nv2k_, mesh.shape(), ft_->getReciprocalSize());
 
-    setupFourierFields(dphi_dn0_, dphi_dn0k_, mesh.capacity(), ft_->getReciprocalSize());
-    setupFourierFields(dphi_dn1_, dphi_dn1k_, mesh.capacity(), ft_->getReciprocalSize());
-    setupFourierFields(dphi_dn2_, dphi_dn2k_, mesh.capacity(), ft_->getReciprocalSize());
-    setupFourierFields(dphi_dn3_, dphi_dn3k_, mesh.capacity(), ft_->getReciprocalSize());
-    setupFourierFields(dphi_dnv1_, dphi_dnv1k_, mesh.capacity(), ft_->getReciprocalSize());
-    setupFourierFields(dphi_dnv2_, dphi_dnv2k_, mesh.capacity(), ft_->getReciprocalSize());
+    setupFourierFields(dphi_dn0_, dphi_dn0k_, mesh.shape(), ft_->getReciprocalSize());
+    setupFourierFields(dphi_dn1_, dphi_dn1k_, mesh.shape(), ft_->getReciprocalSize());
+    setupFourierFields(dphi_dn2_, dphi_dn2k_, mesh.shape(), ft_->getReciprocalSize());
+    setupFourierFields(dphi_dn3_, dphi_dn3k_, mesh.shape(), ft_->getReciprocalSize());
+    setupFourierFields(dphi_dnv1_, dphi_dnv1k_, mesh.shape(), ft_->getReciprocalSize());
+    setupFourierFields(dphi_dnv2_, dphi_dnv2k_, mesh.shape(), ft_->getReciprocalSize());
 
     // these two fields only exist in one space
-    setupField(phi_,mesh.capacity());
+    setupField(phi_,mesh.shape());
     setupComplexField(derivativek_, ft_->getReciprocalSize());
     }
 

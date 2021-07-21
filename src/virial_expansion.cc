@@ -15,7 +15,7 @@ void VirialExpansion::compute(std::shared_ptr<State> state)
     value_ = 0.0;
     for (const auto& t : types)
         {
-        parallel::fill(derivatives_.at(t)->data(),mesh.capacity(),0.);
+        parallel::fill(derivatives_.at(t)->data(),mesh.shape(),0.);
         }
 
     for (auto it_i=types.cbegin(); it_i != types.cend(); ++it_i)

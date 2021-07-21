@@ -13,7 +13,7 @@ void CompositeFlux::compute(std::shared_ptr<GrandPotential> grand, std::shared_p
     for (const auto& t : state->getTypes())
         {
         auto j = fluxes_.at(t)->data();
-        parallel::fill(j,mesh.capacity(),0.);
+        parallel::fill(j,mesh.shape(),0.);
         }
 
     // combine

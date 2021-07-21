@@ -31,9 +31,6 @@ class Mesh
         // Length of the mesh
         double L() const;
 
-        //! Capacity of the mesh
-        int capacity() const;
-
         //! Shape of the mesh
         int shape() const;
 

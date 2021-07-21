@@ -47,7 +47,7 @@ void CrankNicolsonIntegrator::step(std::shared_ptr<Flux> flux,
             // explicitly apply pbcs on the index
             // TODO: remove this wrapping
             int left = idx;
-            int right = (idx+1) % mesh.capacity();
+            int right = (idx+1) % mesh.shape();
 
             // change in density is flux in - flux out over time
             last_rho[idx] = rho[idx];
@@ -87,7 +87,7 @@ void CrankNicolsonIntegrator::step(std::shared_ptr<Flux> flux,
                 // explicitly apply pbcs on the index
                 // TODO: remove this wrapping
                 int left = idx;
-                int right = (idx+1) % mesh.capacity();
+                int right = (idx+1) % mesh.shape();
                 const double next_rate = (next_j[left]-next_j[right])/mesh.step();
                 const double try_rho = last_rho[idx] + 0.5*timestep*(last_rate[idx]+next_rate);
                 const double drho = alpha*(try_rho-next_rho[idx]);

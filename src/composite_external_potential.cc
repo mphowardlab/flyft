@@ -10,13 +10,13 @@ void CompositeExternalPotential::potential(std::shared_ptr<Field> V, const std::
     const auto mesh = *state->getMesh();
     if (!Vtmp_)
         {
-        Vtmp_ = std::make_shared<Field>(mesh.capacity());
+        Vtmp_ = std::make_shared<Field>(mesh.shape());
         }
-    Vtmp_->reshape(mesh.capacity());
+    Vtmp_->reshape(mesh.shape());
 
     // fill total potential with zeros
     auto data = V->data();
-    parallel::fill(data,mesh.capacity(),0.);
+    parallel::fill(data,mesh.shape(),0.);
 
     for (const auto& potential : objects_)
         {

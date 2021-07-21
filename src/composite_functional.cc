@@ -14,7 +14,7 @@ void CompositeFunctional::compute(std::shared_ptr<State> state)
     for (const auto& t : state->getTypes())
         {
         auto d = derivatives_.at(t)->data();
-        parallel::fill(d,mesh.capacity(),0.);
+        parallel::fill(d,mesh.shape(),0.);
         }
 
     // combine

@@ -44,11 +44,6 @@ double Mesh::L() const
     return L_;
     }
 
-int Mesh::capacity() const
-    {
-    return shape_;
-    }
-
 int Mesh::shape() const
     {
     return shape_;

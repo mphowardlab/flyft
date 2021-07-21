@@ -19,7 +19,7 @@ bool PicardIteration::solve(std::shared_ptr<GrandPotential> grand, std::shared_p
     const auto alpha = getMixParameter();
     const auto tol = getTolerance();
 
-    Field tmp(mesh.capacity());
+    Field tmp(mesh.shape());
     bool converged = false;
     for (int iter=0; iter < getMaxIterations() && !converged; ++iter)
         {
