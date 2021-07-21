@@ -80,7 +80,7 @@ bool Integrator::advance(std::shared_ptr<Flux> flux,
                     // find max error on mesh
                     double type_max_err = 0.;
                     #ifdef FLYFT_OPENMP
-                    #pragma omp parallel for schedule(static) default(none) shared(shape,rho,rho_err) \
+                    #pragma omp parallel for schedule(static) default(none) firstprivate(shape,rho,rho_err) \
                         reduction(max:type_max_err)
                     #endif
                     for (int idx=0; idx < shape; ++idx)
