@@ -1,4 +1,3 @@
-#include "flyft/parallel.h"
 #include "flyft/state.h"
 
 #include <algorithm>
@@ -15,7 +14,7 @@ State::State(std::shared_ptr<const Mesh> mesh, const std::vector<std::string>& t
     {
     for (const auto& t : types_)
         {
-        fields_[t] = std::make_shared<Field>(mesh_->shape());
+        fields_[t] = std::make_shared<Field>(mesh_->shape(),mesh_->buffer_shape());
         }
     }
 
@@ -26,8 +25,8 @@ State::State(const State& other)
     {
     for (const auto& t : types_)
         {
-        fields_[t] = std::make_shared<Field>(mesh_->shape());
-        parallel::copy(other.fields_.at(t)->data()+mesh_->begin(), mesh_->shape(), fields_.at(t)->data()+mesh_->begin());
+        fields_[t] = std::make_shared<Field>(mesh_->shape(),mesh_->buffer_shape());
+        std::copy(other.fields_.at(t)->begin(),other.fields_.at(t)->end(),fields_.at(t)->begin());
         }
     }
 
@@ -48,7 +47,7 @@ State& State::operator=(const State& other)
         syncFields(fields_);
         for (const auto& t : types_)
             {
-            parallel::copy(other.fields_.at(t)->data()+mesh_->begin(), mesh_->shape(), fields_.at(t)->data()+mesh_->begin());
+            std::copy(other.fields_.at(t)->begin(), other.fields_.at(t)->end(), fields_.at(t)->begin());
             }
         time_ = other.time_;
         }
@@ -130,9 +129,12 @@ void State::syncFields(TypeMap<std::shared_ptr<Field>>& fields) const
         {
         if (fields.find(t) == fields.end())
             {
-            fields[t] = std::make_shared<Field>(mesh_->shape());
+            fields[t] = std::make_shared<Field>(mesh_->shape(),mesh_->buffer_shape());
             }
-        fields[t]->reshape(mesh_->shape());
+        else
+            {
+            fields[t]->reshape(mesh_->shape(),mesh_->buffer_shape());
+            }
         }
     }
 

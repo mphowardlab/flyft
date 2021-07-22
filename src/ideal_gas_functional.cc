@@ -15,12 +15,12 @@ void IdealGasFunctional::compute(std::shared_ptr<State> state)
         const auto vol = volumes_.at(t);
 
         // compute the total potential by integration
-        auto f = state->getField(t)->data();
-        auto d = derivatives_.at(t)->data();
+        auto f = state->getField(t)->first();
+        auto d = derivatives_.at(t)->first();
         #ifdef FLYFT_OPENMP
         #pragma omp parallel for schedule(static) default(none) firstprivate(mesh,vol) shared(f,d) reduction(+:value_)
         #endif
-        for (auto idx=mesh.first(); idx != mesh.last(); ++idx)
+        for (int idx=0; idx < mesh.shape(); ++idx)
             {
             const double rho = f[idx];
             double energy;

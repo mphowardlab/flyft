@@ -1,5 +1,6 @@
 #include "flyft/composite_external_potential.h"
-#include "flyft/parallel.h"
+
+#include <algorithm>
 
 namespace flyft
 {
@@ -10,22 +11,25 @@ void CompositeExternalPotential::potential(std::shared_ptr<Field> V, const std::
     const auto mesh = *state->getMesh();
     if (!Vtmp_)
         {
-        Vtmp_ = std::make_shared<Field>(mesh.shape());
+        Vtmp_ = std::make_shared<Field>(mesh.shape(),mesh.buffer_shape());
         }
-    Vtmp_->reshape(mesh.shape());
+    else
+        {
+        Vtmp_->reshape(mesh.shape(),mesh.buffer_shape());
+        }
 
     // fill total potential with zeros
-    auto data = V->data();
-    parallel::fill(data,mesh.shape(),0.);
+    auto data = V->first();
+    std::fill(V->first(),V->last(),0.);
 
     for (const auto& potential : objects_)
         {
         potential->potential(Vtmp_,type,state);
-        auto tmp = Vtmp_->data();
+        auto tmp = Vtmp_->first();
         #ifdef FLYFT_OPENMP
         #pragma omp parallel for schedule(static) default(none) firstprivate(mesh) shared(data,tmp)
         #endif
-        for (auto idx=mesh.first(); idx != mesh.last(); ++idx)
+        for (int idx=0; idx < mesh.shape(); ++idx)
             {
             data[idx] += tmp[idx];
             }

@@ -35,14 +35,14 @@ void GrandPotential::compute(std::shared_ptr<State> state)
     // sum up contributions to derivatives for each type
     for (const auto& t : state->getTypes())
         {
-        auto d = derivatives_.at(t)->data();
-        auto did = (ideal_) ? ideal_->getDerivative(t)->data() : nullptr;
-        auto dex = (excess_) ? excess_->getDerivative(t)->data() : nullptr;
-        auto dext = (external_) ? external_->getDerivative(t)->data() : nullptr;
+        auto d = derivatives_.at(t)->first();
+        auto did = (ideal_) ? ideal_->getDerivative(t)->first() : nullptr;
+        auto dex = (excess_) ? excess_->getDerivative(t)->first() : nullptr;
+        auto dext = (external_) ? external_->getDerivative(t)->first() : nullptr;
         #ifdef FLYFT_OPENMP
         #pragma omp parallel for schedule(static) default(none) firstprivate(mesh) shared(d,did,dex,dext)
         #endif
-        for (auto idx=mesh.first(); idx != mesh.last(); ++idx)
+        for (int idx=0; idx < mesh.shape(); ++idx)
             {
             double deriv = 0.;
             if (did) deriv += did[idx];
@@ -56,11 +56,11 @@ void GrandPotential::compute(std::shared_ptr<State> state)
         if (constraint_type == Constraint::mu)
             {
             const auto mu_bulk = constraints_.at(t);
-            auto rho = state->getField(t)->data();
+            auto rho = state->getField(t)->first();
             #ifdef FLYFT_OPENMP
             #pragma omp parallel for schedule(static) default(none) firstprivate(mesh,mu_bulk) shared(rho,d) reduction(-:value_)
             #endif
-            for (auto idx=mesh.first(); idx != mesh.last(); ++idx)
+            for (int idx=0; idx < mesh.shape(); ++idx)
                 {
                 d[idx] -= mu_bulk;
                 value_ -= mesh.step()*mu_bulk*rho[idx];

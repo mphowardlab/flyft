@@ -20,17 +20,17 @@ void ExplicitEulerIntegrator::step(std::shared_ptr<Flux> flux,
     flux->compute(grand,state);
     for (const auto& t : state->getTypes())
         {
-        auto rho = state->getField(t)->data();
-        auto j = flux->getFlux(t)->data();
+        auto rho = state->getField(t)->first();
+        auto j = flux->getFlux(t)->first();
         #ifdef FLYFT_OPENMP
         #pragma omp parallel for schedule(static) default(none) firstprivate(timestep,mesh) shared(rho,j)
         #endif
-        for (auto idx=mesh.first(); idx != mesh.last(); ++idx)
+        for (int idx=0; idx < mesh.shape(); ++idx)
             {
             // explicitly apply pbcs on the index
             // TODO: remove this wrapping
             int left = idx;
-            int right = (idx+1) % mesh.shape();
+            int right = (idx+1) % mesh.buffered_shape();
 
             // change in density is flux in - flux out over time
             const auto rate = (j[left]-j[right])/mesh.step();

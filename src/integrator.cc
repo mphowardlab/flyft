@@ -75,15 +75,15 @@ bool Integrator::advance(std::shared_ptr<Flux> flux,
                 double max_err = 0.;
                 for (const auto& t : state->getTypes())
                     {
-                    const auto rho = state->getField(t)->data();
-                    const auto rho_err = adaptive_err_state_->getField(t)->data();
+                    const auto rho = state->getField(t)->first();
+                    const auto rho_err = adaptive_err_state_->getField(t)->first();
                     // find max error on mesh
                     double type_max_err = 0.;
                     #ifdef FLYFT_OPENMP
                     #pragma omp parallel for schedule(static) default(none) firstprivate(mesh,rho,rho_err) \
                         reduction(max:type_max_err)
                     #endif
-                    for (auto idx=mesh.first(); idx != mesh.last(); ++idx)
+                    for (int idx=0; idx < mesh.shape(); ++idx)
                         {
                         const double err = std::abs(rho_err[idx]-rho[idx]);
                         if (err > type_max_err)

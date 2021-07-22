@@ -62,11 +62,11 @@ class RosenfeldFMT : public Functional
 
         void allocate(std::shared_ptr<State> state) override;
 
-        void setupField(std::unique_ptr<Field>& field, int shape);
+        void setupField(std::unique_ptr<Field>& field, const Mesh& mesh);
         void setupComplexField(std::unique_ptr<ComplexField>& kfield, int kshape);
         void setupFourierFields(std::unique_ptr<Field>& field,
                                 std::unique_ptr<ComplexField>& kfield,
-                                int shape,
+                                const Mesh& mesh,
                                 int kshape);
 
         // replace this by a template evaluator for flexibility (requires templating whole class though)

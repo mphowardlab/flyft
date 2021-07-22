@@ -38,10 +38,10 @@ bool PicardIteration::solve(std::shared_ptr<GrandPotential> grand, std::shared_p
         // apply picard mixing scheme
         for (const auto& t : state->getTypes())
             {
-            auto rho = state->getField(t)->data();
-            auto rho_tmp = tmp.data();
-            auto mu_ex = (excess) ? excess->getDerivative(t)->data() : nullptr;
-            auto V = (external) ? external->getDerivative(t)->data() : nullptr;
+            auto rho = state->getField(t)->first();
+            auto rho_tmp = tmp.first();
+            auto mu_ex = (excess) ? excess->getDerivative(t)->first() : nullptr;
+            auto V = (external) ? external->getDerivative(t)->first() : nullptr;
 
             double norm = 1.0;
             auto constraint_type = grand->getConstraintType(t);
@@ -52,7 +52,7 @@ bool PicardIteration::solve(std::shared_ptr<GrandPotential> grand, std::shared_p
                 #ifdef FLYFT_OPENMP
                 #pragma omp parallel for schedule(static) default(none) firstprivate(mesh) shared(mu_ex,V,rho_tmp) reduction(+:sum)
                 #endif
-                for (auto idx=mesh.first(); idx != mesh.last(); ++idx)
+                for (int idx=0; idx < mesh.shape(); ++idx)
                     {
                     double eff_energy = 0.0;
                     if (mu_ex) eff_energy += mu_ex[idx];
@@ -70,7 +70,7 @@ bool PicardIteration::solve(std::shared_ptr<GrandPotential> grand, std::shared_p
                 #ifdef FLYFT_OPENMP
                 #pragma omp parallel for schedule(static) default(none) firstprivate(mesh,mu_bulk) shared(mu_ex,V,rho_tmp)
                 #endif
-                for (auto idx=mesh.first(); idx != mesh.last(); ++idx)
+                for (int idx=0; idx < mesh.shape(); ++idx)
                     {
                     double eff_energy = 0.0;
                     if (mu_ex) eff_energy += mu_ex[idx];
@@ -90,7 +90,7 @@ bool PicardIteration::solve(std::shared_ptr<GrandPotential> grand, std::shared_p
             #ifdef FLYFT_OPENMP
             #pragma omp parallel for schedule(static) default(none) firstprivate(mesh,alpha,norm,tol) shared(rho,rho_tmp,converged)
             #endif
-            for (auto idx=mesh.first(); idx != mesh.last(); ++idx)
+            for (int idx=0; idx < mesh.shape(); ++idx)
                 {
                 const double drho = alpha*(norm*rho_tmp[idx]-rho[idx]);
                 rho[idx] += drho;

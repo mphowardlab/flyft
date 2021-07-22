@@ -33,21 +33,21 @@ void CrankNicolsonIntegrator::step(std::shared_ptr<Flux> flux,
     flux->compute(grand,state);
     for (const auto& t : state->getTypes())
         {
-        auto rho = state->getField(t)->data();
-        auto j = flux->getFlux(t)->data();
-        auto last_rho = last_fields_.at(t)->data();
-        auto last_rate = last_rates_.at(t)->data();
+        auto rho = state->getField(t)->first();
+        auto j = flux->getFlux(t)->first();
+        auto last_rho = last_fields_.at(t)->first();
+        auto last_rate = last_rates_.at(t)->first();
 
         #ifdef FLYFT_OPENMP
         #pragma omp parallel for schedule(static) default(none) firstprivate(mesh) \
             shared(rho,j,last_rho,last_rate)
         #endif
-        for (auto idx=mesh.first(); idx != mesh.last(); ++idx)
+        for (int idx=0; idx < mesh.shape(); ++idx)
             {
             // explicitly apply pbcs on the index
             // TODO: remove this wrapping
             int left = idx;
-            int right = (idx+1) % mesh.shape();
+            int right = (idx+1) % mesh.buffered_shape();
 
             // change in density is flux in - flux out over time
             last_rho[idx] = rho[idx];
@@ -73,21 +73,21 @@ void CrankNicolsonIntegrator::step(std::shared_ptr<Flux> flux,
         // check for convergence new state
         for (const auto& t : state->getTypes())
             {
-            auto next_rho = state->getField(t)->data();
-            auto next_j = flux->getFlux(t)->data();
-            auto last_rho = last_fields_.at(t)->data();
-            auto last_rate = last_rates_.at(t)->data();
+            auto next_rho = state->getField(t)->first();
+            auto next_j = flux->getFlux(t)->first();
+            auto last_rho = last_fields_.at(t)->first();
+            auto last_rate = last_rates_.at(t)->first();
 
             #ifdef FLYFT_OPENMP
             #pragma omp parallel for schedule(static) default(none) firstprivate(timestep,mesh,alpha,tol) \
                 shared(next_rho,next_j,last_rho,last_rate,converged)
             #endif
-            for (auto idx=mesh.first(); idx != mesh.last(); ++idx)
+            for (int idx=0; idx < mesh.shape(); ++idx)
                 {
                 // explicitly apply pbcs on the index
                 // TODO: remove this wrapping
                 int left = idx;
-                int right = (idx+1) % mesh.shape();
+                int right = (idx+1) % mesh.buffered_shape();
                 const double next_rate = (next_j[left]-next_j[right])/mesh.step();
                 const double try_rho = last_rho[idx] + 0.5*timestep*(last_rate[idx]+next_rate);
                 const double drho = alpha*(try_rho-next_rho[idx]);

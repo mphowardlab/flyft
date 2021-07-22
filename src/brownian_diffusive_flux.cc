@@ -24,19 +24,19 @@ void BrownianDiffusiveFlux::compute(std::shared_ptr<GrandPotential> grand, std::
     for (const auto& t : state->getTypes())
         {
         const auto D = diffusivities_.at(t);
-        auto rho = state->getField(t)->data();
-        auto mu_ex = (excess) ? excess->getDerivative(t)->data() : nullptr;
-        auto V = (external) ? external->getDerivative(t)->data() : nullptr;
-        auto flux = fluxes_.at(t)->data();
+        auto rho = state->getField(t)->first();
+        auto mu_ex = (excess) ? excess->getDerivative(t)->first() : nullptr;
+        auto V = (external) ? external->getDerivative(t)->first() : nullptr;
+        auto flux = fluxes_.at(t)->first();
 
         #ifdef FLYFT_OPENMP
         #pragma omp parallel for schedule(static) default(none) firstprivate(D,mesh) shared(rho,mu_ex,V,flux)
         #endif
-        for (auto idx=mesh.first(); idx != mesh.last(); ++idx)
+        for (int idx=0; idx < mesh.shape(); ++idx)
             {
             // explicitly apply pbcs on the index
             // TODO: remove this wrapping
-            int left = (idx > mesh.begin()) ? idx-1 : mesh.end()-1;
+            int left = (idx+mesh.buffer_shape() > 0) ? idx-1 : mesh.buffered_shape()-1;
 
             // handle infinite external potentials carefully, as there should be no flux in those directions
             bool no_flux = false;

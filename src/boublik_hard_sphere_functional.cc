@@ -20,8 +20,8 @@ void BoublikHardSphereFunctional::compute(std::shared_ptr<State> state)
     for (size_t i=0; i < num_types; ++i)
         {
         const auto type_i = types[i];
-        fields[i] = state->getField(type_i)->data();
-        derivs[i] = derivatives_.at(type_i)->data();
+        fields[i] = state->getField(type_i)->first();
+        derivs[i] = derivatives_.at(type_i)->first();
         diams[i] = diameters_.at(type_i);
         }
 
@@ -36,7 +36,7 @@ void BoublikHardSphereFunctional::compute(std::shared_ptr<State> state)
         #pragma omp parallel for schedule(static) default(none) private(xi) firstprivate(num_types,mesh) \
         shared(fields,derivs,diams) reduction(+:value_)
         #endif
-        for (auto idx=mesh.first(); idx != mesh.last(); ++idx)
+        for (int idx=0; idx < mesh.shape(); ++idx)
             {
             // compute scaled particle variables
             for (int m=0; m < 4; ++m)
@@ -106,7 +106,7 @@ void BoublikHardSphereFunctional::compute(std::shared_ptr<State> state)
         #ifdef FLYFT_OPENMP
         #pragma omp parallel for schedule(static) default(none) firstprivate(mesh) shared(fields,derivs,diams) reduction(+:value_)
         #endif
-        for (auto idx=mesh.first(); idx != mesh.last(); ++idx)
+        for (int idx=0; idx < mesh.shape(); ++idx)
             {
             const auto rho = fields[0][idx];
             const auto d = diams[0];
