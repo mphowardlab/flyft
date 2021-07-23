@@ -35,20 +35,21 @@ void GrandPotential::compute(std::shared_ptr<State> state)
     // sum up contributions to derivatives for each type
     for (const auto& t : state->getTypes())
         {
-        auto d = derivatives_.at(t)->first();
-        auto did = (ideal_) ? ideal_->getDerivative(t)->first() : nullptr;
-        auto dex = (excess_) ? excess_->getDerivative(t)->first() : nullptr;
-        auto dext = (external_) ? external_->getDerivative(t)->first() : nullptr;
+        auto d = derivatives_.at(t)->begin();
+        auto did = (ideal_) ? ideal_->getDerivative(t)->cbegin() : nullptr;
+        auto dex = (excess_) ? excess_->getDerivative(t)->cbegin() : nullptr;
+        auto dext = (external_) ? external_->getDerivative(t)->cbegin() : nullptr;
         #ifdef FLYFT_OPENMP
         #pragma omp parallel for schedule(static) default(none) firstprivate(mesh) shared(d,did,dex,dext)
         #endif
         for (int idx=0; idx < mesh.shape(); ++idx)
             {
+            const int self = mesh(idx);
             double deriv = 0.;
-            if (did) deriv += did[idx];
-            if (dex) deriv += dex[idx];
-            if (dext) deriv += dext[idx];
-            d[idx] = deriv;
+            if (did) deriv += did[self];
+            if (dex) deriv += dex[self];
+            if (dext) deriv += dext[self];
+            d[self] = deriv;
             }
 
         // subtract chemical potential part when component is open
@@ -56,14 +57,15 @@ void GrandPotential::compute(std::shared_ptr<State> state)
         if (constraint_type == Constraint::mu)
             {
             const auto mu_bulk = constraints_.at(t);
-            auto rho = state->getField(t)->first();
+            auto rho = state->getField(t)->cbegin();
             #ifdef FLYFT_OPENMP
             #pragma omp parallel for schedule(static) default(none) firstprivate(mesh,mu_bulk) shared(rho,d) reduction(-:value_)
             #endif
             for (int idx=0; idx < mesh.shape(); ++idx)
                 {
-                d[idx] -= mu_bulk;
-                value_ -= mesh.step()*mu_bulk*rho[idx];
+                const int self = mesh(idx);
+                d[self] -= mu_bulk;
+                value_ -= mesh.step()*mu_bulk*rho[self];
                 }
             }
         }

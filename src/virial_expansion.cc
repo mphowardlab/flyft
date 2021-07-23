@@ -16,20 +16,20 @@ void VirialExpansion::compute(std::shared_ptr<State> state)
     value_ = 0.0;
     for (const auto& t : types)
         {
-        std::fill(derivatives_.at(t)->first(),derivatives_.at(t)->end(),0.);
+        std::fill(derivatives_.at(t)->begin(),derivatives_.at(t)->end(),0.);
         }
 
     for (auto it_i=types.cbegin(); it_i != types.cend(); ++it_i)
         {
         const auto i = *it_i;
-        auto fi = state->getField(i)->first();
-        auto di = derivatives_.at(i)->first();
+        auto fi = state->getField(i)->cbegin();
+        auto di = derivatives_.at(i)->begin();
 
         for (auto it_j=it_i; it_j != types.cend(); ++it_j)
             {
             const auto j = *it_j;
-            auto fj = state->getField(j)->first();
-            auto dj = derivatives_.at(j)->first();
+            auto fj = state->getField(j)->cbegin();
+            auto dj = derivatives_.at(j)->begin();
 
             const double Bij = coeffs_(i,j);
             #ifdef FLYFT_OPENMP
@@ -37,14 +37,15 @@ void VirialExpansion::compute(std::shared_ptr<State> state)
             #endif
             for (int idx=0; idx < mesh.shape(); ++idx)
                 {
-                const double rhoi = fi[idx];
-                const double rhoj = fj[idx];
-                di[idx] += 2*Bij*rhoj;
+                const int self = mesh(idx);
+                const double rhoi = fi[self];
+                const double rhoj = fj[self];
+                di[self] += 2*Bij*rhoj;
                 // since we are only taking half the double sum, need to add to other type / total
                 double factor = 1.0;
                 if (dj != di)
                     {
-                    dj[idx] += 2*Bij*rhoi;
+                    dj[self] += 2*Bij*rhoi;
                     factor = 2.0;
                     }
                 value_ += mesh.step()*(factor*Bij*rhoi*rhoj);

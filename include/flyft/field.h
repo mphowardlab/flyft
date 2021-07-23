@@ -1,6 +1,8 @@
 #ifndef FLYFT_FIELD_H_
 #define FLYFT_FIELD_H_
 
+#include "flyft/data_layout.h"
+
 #include <algorithm>
 #include <complex>
 
@@ -14,12 +16,14 @@ class GenericField
         GenericField() = delete;
         GenericField(int shape)
             : GenericField(shape,0)
-            {
-            }
+            {}
         GenericField(int shape, int buffer_shape)
-            : data_(nullptr), shape_(-1), buffer_shape_(-1)
+            : GenericField(DataLayout(shape,buffer_shape))
+            {}
+        GenericField(const DataLayout& layout)
+            : data_(nullptr)
             {
-            reshape(shape,buffer_shape);
+            reshape(layout);
             }
 
         // noncopyable / nonmovable
@@ -35,27 +39,27 @@ class GenericField
 
         double& operator()(int idx)
             {
-            return data_[idx];
+            return data_[layout_(idx)];
             }
 
         double operator()(int idx) const
             {
-            return data_[idx];
+            return data_[layout_(idx)];
             }
 
         int shape() const
             {
-            return shape_;
+            return layout_.shape();
             }
 
         int buffer_shape() const
             {
-            return buffer_shape_;
+            return layout_.buffer_shape();
             }
 
-        int buffered_shape() const
+        int full_shape() const
             {
-            return shape_ + 2*buffer_shape_;
+            return layout_.full_shape();
             }
 
         T* begin()
@@ -63,59 +67,44 @@ class GenericField
             return data_;
             }
 
-        const T* begin() const
+        const T* cbegin() const
             {
             return static_cast<const T*>(data_);
             }
 
         T* end()
             {
-            return begin() + buffered_shape();
+            return begin() + full_shape();
             }
 
-        const T* end() const
+        const T* cend() const
             {
-            return begin() + buffered_shape();
+            return cbegin() + full_shape();
             }
 
-        T* first()
+        void reshape(int shape, int buffer_shape)
             {
-            return begin() + buffer_shape_;
+            reshape(DataLayout(shape,buffer_shape));
             }
 
-        const T* first() const
+        void reshape(const DataLayout& layout)
             {
-            return begin() + buffer_shape_;
-            }
-
-        T* last()
-            {
-            return first() + shape_;
-            }
-
-        const T* last() const
-            {
-            return first() + shape_;
-            }
-
-        void reshape(int shape, int buffer_shape=0)
-            {
-            if (shape != this->shape() || buffer_shape != this->buffer_shape())
+            if (layout != layout_)
                 {
-                int buffered_shape = shape + 2*buffer_shape;
+                int full_shape = layout.full_shape();
                 // if data is alloc'd, decide what to do with it
                 if (data_ != nullptr)
                     {
-                    if (shape == this->shape())
+                    if (layout.shape() == layout_.shape())
                         {
                         // data shape is the same but buffer changed, copy
-                        T* tmp = new T[buffered_shape];
-                        for (int i=0; i < buffered_shape; ++i)
+                        T* tmp = new T[full_shape];
+                        for (int i=0; i < full_shape; ++i)
                             {
-                            int offset = (i-buffer_shape);
-                            if (offset >= 0 && offset < shape)
+                            int offset = layout(i);
+                            if (offset >= 0 && offset < layout.shape())
                                 {
-                                tmp[i] = this->first()[offset];
+                                tmp[i] = data_[layout_(offset)];
                                 }
                             else
                                 {
@@ -125,35 +114,32 @@ class GenericField
                         std::swap(data_,tmp);
                         delete[] tmp;
                         }
-                    else if (buffered_shape == this->buffered_shape())
+                    else if (full_shape == layout_.full_shape() && full_shape > 0)
                         {
                         // total shape is still the same, just reset the data
-                        std::fill(data_,data_+buffered_shape,T(0));
+                        std::fill(data_,data_+full_shape,T(0));
                         }
                     else
                         {
                         // shape is different, wipe it out and realloc
-                        delete data_;
+                        delete[] data_;
+                        data_ = nullptr;
                         }
                     }
 
                 // if data is still not alloc'd, make it so
-                if (data_ == nullptr)
+                if (data_ == nullptr && layout.full_shape() > 0)
                     {
-                    data_ = new T[buffered_shape];
-                    std::fill(data_,data_+buffered_shape,T(0));
+                    data_ = new T[layout.full_shape()];
+                    std::fill(data_,data_+layout.full_shape(),T(0));
                     }
-
-                // set the new shape of the array & buffer
-                shape_ = shape;
-                buffer_shape_ = buffer_shape;
+                layout_ = layout;
                 }
             }
 
     private:
         T* data_;
-        int shape_;
-        int buffer_shape_;
+        DataLayout layout_;
     };
 
 using Field = GenericField<double>;

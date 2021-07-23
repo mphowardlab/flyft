@@ -11,17 +11,33 @@ Mesh::Mesh(double L, int shape)
     }
 
 Mesh::Mesh(double L, int shape, double buffer_request)
-    : L_(L), shape_(shape)
+    : L_(L)
     {
-    step_ = L_/shape_;
-    buffer_shape_ = static_cast<int>(std::ceil(buffer_request/step_));
-    buffer_ = buffer_shape_*step_;
+    step_ = L_/shape;
+    const int buffer_shape = static_cast<int>(std::ceil(buffer_request/step_));
+    buffer_ = buffer_shape*step_;
+    layout_ = DataLayout(shape,buffer_shape);
+    }
+
+int Mesh::operator()(int i) const
+    {
+    // TODO: remove this wrapping, it's here for compatibility
+    int idx = layout_(i);
+    if (idx < 0)
+        {
+        idx += full_shape();
+        }
+    else if (idx >= full_shape())
+        {
+        idx -= full_shape();
+        }
+    return idx;
     }
 
 double Mesh::coordinate(int i) const
     {
     // TODO: decide how this works, it currently operates on the index in [0,shape)
-    return (static_cast<double>(i)+0.5)*step_;
+    return static_cast<double>(layout_(i)+0.5)*step_;
     }
 
 int Mesh::bin(double x) const
@@ -36,17 +52,22 @@ double Mesh::L() const
 
 int Mesh::shape() const
     {
-    return shape_;
+    return layout_.shape();
     }
 
 int Mesh::buffer_shape() const
     {
-    return buffer_shape_;
+    return layout_.buffer_shape();
     }
 
-int Mesh::buffered_shape() const
+int Mesh::full_shape() const
     {
-    return shape_ + 2*buffer_shape_;
+    return layout_.full_shape();
+    }
+
+const DataLayout& Mesh::layout() const
+    {
+    return layout_;
     }
 
 double Mesh::step() const

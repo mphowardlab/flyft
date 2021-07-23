@@ -18,12 +18,13 @@ void ExternalPotential::compute(std::shared_ptr<State> state)
         potential(derivatives_.at(t),t,state);
 
         // compute the total potential by integration
-        auto f = state->getField(t)->first();
-        auto d = derivatives_.at(t)->first();
+        auto f = state->getField(t)->cbegin();
+        auto d = derivatives_.at(t)->begin();
         for (int idx=0; idx < mesh.shape(); ++idx)
             {
-            const double V = d[idx];
-            const double rho = f[idx];
+            const int self = mesh(idx);
+            const double V = d[self];
+            const double rho = f[self];
             if (std::isinf(V))
                 {
                 if (rho > 0)

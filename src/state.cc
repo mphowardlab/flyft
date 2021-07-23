@@ -14,7 +14,7 @@ State::State(std::shared_ptr<const Mesh> mesh, const std::vector<std::string>& t
     {
     for (const auto& t : types_)
         {
-        fields_[t] = std::make_shared<Field>(mesh_->shape(),mesh_->buffer_shape());
+        fields_[t] = std::make_shared<Field>(mesh_->layout());
         }
     }
 
@@ -25,8 +25,8 @@ State::State(const State& other)
     {
     for (const auto& t : types_)
         {
-        fields_[t] = std::make_shared<Field>(mesh_->shape(),mesh_->buffer_shape());
-        std::copy(other.fields_.at(t)->begin(),other.fields_.at(t)->end(),fields_.at(t)->begin());
+        fields_[t] = std::make_shared<Field>(mesh_->layout());
+        std::copy(other.fields_.at(t)->cbegin(),other.fields_.at(t)->cend(),fields_.at(t)->begin());
         }
     }
 
@@ -47,7 +47,7 @@ State& State::operator=(const State& other)
         syncFields(fields_);
         for (const auto& t : types_)
             {
-            std::copy(other.fields_.at(t)->begin(), other.fields_.at(t)->end(), fields_.at(t)->begin());
+            std::copy(other.fields_.at(t)->cbegin(), other.fields_.at(t)->cend(), fields_.at(t)->begin());
             }
         time_ = other.time_;
         }
@@ -129,11 +129,11 @@ void State::syncFields(TypeMap<std::shared_ptr<Field>>& fields) const
         {
         if (fields.find(t) == fields.end())
             {
-            fields[t] = std::make_shared<Field>(mesh_->shape(),mesh_->buffer_shape());
+            fields[t] = std::make_shared<Field>(mesh_->layout());
             }
         else
             {
-            fields[t]->reshape(mesh_->shape(),mesh_->buffer_shape());
+            fields[t]->reshape(mesh_->layout());
             }
         }
     }

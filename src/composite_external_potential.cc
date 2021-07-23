@@ -11,27 +11,27 @@ void CompositeExternalPotential::potential(std::shared_ptr<Field> V, const std::
     const auto mesh = *state->getMesh();
     if (!Vtmp_)
         {
-        Vtmp_ = std::make_shared<Field>(mesh.shape(),mesh.buffer_shape());
+        Vtmp_ = std::make_shared<Field>(mesh.layout());
         }
     else
         {
-        Vtmp_->reshape(mesh.shape(),mesh.buffer_shape());
+        Vtmp_->reshape(mesh.layout());
         }
 
-    // fill total potential with zeros
-    auto data = V->first();
-    std::fill(V->first(),V->last(),0.);
-
+    // fill total potential with zeros and accumulate
+    auto data = V->begin();
+    std::fill(V->begin(),V->end(),0.);
     for (const auto& potential : objects_)
         {
         potential->potential(Vtmp_,type,state);
-        auto tmp = Vtmp_->first();
+        auto tmp = Vtmp_->cbegin();
         #ifdef FLYFT_OPENMP
         #pragma omp parallel for schedule(static) default(none) firstprivate(mesh) shared(data,tmp)
         #endif
         for (int idx=0; idx < mesh.shape(); ++idx)
             {
-            data[idx] += tmp[idx];
+            const int self = mesh(idx);
+            data[self] += tmp[self];
             }
         }
     }

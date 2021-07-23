@@ -33,7 +33,7 @@ void ImplicitEulerIntegrator::step(std::shared_ptr<Flux> flux,
     for (const auto& t : state->getTypes())
         {
         auto f = state->getField(t);
-        std::copy(f->first(),f->last(),last_fields_.at(t)->first());
+        std::copy(f->cbegin(),f->cend(),last_fields_.at(t)->begin());
         }
 
     // advance time of state to *next* point
@@ -54,27 +54,24 @@ void ImplicitEulerIntegrator::step(std::shared_ptr<Flux> flux,
         // check for convergence new state
         for (const auto& t : state->getTypes())
             {
-            auto next_rho = state->getField(t)->first();
-            auto next_j = flux->getFlux(t)->first();
-            auto last_rho = last_fields_.at(t)->first();
+            auto last_rho = last_fields_.at(t)->cbegin();
+            auto next_rho = state->getField(t)->begin();
+            auto next_j = flux->getFlux(t)->begin();
 
             #ifdef FLYFT_OPENMP
             #pragma omp parallel for schedule(static) default(none) firstprivate(timestep,mesh,alpha,tol) shared(next_rho,next_j,last_rho,converged)
             #endif
             for (int idx=0; idx < mesh.shape(); ++idx)
                 {
-                // explicitly apply pbcs on the index
-                // TODO: remove this wrapping
-                int left = idx;
-                int right = (idx+1) % mesh.buffered_shape();
-                const double next_rate = (next_j[left]-next_j[right])/mesh.step();
-                double try_rho = last_rho[idx] + timestep*next_rate;
-                const double drho = alpha*(try_rho-next_rho[idx]);
+                const int self = mesh(idx);
+                const double next_rate = (next_j[self]-next_j[mesh(idx+1)])/mesh.step();
+                double try_rho = last_rho[self] + timestep*next_rate;
+                const double drho = alpha*(try_rho-next_rho[self]);
                 if (drho > tol)
                     {
                     converged = false;
                     }
-                next_rho[idx] += drho;
+                next_rho[self] += drho;
                 }
             }
         }

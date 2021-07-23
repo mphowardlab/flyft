@@ -24,32 +24,31 @@ void BrownianDiffusiveFlux::compute(std::shared_ptr<GrandPotential> grand, std::
     for (const auto& t : state->getTypes())
         {
         const auto D = diffusivities_.at(t);
-        auto rho = state->getField(t)->first();
-        auto mu_ex = (excess) ? excess->getDerivative(t)->first() : nullptr;
-        auto V = (external) ? external->getDerivative(t)->first() : nullptr;
-        auto flux = fluxes_.at(t)->first();
+        auto rho = state->getField(t)->cbegin();
+        auto mu_ex = (excess) ? excess->getDerivative(t)->cbegin() : nullptr;
+        auto V = (external) ? external->getDerivative(t)->cbegin() : nullptr;
+        auto flux = fluxes_.at(t)->begin();
 
         #ifdef FLYFT_OPENMP
         #pragma omp parallel for schedule(static) default(none) firstprivate(D,mesh) shared(rho,mu_ex,V,flux)
         #endif
         for (int idx=0; idx < mesh.shape(); ++idx)
             {
-            // explicitly apply pbcs on the index
-            // TODO: remove this wrapping
-            int left = (idx+mesh.buffer_shape() > 0) ? idx-1 : mesh.buffered_shape()-1;
+            const int self = mesh(idx);
+            const int left = mesh(idx-1);
 
             // handle infinite external potentials carefully, as there should be no flux in those directions
             bool no_flux = false;
             if (V)
                 {
-                bool Vidx_inf = std::isinf(V[idx]);
+                bool Vidx_inf = std::isinf(V[self]);
                 if (Vidx_inf)
                     {
-                    if (V[idx] > 0 && rho[idx] > 0)
+                    if (V[self] > 0 && rho[self] > 0)
                         {
                         // ERROR: can't be V=+inf and have positive rho
                         }
-                    else if(V[idx] < 0)
+                    else if(V[self] < 0)
                         {
                         // ERROR: can't have V=-inf ever, it is a mass sink
                         }
@@ -64,21 +63,21 @@ void BrownianDiffusiveFlux::compute(std::shared_ptr<GrandPotential> grand, std::
             if (!no_flux)
                 {
                 // average density at left edge
-                auto rho_avg = 0.5*(rho[left]+rho[idx]);
+                auto rho_avg = 0.5*(rho[left]+rho[self]);
 
                 // excess contribute at left edge
                 auto dmu_ex = 0.0;
-                if (mu_ex) dmu_ex += (mu_ex[idx]-mu_ex[left]);
-                if (V) dmu_ex += (V[idx]-V[left]);
+                if (mu_ex) dmu_ex += (mu_ex[self]-mu_ex[left]);
+                if (V) dmu_ex += (V[self]-V[left]);
 
                 // ideal (Fickian) term + excess term
                 // the ideal term is separated out so that we don't need to take
                 // low density limit explicitly
-                flux[idx] = -D*((rho[idx]-rho[left])/mesh.step() + rho_avg*dmu_ex/mesh.step());
+                flux[self] = -D*((rho[self]-rho[left])/mesh.step() + rho_avg*dmu_ex/mesh.step());
                 }
             else
                 {
-                flux[idx] = 0.;
+                flux[self] = 0.;
                 }
             }
         }
