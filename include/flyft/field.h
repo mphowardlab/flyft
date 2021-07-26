@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <complex>
+#include <iterator>
 
 namespace flyft
 {
@@ -37,12 +38,142 @@ class GenericField
             if (data_) delete[] data_;
             }
 
-        double& operator()(int idx)
+        template<typename U>
+        class Iterator_
+            {
+            public:
+                using iterator_category = std::bidirectional_iterator_tag;
+                using difference_type = int;
+                using value_type = U;
+                using pointer = U*;
+                using reference = U&;
+
+                Iterator_()
+                    : Iterator_(nullptr,DataLayout(0,0))
+                    {}
+
+                Iterator_(value_type* data, const DataLayout& layout)
+                    : data_(data), layout_(layout), current_offset_(0)
+                    {}
+
+                reference operator()(int offset) const
+                    {
+                    return data_[layout_(current_offset_+offset)];
+                    }
+
+                reference operator[](difference_type n) const
+                    {
+                    // TODO: add method to layout to handle 1d offsets even if data is not 1d
+                    return data_[layout_(current_offset_+n)];
+                    }
+
+                reference operator*() const
+                    {
+                    return *get();
+                    }
+
+                pointer operator->() const
+                    {
+                    return get();
+                    }
+
+                pointer get() const
+                    {
+                    return data_+layout_(current_offset_);
+                    }
+
+                Iterator_& operator++()
+                    {
+                    ++current_offset_;
+                    return *this;
+                    }
+
+                Iterator_ operator++(int)
+                    {
+                    Iterator_ tmp(*this);
+                    ++current_offset_;
+                    return tmp;
+                    }
+
+                Iterator_& operator--()
+                    {
+                    --current_offset_;
+                    return *this;
+                    }
+
+                Iterator_ operator--(int)
+                    {
+                    Iterator_ tmp(*this);
+                    --current_offset_;
+                    return tmp;
+                    }
+
+                Iterator_& operator+=(difference_type n)
+                    {
+                    current_offset_ += n;
+                    return *this;
+                    }
+
+                Iterator_ operator+(difference_type n) const
+                    {
+                    Iterator_ tmp(*this);
+                    tmp += n;
+                    return tmp;
+                    }
+
+                friend Iterator_ operator+(difference_type n, const Iterator_ self)
+                    {
+                    return self+n;
+                    }
+
+                Iterator_& operator-=(difference_type n)
+                    {
+                    current_offset_ -= n;
+                    return *this;
+                    }
+
+                Iterator_ operator-(difference_type n) const
+                    {
+                    Iterator_ tmp(*this);
+                    tmp -= n;
+                    return tmp;
+                    }
+
+                difference_type operator-(const Iterator_ other) const
+                    {
+                    // TODO: add method to layout to figure out distance between two elements
+                    return (current_offset_-other.current_offset_);
+                    }
+
+                operator bool() const
+                    {
+                    return data_ != nullptr;
+                    }
+
+                bool operator==(const Iterator_& other) const
+                    {
+                    return (get() == other.get());
+                    }
+
+                bool operator!=(const Iterator_& other) const
+                    {
+                    return !(*this == other);
+                    }
+
+            private:
+                value_type* data_;
+                DataLayout layout_;
+                int current_offset_;
+            };
+        using iterator = Iterator_<T>;
+        using const_iterator = Iterator_<const T>;
+
+        T& operator()(int idx)
             {
             return data_[layout_(idx)];
             }
 
-        double operator()(int idx) const
+        const T& operator()(int idx) const
             {
             return data_[layout_(idx)];
             }
@@ -62,24 +193,44 @@ class GenericField
             return layout_.full_shape();
             }
 
-        T* begin()
+        iterator begin()
             {
-            return data_;
+            return iterator(data_,layout_);
             }
 
-        const T* cbegin() const
+        iterator end()
             {
-            return static_cast<const T*>(data_);
+            return begin()+layout_.shape();
             }
 
-        T* end()
+        iterator begin_full()
             {
-            return begin() + full_shape();
+            return iterator(data_,layout_.withoutBuffer());
             }
 
-        const T* cend() const
+        iterator begin_end()
             {
-            return cbegin() + full_shape();
+            return begin_full()+layout_.full_shape();
+            }
+
+        const_iterator cbegin() const
+            {
+            return const_iterator(static_cast<const T*>(data_),layout_);
+            }
+
+        const_iterator cend() const
+            {
+            return cbegin()+layout_.shape();
+            }
+
+        const_iterator cbegin_full()
+            {
+            return const_iterator(static_cast<const T*>(data_),layout_.withoutBuffer());
+            }
+
+        const_iterator cend_full()
+            {
+            return cbegin_full()+layout_.full_shape();
             }
 
         void reshape(int shape, int buffer_shape)
@@ -91,33 +242,25 @@ class GenericField
             {
             if (layout != layout_)
                 {
-                int full_shape = layout.full_shape();
                 // if data is alloc'd, decide what to do with it
                 if (data_ != nullptr)
                     {
                     if (layout.shape() == layout_.shape())
                         {
                         // data shape is the same but buffer changed, copy
-                        T* tmp = new T[full_shape];
-                        for (int i=0; i < full_shape; ++i)
+                        T* tmp = new T[layout.full_shape()];
+                        std::fill(tmp,tmp+layout.full_shape(),T(0));
+                        for (int i=0; i < layout.shape(); ++i)
                             {
-                            int offset = layout(i);
-                            if (offset >= 0 && offset < layout.shape())
-                                {
-                                tmp[i] = data_[layout_(offset)];
-                                }
-                            else
-                                {
-                                tmp[i] = T(0);
-                                }
+                            tmp[layout(i)] = data_[layout_(i)];
                             }
                         std::swap(data_,tmp);
                         delete[] tmp;
                         }
-                    else if (full_shape == layout_.full_shape() && full_shape > 0)
+                    else if (layout.full_shape() == layout_.full_shape() && layout.full_shape() > 0)
                         {
                         // total shape is still the same, just reset the data
-                        std::fill(data_,data_+full_shape,T(0));
+                        std::fill(data_,data_+layout.full_shape(),T(0));
                         }
                     else
                         {

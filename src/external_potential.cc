@@ -22,9 +22,8 @@ void ExternalPotential::compute(std::shared_ptr<State> state)
         auto d = derivatives_.at(t)->begin();
         for (int idx=0; idx < mesh.shape(); ++idx)
             {
-            const int self = mesh(idx);
-            const double V = d[self];
-            const double rho = f[self];
+            const double V = d(idx);
+            const double rho = f(idx);
             if (std::isinf(V))
                 {
                 if (rho > 0)

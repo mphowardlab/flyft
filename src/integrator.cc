@@ -85,8 +85,7 @@ bool Integrator::advance(std::shared_ptr<Flux> flux,
                     #endif
                     for (int idx=0; idx < mesh.shape(); ++idx)
                         {
-                        const int self = mesh(idx);
-                        const double err = std::abs(rho_err[self]-rho[self]);
+                        const double err = std::abs(rho_err(idx)-rho(idx));
                         if (err > type_max_err)
                             {
                             type_max_err = err;

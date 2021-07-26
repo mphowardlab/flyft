@@ -1,6 +1,7 @@
 #include "flyft/virial_expansion.h"
 
 #include <algorithm>
+#include <iostream>
 
 namespace flyft
 {
@@ -16,7 +17,27 @@ void VirialExpansion::compute(std::shared_ptr<State> state)
     value_ = 0.0;
     for (const auto& t : types)
         {
+        std::cout << "before:";
+        auto d = derivatives_.at(t)->begin();
+        for (int idx=0; idx < mesh.shape(); ++idx)
+            {
+            std::cout << " " << d(idx);
+            }
+        std::cout << std::endl;
+
         std::fill(derivatives_.at(t)->begin(),derivatives_.at(t)->end(),0.);
+//         for (auto it = derivatives_.at(t)->begin(); it != derivatives_.at(t)->end(); ++it)
+//         for (int idx=0; idx < mesh.shape(); ++idx)
+//             {
+//             d[idx] = 0.;
+//             }
+
+        std::cout << "after:";
+        for (int idx=0; idx < mesh.shape(); ++idx)
+            {
+            std::cout << " " << d(idx);
+            }
+        std::cout << std::endl;
         }
 
     for (auto it_i=types.cbegin(); it_i != types.cend(); ++it_i)
@@ -37,15 +58,14 @@ void VirialExpansion::compute(std::shared_ptr<State> state)
             #endif
             for (int idx=0; idx < mesh.shape(); ++idx)
                 {
-                const int self = mesh(idx);
-                const double rhoi = fi[self];
-                const double rhoj = fj[self];
-                di[self] += 2*Bij*rhoj;
+                const double rhoi = fi(idx);
+                const double rhoj = fj(idx);
+                di(idx) += 2*Bij*rhoj;
                 // since we are only taking half the double sum, need to add to other type / total
                 double factor = 1.0;
                 if (dj != di)
                     {
-                    dj[self] += 2*Bij*rhoi;
+                    dj(idx) += 2*Bij*rhoi;
                     factor = 2.0;
                     }
                 value_ += mesh.step()*(factor*Bij*rhoi*rhoj);

@@ -10,6 +10,7 @@ void CompositeFlux::compute(std::shared_ptr<GrandPotential> grand, std::shared_p
     allocate(state);
 
     // initialize to zeros
+    const auto mesh = *state->getMesh();
     for (const auto& t : state->getTypes())
         {
         auto j = fluxes_.at(t);
@@ -17,7 +18,6 @@ void CompositeFlux::compute(std::shared_ptr<GrandPotential> grand, std::shared_p
         }
 
     // combine
-    const auto mesh = *state->getMesh();
     for (const auto& o : objects_)
         {
         o->compute(grand, state);
@@ -30,8 +30,7 @@ void CompositeFlux::compute(std::shared_ptr<GrandPotential> grand, std::shared_p
             #endif
             for (int idx=0; idx < mesh.shape(); ++idx)
                 {
-                const int self = mesh(idx);
-                j[self] += jo[self];
+                j(idx) += jo(idx);
                 }
             }
         }

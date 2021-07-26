@@ -81,4 +81,9 @@ bool DataLayout::operator!=(const DataLayout& other) const
     return (shape_ != other.shape_ || buffer_shape_ != other.buffer_shape_);
     }
 
+DataLayout DataLayout::withoutBuffer() const
+    {
+    return DataLayout(full_shape_,0);
+    }
+
 }

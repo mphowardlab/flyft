@@ -44,10 +44,11 @@ void CrankNicolsonIntegrator::step(std::shared_ptr<Flux> flux,
         #endif
         for (int idx=0; idx < mesh.shape(); ++idx)
             {
-            const int self = mesh(idx);
+            // TODO: remove this wrapping
+            const int right = (idx+1) % mesh.shape();
             // change in density is flux in - flux out over time
-            last_rho[self] = rho[self];
-            last_rate[self] = (j[self]-j[mesh(idx+1)])/mesh.step();
+            last_rho(idx) = rho(idx);
+            last_rate(idx) = (j(idx)-j(right))/mesh.step();
             }
         }
 
@@ -80,15 +81,16 @@ void CrankNicolsonIntegrator::step(std::shared_ptr<Flux> flux,
             #endif
             for (int idx=0; idx < mesh.shape(); ++idx)
                 {
-                const int self = mesh(idx);
-                const double next_rate = (next_j[self]-next_j[mesh(idx+1)])/mesh.step();
-                const double try_rho = last_rho[self] + 0.5*timestep*(last_rate[self]+next_rate);
-                const double drho = alpha*(try_rho-next_rho[self]);
+                // TODO: remove this wrapping
+                const int right = (idx+1) % mesh.shape();
+                const double next_rate = (next_j(idx)-next_j(right))/mesh.step();
+                const double try_rho = last_rho(idx) + 0.5*timestep*(last_rate(idx)+next_rate);
+                const double drho = alpha*(try_rho-next_rho(idx));
                 if (drho > tol)
                     {
                     converged = false;
                     }
-                next_rho[self] += drho;
+                next_rho(idx) += drho;
                 }
             }
         }

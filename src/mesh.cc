@@ -6,38 +6,14 @@ namespace flyft
 {
 
 Mesh::Mesh(double L, int shape)
-    : Mesh(L,shape,0.)
+    : L_(L), shape_(shape), step_(L_/shape)
     {
-    }
-
-Mesh::Mesh(double L, int shape, double buffer_request)
-    : L_(L)
-    {
-    step_ = L_/shape;
-    const int buffer_shape = static_cast<int>(std::ceil(buffer_request/step_));
-    buffer_ = buffer_shape*step_;
-    layout_ = DataLayout(shape,buffer_shape);
-    }
-
-int Mesh::operator()(int i) const
-    {
-    // TODO: remove this wrapping, it's here for compatibility
-    int idx = layout_(i);
-    if (idx < 0)
-        {
-        idx += full_shape();
-        }
-    else if (idx >= full_shape())
-        {
-        idx -= full_shape();
-        }
-    return idx;
+    setBuffer(0);
     }
 
 double Mesh::coordinate(int i) const
     {
-    // TODO: decide how this works, it currently operates on the index in [0,shape)
-    return static_cast<double>(layout_(i)+0.5)*step_;
+    return static_cast<double>(i+0.5)*step_;
     }
 
 int Mesh::bin(double x) const
@@ -50,29 +26,35 @@ double Mesh::L() const
     return L_;
     }
 
+double Mesh::buffer() const
+    {
+    return buffer_;
+    }
+
 int Mesh::shape() const
     {
-    return layout_.shape();
+    return shape_;
     }
 
 int Mesh::buffer_shape() const
     {
-    return layout_.buffer_shape();
+    return buffer_shape_;
     }
 
-int Mesh::full_shape() const
+DataLayout Mesh::layout() const
     {
-    return layout_.full_shape();
-    }
-
-const DataLayout& Mesh::layout() const
-    {
-    return layout_;
+    return DataLayout(shape_,buffer_shape_);
     }
 
 double Mesh::step() const
     {
     return step_;
+    }
+
+void Mesh::setBuffer(double buffer_request)
+    {
+    buffer_shape_ = static_cast<int>(std::ceil(buffer_request/step_));
+    buffer_ = buffer_shape_*step_;
     }
 
 }

@@ -63,15 +63,16 @@ void ImplicitEulerIntegrator::step(std::shared_ptr<Flux> flux,
             #endif
             for (int idx=0; idx < mesh.shape(); ++idx)
                 {
-                const int self = mesh(idx);
-                const double next_rate = (next_j[self]-next_j[mesh(idx+1)])/mesh.step();
-                double try_rho = last_rho[self] + timestep*next_rate;
-                const double drho = alpha*(try_rho-next_rho[self]);
+                // TODO: remove this wrapping
+                const int right = (idx+1) % mesh.shape();
+                const double next_rate = (next_j(idx)-next_j(right))/mesh.step();
+                double try_rho = last_rho(idx) + timestep*next_rate;
+                const double drho = alpha*(try_rho-next_rho(idx));
                 if (drho > tol)
                     {
                     converged = false;
                     }
-                next_rho[self] += drho;
+                next_rho(idx) += drho;
                 }
             }
         }

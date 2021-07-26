@@ -58,7 +58,7 @@ void LennardJones93WallPotential::potential(std::shared_ptr<Field> V, const std:
             {
             energy = 0.0;
             }
-        data[mesh(idx)] = energy;
+        data(idx) = energy;
         }
     }
 

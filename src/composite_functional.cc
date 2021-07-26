@@ -11,6 +11,7 @@ void CompositeFunctional::compute(std::shared_ptr<State> state)
 
     // initialize to zeros
     value_ = 0.0;
+    const auto mesh = *state->getMesh();
     for (const auto& t : state->getTypes())
         {
         auto d = derivatives_.at(t);
@@ -18,7 +19,6 @@ void CompositeFunctional::compute(std::shared_ptr<State> state)
         }
 
     // combine
-    const auto mesh = *state->getMesh();
     for (const auto& f : objects_)
         {
         f->compute(state);
@@ -37,7 +37,7 @@ void CompositeFunctional::compute(std::shared_ptr<State> state)
             #endif
             for (int idx=0; idx < mesh.shape(); ++idx)
                 {
-                d[mesh(idx)] += df[mesh(idx)];
+                d(idx) += df(idx);
                 }
             }
         }

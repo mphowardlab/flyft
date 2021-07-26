@@ -19,7 +19,7 @@ void LinearPotential::potential(std::shared_ptr<Field> V,
     for (int idx=0; idx < mesh.shape(); ++idx)
         {
         const auto x = mesh.coordinate(idx);
-        data[mesh(idx)] = y0+m*(x-x0);
+        data(idx) = y0+m*(x-x0);
         }
     }
 

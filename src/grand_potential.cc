@@ -36,20 +36,28 @@ void GrandPotential::compute(std::shared_ptr<State> state)
     for (const auto& t : state->getTypes())
         {
         auto d = derivatives_.at(t)->begin();
-        auto did = (ideal_) ? ideal_->getDerivative(t)->cbegin() : nullptr;
-        auto dex = (excess_) ? excess_->getDerivative(t)->cbegin() : nullptr;
-        auto dext = (external_) ? external_->getDerivative(t)->cbegin() : nullptr;
+        auto did = (ideal_) ? ideal_->getDerivative(t)->cbegin() : Field::const_iterator();
+        auto dex = (excess_) ? excess_->getDerivative(t)->cbegin() : Field::const_iterator();
+        auto dext = (external_) ? external_->getDerivative(t)->cbegin() : Field::const_iterator();
         #ifdef FLYFT_OPENMP
         #pragma omp parallel for schedule(static) default(none) firstprivate(mesh) shared(d,did,dex,dext)
         #endif
         for (int idx=0; idx < mesh.shape(); ++idx)
             {
-            const int self = mesh(idx);
             double deriv = 0.;
-            if (did) deriv += did[self];
-            if (dex) deriv += dex[self];
-            if (dext) deriv += dext[self];
-            d[self] = deriv;
+            if (did)
+                {
+                deriv += did(idx);
+                }
+            if (dex)
+                {
+                deriv += dex(idx);
+                }
+            if (dext)
+                {
+                deriv += dext(idx);
+                }
+            d(idx) = deriv;
             }
 
         // subtract chemical potential part when component is open
@@ -63,9 +71,8 @@ void GrandPotential::compute(std::shared_ptr<State> state)
             #endif
             for (int idx=0; idx < mesh.shape(); ++idx)
                 {
-                const int self = mesh(idx);
-                d[self] -= mu_bulk;
-                value_ -= mesh.step()*mu_bulk*rho[self];
+                d(idx) -= mu_bulk;
+                value_ -= mesh.step()*mu_bulk*rho(idx);
                 }
             }
         }

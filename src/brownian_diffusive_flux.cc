@@ -25,8 +25,8 @@ void BrownianDiffusiveFlux::compute(std::shared_ptr<GrandPotential> grand, std::
         {
         const auto D = diffusivities_.at(t);
         auto rho = state->getField(t)->cbegin();
-        auto mu_ex = (excess) ? excess->getDerivative(t)->cbegin() : nullptr;
-        auto V = (external) ? external->getDerivative(t)->cbegin() : nullptr;
+        auto mu_ex = (excess) ? excess->getDerivative(t)->cbegin() : Field::const_iterator();
+        auto V = (external) ? external->getDerivative(t)->cbegin() : Field::const_iterator();
         auto flux = fluxes_.at(t)->begin();
 
         #ifdef FLYFT_OPENMP
@@ -34,21 +34,21 @@ void BrownianDiffusiveFlux::compute(std::shared_ptr<GrandPotential> grand, std::
         #endif
         for (int idx=0; idx < mesh.shape(); ++idx)
             {
-            const int self = mesh(idx);
-            const int left = mesh(idx-1);
+            // TODO: remove this wrapping
+            const int left = (idx > 0) ? idx-1 : mesh.shape()-1;
 
             // handle infinite external potentials carefully, as there should be no flux in those directions
             bool no_flux = false;
             if (V)
                 {
-                bool Vidx_inf = std::isinf(V[self]);
+                bool Vidx_inf = std::isinf(V(idx));
                 if (Vidx_inf)
                     {
-                    if (V[self] > 0 && rho[self] > 0)
+                    if (V(idx) > 0 && rho(idx) > 0)
                         {
                         // ERROR: can't be V=+inf and have positive rho
                         }
-                    else if(V[self] < 0)
+                    else if(V(idx) < 0)
                         {
                         // ERROR: can't have V=-inf ever, it is a mass sink
                         }
@@ -56,28 +56,28 @@ void BrownianDiffusiveFlux::compute(std::shared_ptr<GrandPotential> grand, std::
 
                 // can't have flux along an edge normal having V = +inf at either end
                 // because we just asserted there must be no density there
-                no_flux = (Vidx_inf || std::isinf(V[left]));
+                no_flux = (Vidx_inf || std::isinf(V(left)));
                 }
 
             // if there is flux, assume density is continuous and interpolate
             if (!no_flux)
                 {
                 // average density at left edge
-                auto rho_avg = 0.5*(rho[left]+rho[self]);
+                auto rho_avg = 0.5*(rho(left)+rho(idx));
 
                 // excess contribute at left edge
                 auto dmu_ex = 0.0;
-                if (mu_ex) dmu_ex += (mu_ex[self]-mu_ex[left]);
-                if (V) dmu_ex += (V[self]-V[left]);
+                if (mu_ex) dmu_ex += (mu_ex(idx)-mu_ex(left));
+                if (V) dmu_ex += (V(idx)-V(left));
 
                 // ideal (Fickian) term + excess term
                 // the ideal term is separated out so that we don't need to take
                 // low density limit explicitly
-                flux[self] = -D*((rho[self]-rho[left])/mesh.step() + rho_avg*dmu_ex/mesh.step());
+                flux(idx) = -D*((rho(idx)-rho(left))/mesh.step() + rho_avg*dmu_ex/mesh.step());
                 }
             else
                 {
-                flux[self] = 0.;
+                flux(idx) = 0.;
                 }
             }
         }

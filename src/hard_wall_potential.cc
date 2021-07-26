@@ -21,7 +21,7 @@ void HardWallPotential::potential(std::shared_ptr<Field> V, const std::string& t
     for (int idx=0; idx < mesh.shape(); ++idx)
         {
         const auto x = mesh.coordinate(idx);
-        data[mesh(idx)] = (normal*(x-edge) < 0) ? std::numeric_limits<double>::infinity() : 0.0;
+        data(idx) = (normal*(x-edge) < 0) ? std::numeric_limits<double>::infinity() : 0.0;
         }
     }
 

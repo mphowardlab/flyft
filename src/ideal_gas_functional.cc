@@ -22,17 +22,16 @@ void IdealGasFunctional::compute(std::shared_ptr<State> state)
         #endif
         for (int idx=0; idx < mesh.shape(); ++idx)
             {
-            const int self = mesh(idx);
-            const double rho = f[self];
+            const double rho = f(idx);
             double energy;
             if (rho > 0)
                 {
-                d[self] = std::log(vol*rho);
-                energy = mesh.step()*rho*(d[self]-1.);
+                d(idx) = std::log(vol*rho);
+                energy = mesh.step()*rho*(d(idx)-1.);
                 }
             else
                 {
-                d[self] = -std::numeric_limits<double>::infinity();
+                d(idx) = -std::numeric_limits<double>::infinity();
                 // no contribution to total in limit rho -> 0
                 energy = 0.0;
                 }

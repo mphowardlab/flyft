@@ -11,9 +11,6 @@ class Mesh
     public:
         Mesh() = delete;
         Mesh(double L, int shape);
-        Mesh(double L, int shape, double buffer_request);
-
-        int operator()(int i) const;
 
         //! Get position on the mesh, defined as center of bin
         double coordinate(int i) const;
@@ -21,8 +18,11 @@ class Mesh
         //! Get the bin for a coordinate
         int bin(double x) const;
 
-        // Length of the mesh
+        //! Length of the mesh
         double L() const;
+
+        //! Length of the mesh buffer
+        double buffer() const;
 
         //! Shape of the mesh
         int shape() const;
@@ -30,20 +30,19 @@ class Mesh
         //! Shape of the mesh buffer
         int buffer_shape() const;
 
-        //! Total shape of the mesh, including buffer
-        int full_shape() const;
-
-        //! Layout of the mesh data
-        const DataLayout& layout() const;
+        DataLayout layout() const;
 
         //! Step size of the mesh
         double step() const;
 
+        void setBuffer(double buffer_request);
+
     private:
         double L_;      //!< Length of the domain
+        double buffer_; //!< Size of buffer
+        int shape_;     //!< Number of mesh points
+        int buffer_shape_;  //!< Number of buffer points
         double step_;   //!< Spacing between mesh points
-        double buffer_;     //!< Buffer width
-        DataLayout layout_;
     };
 
 }

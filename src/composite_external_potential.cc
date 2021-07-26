@@ -11,11 +11,11 @@ void CompositeExternalPotential::potential(std::shared_ptr<Field> V, const std::
     const auto mesh = *state->getMesh();
     if (!Vtmp_)
         {
-        Vtmp_ = std::make_shared<Field>(mesh.layout());
+        Vtmp_ = std::make_shared<Field>(mesh.shape());
         }
     else
         {
-        Vtmp_->reshape(mesh.layout());
+        Vtmp_->reshape(mesh.shape(),0);
         }
 
     // fill total potential with zeros and accumulate
@@ -30,8 +30,7 @@ void CompositeExternalPotential::potential(std::shared_ptr<Field> V, const std::
         #endif
         for (int idx=0; idx < mesh.shape(); ++idx)
             {
-            const int self = mesh(idx);
-            data[self] += tmp[self];
+            data(idx) += tmp(idx);
             }
         }
     }

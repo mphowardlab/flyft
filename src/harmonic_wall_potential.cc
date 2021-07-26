@@ -22,7 +22,7 @@ void HarmonicWallPotential::potential(std::shared_ptr<Field> V, const std::strin
         const double dx = normal*(x-x0);
 
         // potential acts only if dx < 0 (x is "inside" the wall)
-        data[mesh(idx)] = (dx < 0) ? 0.5*k*dx*dx : 0.0;
+        data(idx) = (dx < 0) ? 0.5*k*dx*dx : 0.0;
         }
     }
 

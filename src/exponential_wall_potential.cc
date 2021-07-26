@@ -22,7 +22,7 @@ void ExponentialWallPotential::potential(std::shared_ptr<Field> V, const std::st
         {
         const auto x = mesh.coordinate(idx);
         const double dx = normal*(x-x0);
-        data[mesh(idx)] = epsilon*std::exp(-kappa*dx);
+        data(idx) = epsilon*std::exp(-kappa*dx);
         }
     }
 

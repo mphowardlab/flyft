@@ -27,10 +27,11 @@ void ExplicitEulerIntegrator::step(std::shared_ptr<Flux> flux,
         #endif
         for (int idx=0; idx < mesh.shape(); ++idx)
             {
-            const int self = mesh(idx);
+            // TODO: remove this wrapping
+            const int right = (idx+1) % mesh.shape();
             // change in density is flux in - flux out over time
-            const auto rate = (j[self]-j[mesh(idx+1)])/mesh.step();
-            rho[self] += timestep*rate;
+            const auto rate = (j(idx)-j(right))/mesh.step();
+            rho(idx) += timestep*rate;
             }
         }
     state->advanceTime(timestep);

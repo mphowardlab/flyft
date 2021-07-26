@@ -19,7 +19,6 @@ bool PicardIteration::solve(std::shared_ptr<GrandPotential> grand, std::shared_p
     const auto alpha = getMixParameter();
     const auto tol = getTolerance();
 
-    Field tmp(mesh.layout());
     bool converged = false;
     for (int iter=0; iter < getMaxIterations() && !converged; ++iter)
         {
@@ -39,9 +38,10 @@ bool PicardIteration::solve(std::shared_ptr<GrandPotential> grand, std::shared_p
         for (const auto& t : state->getTypes())
             {
             auto rho = state->getField(t)->begin();
+            Field tmp(state->getField(t)->shape(),state->getField(t)->buffer_shape());
             auto rho_tmp = tmp.begin();
-            auto mu_ex = (excess) ? excess->getDerivative(t)->cbegin() : nullptr;
-            auto V = (external) ? external->getDerivative(t)->cbegin() : nullptr;
+            auto mu_ex = (excess) ? excess->getDerivative(t)->cbegin() : Field::const_iterator();
+            auto V = (external) ? external->getDerivative(t)->cbegin() : Field::const_iterator();
 
             double norm = 1.0;
             auto constraint_type = grand->getConstraintType(t);
@@ -54,13 +54,17 @@ bool PicardIteration::solve(std::shared_ptr<GrandPotential> grand, std::shared_p
                 #endif
                 for (int idx=0; idx < mesh.shape(); ++idx)
                     {
-                    const int self = mesh(idx);
                     double eff_energy = 0.0;
-                    if (mu_ex) eff_energy += mu_ex[self];
-                    if (V) eff_energy += V[self];
-
-                    rho_tmp[self] = std::exp(-eff_energy);
-                    sum += rho_tmp[self];
+                    if (mu_ex)
+                        {
+                        eff_energy += mu_ex(idx);
+                        }
+                    if (V)
+                        {
+                        eff_energy += V(idx);
+                        }
+                    rho_tmp(idx) = std::exp(-eff_energy);
+                    sum += rho_tmp(idx);
                     }
                 sum *= mesh.step();
                 norm = N/sum;
@@ -73,12 +77,16 @@ bool PicardIteration::solve(std::shared_ptr<GrandPotential> grand, std::shared_p
                 #endif
                 for (int idx=0; idx < mesh.shape(); ++idx)
                     {
-                    const int self = mesh(idx);
                     double eff_energy = 0.0;
-                    if (mu_ex) eff_energy += mu_ex[self];
-                    if (V) eff_energy += V[self];
-
-                    rho_tmp[self] = std::exp(-eff_energy+mu_bulk);
+                    if (mu_ex)
+                        {
+                        eff_energy += mu_ex(idx);
+                        }
+                    if (V)
+                        {
+                        eff_energy += V(idx);
+                        }
+                    rho_tmp(idx) = std::exp(-eff_energy+mu_bulk);
                     }
                 norm = 1.0/ideal->getVolume(t);
                 }
@@ -94,9 +102,8 @@ bool PicardIteration::solve(std::shared_ptr<GrandPotential> grand, std::shared_p
             #endif
             for (int idx=0; idx < mesh.shape(); ++idx)
                 {
-                const int self = mesh(idx);
-                const double drho = alpha*(norm*rho_tmp[self]-rho[self]);
-                rho[self] += drho;
+                const double drho = alpha*(norm*rho_tmp(idx)-rho(idx));
+                rho(idx) += drho;
 
                 // check on convergence from absolute change in rho (might also want a percentage check)
                 if (std::abs(drho) > tol)

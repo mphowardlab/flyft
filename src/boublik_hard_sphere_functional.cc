@@ -14,8 +14,8 @@ void BoublikHardSphereFunctional::compute(std::shared_ptr<State> state)
 
     // process maps into indexed arrays for quicker access inside loop
     const auto num_types = types.size();
-    std::vector<const double*> fields(num_types);
-    std::vector<double*> derivs(num_types);
+    std::vector<Field::const_iterator> fields(num_types);
+    std::vector<Field::iterator> derivs(num_types);
     std::vector<double> diams(num_types);
     for (size_t i=0; i < num_types; ++i)
         {
@@ -38,8 +38,6 @@ void BoublikHardSphereFunctional::compute(std::shared_ptr<State> state)
         #endif
         for (int idx=0; idx < mesh.shape(); ++idx)
             {
-            const int self = mesh(idx);
-
             // compute scaled particle variables
             for (int m=0; m < 4; ++m)
                 {
@@ -47,7 +45,7 @@ void BoublikHardSphereFunctional::compute(std::shared_ptr<State> state)
                 }
             for (size_t i=0; i < num_types; ++i)
                 {
-                const auto rhoi = fields[i][self];
+                const auto rhoi = fields[i](idx);
                 const auto di = diams[i];
                 double xim_i = rhoi*M_PI/6.;
                 for (int m=0; m < 4; ++m)
@@ -85,7 +83,7 @@ void BoublikHardSphereFunctional::compute(std::shared_ptr<State> state)
                 for (size_t i=0; i < num_types; ++i)
                     {
                     const auto di = diams[i];
-                    derivs[i][self] = -logvf + di*(c1+di*(c2+di*c3));
+                    derivs[i](idx) = -logvf + di*(c1+di*(c2+di*c3));
                     }
 
                 // compute free energy
@@ -95,7 +93,7 @@ void BoublikHardSphereFunctional::compute(std::shared_ptr<State> state)
                 {
                 for (size_t i=0; i < num_types; ++i)
                     {
-                    derivs[i][self] = 0.;
+                    derivs[i](idx) = 0.;
                     }
                 energy = 0.;
                 }
@@ -110,8 +108,7 @@ void BoublikHardSphereFunctional::compute(std::shared_ptr<State> state)
         #endif
         for (int idx=0; idx < mesh.shape(); ++idx)
             {
-            const int self = mesh(idx);
-            const auto rho = fields[0][self];
+            const auto rho = fields[0](idx);
             const auto d = diams[0];
             const auto eta = M_PI*rho*d*d*d/6.;
 
@@ -125,14 +122,14 @@ void BoublikHardSphereFunctional::compute(std::shared_ptr<State> state)
                 const auto vf_3 = vf_2*vf;
 
                 // compute chemical potential
-                derivs[0][self] = eta*(8.+eta*(-9.+eta*3.))/vf_3;
+                derivs[0](idx) = eta*(8.+eta*(-9.+eta*3.))/vf_3;
 
                 // compute free energy
                 energy = mesh.step()*rho*eta*(4.-3.*eta)/vf_2;
                 }
             else
                 {
-                derivs[0][self] = 0.;
+                derivs[0](idx) = 0.;
                 energy = 0.;
                 }
             value_ += energy;

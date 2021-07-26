@@ -21,6 +21,8 @@ class DataLayout
         bool operator==(const DataLayout& other) const;
         bool operator!=(const DataLayout& other) const;
 
+        DataLayout withoutBuffer() const;
+
     private:
         int shape_;
         int buffer_shape_;
