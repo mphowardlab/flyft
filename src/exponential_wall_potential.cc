@@ -12,8 +12,8 @@ void ExponentialWallPotential::potential(std::shared_ptr<Field> V, const std::st
     const double x0 = origin_->evaluate(state) + shift;
     const auto normal = normal_;
 
-    const auto mesh = *(state->getMesh());
-    auto data = V->data();
+    const auto mesh = *state->getMesh();
+    auto data = V->begin();
 
     #ifdef FLYFT_OPENMP
     #pragma omp parallel for schedule(static) default(none) firstprivate(epsilon,kappa,shift,x0,normal,mesh) shared(data)
@@ -22,7 +22,7 @@ void ExponentialWallPotential::potential(std::shared_ptr<Field> V, const std::st
         {
         const auto x = mesh.coordinate(idx);
         const double dx = normal*(x-x0);
-        data[idx] = epsilon*std::exp(-kappa*dx);
+        data(idx) = epsilon*std::exp(-kappa*dx);
         }
     }
 

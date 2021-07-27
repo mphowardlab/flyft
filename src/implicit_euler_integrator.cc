@@ -1,6 +1,6 @@
 #include "flyft/implicit_euler_integrator.h"
-#include "flyft/parallel.h"
 
+#include <algorithm>
 #include <cmath>
 
 namespace flyft
@@ -28,15 +28,12 @@ void ImplicitEulerIntegrator::step(std::shared_ptr<Flux> flux,
                                    std::shared_ptr<State> state,
                                    double timestep)
     {
-    // mesh properties
-    const auto mesh = state->getMesh();
-    const auto dx = mesh->step();
-    const auto shape = mesh->shape();
-
     // copy densities at the **current** timestep
+    const auto mesh = *state->getMesh();
     for (const auto& t : state->getTypes())
         {
-        parallel::copy(state->getField(t)->data(),shape,last_fields_.at(t)->data());
+        auto f = state->getField(t);
+        std::copy(f->cbegin(),f->cend(),last_fields_.at(t)->begin());
         }
 
     // advance time of state to *next* point
@@ -57,27 +54,25 @@ void ImplicitEulerIntegrator::step(std::shared_ptr<Flux> flux,
         // check for convergence new state
         for (const auto& t : state->getTypes())
             {
-            auto next_rho = state->getField(t)->data();
-            auto next_j = flux->getFlux(t)->data();
-            auto last_rho = last_fields_.at(t)->data();
+            auto last_rho = last_fields_.at(t)->cbegin();
+            auto next_rho = state->getField(t)->begin();
+            auto next_j = flux->getFlux(t)->begin();
 
             #ifdef FLYFT_OPENMP
-            #pragma omp parallel for schedule(static) default(none) firstprivate(timestep,dx,shape,alpha,tol) shared(next_rho,next_j,last_rho,converged)
+            #pragma omp parallel for schedule(static) default(none) firstprivate(timestep,mesh,alpha,tol) shared(next_rho,next_j,last_rho,converged)
             #endif
-            for (int idx=0; idx < shape; ++idx)
+            for (int idx=0; idx < mesh.shape(); ++idx)
                 {
-                // explicitly apply pbcs on the index
-                // TODO: add a wrapping function to the mesh
-                int left = idx;
-                int right = (idx+1) % shape;
-                const double next_rate = (next_j[left]-next_j[right])/dx;
-                double try_rho = last_rho[idx] + timestep*next_rate;
-                const double drho = alpha*(try_rho-next_rho[idx]);
+                // TODO: remove this wrapping
+                const int right = (idx+1) % mesh.shape();
+                const double next_rate = (next_j(idx)-next_j(right))/mesh.step();
+                double try_rho = last_rho(idx) + timestep*next_rate;
+                const double drho = alpha*(try_rho-next_rho(idx));
                 if (drho > tol)
                     {
                     converged = false;
                     }
-                next_rho[idx] += drho;
+                next_rho(idx) += drho;
                 }
             }
         }

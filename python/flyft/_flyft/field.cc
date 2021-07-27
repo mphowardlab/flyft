@@ -8,6 +8,8 @@ void bindField(py::module_& m)
     py::class_<Field,std::shared_ptr<Field>>(m, "Field", py::buffer_protocol())
         .def(py::init<int>())
         .def_property_readonly("shape", &Field::shape)
+        .def_property_readonly("buffer_shape", &Field::buffer_shape)
+        .def_property_readonly("full_shape", &Field::full_shape)
         .def("__getitem__", [](const Field &f, int idx) {
             if (idx < 0 || idx >= f.shape())
                 throw py::index_error();
@@ -20,7 +22,7 @@ void bindField(py::module_& m)
         })
         .def_buffer([](Field &f) -> py::buffer_info {
             return py::buffer_info(
-                f.data(),
+                &f(0),
                 sizeof(double),
                 py::format_descriptor<double>::format(),
                 1,

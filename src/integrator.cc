@@ -49,7 +49,7 @@ bool Integrator::advance(std::shared_ptr<Flux> flux,
             2.*timestep_ < time_remain)
             {
             adaptive_last_remain = time_remain;
-            const auto shape = state->getMesh()->shape();
+            const auto mesh = *state->getMesh();
 
             *adaptive_cur_state_ = *state;
 
@@ -75,17 +75,17 @@ bool Integrator::advance(std::shared_ptr<Flux> flux,
                 double max_err = 0.;
                 for (const auto& t : state->getTypes())
                     {
-                    const auto rho = state->getField(t)->data();
-                    const auto rho_err = adaptive_err_state_->getField(t)->data();
+                    auto rho = state->getField(t)->cbegin();
+                    auto rho_err = adaptive_err_state_->getField(t)->cbegin();
                     // find max error on mesh
                     double type_max_err = 0.;
                     #ifdef FLYFT_OPENMP
-                    #pragma omp parallel for schedule(static) default(none) firstprivate(shape,rho,rho_err) \
+                    #pragma omp parallel for schedule(static) default(none) firstprivate(mesh,rho,rho_err) \
                         reduction(max:type_max_err)
                     #endif
-                    for (int idx=0; idx < shape; ++idx)
+                    for (int idx=0; idx < mesh.shape(); ++idx)
                         {
-                        const double err = std::abs(rho_err[idx]-rho[idx]);
+                        const double err = std::abs(rho_err(idx)-rho(idx));
                         if (err > type_max_err)
                             {
                             type_max_err = err;

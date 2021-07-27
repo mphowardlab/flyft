@@ -28,34 +28,27 @@ void CrankNicolsonIntegrator::step(std::shared_ptr<Flux> flux,
                                    std::shared_ptr<State> state,
                                    double timestep)
     {
-    // mesh properties
-    const auto mesh = state->getMesh();
-    const auto dx = mesh->step();
-    const auto shape = mesh->shape();
-
     // evaluate initial fluxes at the **current** timestep
+    const auto mesh = *state->getMesh();
     flux->compute(grand,state);
     for (const auto& t : state->getTypes())
         {
-        auto rho = state->getField(t)->data();
-        auto j = flux->getFlux(t)->data();
-        auto last_rho = last_fields_.at(t)->data();
-        auto last_rate = last_rates_.at(t)->data();
+        auto rho = state->getField(t)->cbegin();
+        auto j = flux->getFlux(t)->cbegin();
+        auto last_rho = last_fields_.at(t)->begin();
+        auto last_rate = last_rates_.at(t)->begin();
 
         #ifdef FLYFT_OPENMP
-        #pragma omp parallel for schedule(static) default(none) firstprivate(dx,shape) \
+        #pragma omp parallel for schedule(static) default(none) firstprivate(mesh) \
             shared(rho,j,last_rho,last_rate)
         #endif
-        for (int idx=0; idx < shape; ++idx)
+        for (int idx=0; idx < mesh.shape(); ++idx)
             {
-            // explicitly apply pbcs on the index
-            // TODO: add a wrapping function to the mesh
-            int left = idx;
-            int right = (idx+1) % shape;
-
+            // TODO: remove this wrapping
+            const int right = (idx+1) % mesh.shape();
             // change in density is flux in - flux out over time
-            last_rho[idx] = rho[idx];
-            last_rate[idx] = (j[left]-j[right])/dx;
+            last_rho(idx) = rho(idx);
+            last_rate(idx) = (j(idx)-j(right))/mesh.step();
             }
         }
 
@@ -77,29 +70,27 @@ void CrankNicolsonIntegrator::step(std::shared_ptr<Flux> flux,
         // check for convergence new state
         for (const auto& t : state->getTypes())
             {
-            auto next_rho = state->getField(t)->data();
-            auto next_j = flux->getFlux(t)->data();
-            auto last_rho = last_fields_.at(t)->data();
-            auto last_rate = last_rates_.at(t)->data();
+            auto last_rho = last_fields_.at(t)->cbegin();
+            auto last_rate = last_rates_.at(t)->cbegin();
+            auto next_rho = state->getField(t)->begin();
+            auto next_j = flux->getFlux(t)->cbegin();
 
             #ifdef FLYFT_OPENMP
-            #pragma omp parallel for schedule(static) default(none) firstprivate(timestep,dx,shape,alpha,tol) \
+            #pragma omp parallel for schedule(static) default(none) firstprivate(timestep,mesh,alpha,tol) \
                 shared(next_rho,next_j,last_rho,last_rate,converged)
             #endif
-            for (int idx=0; idx < shape; ++idx)
+            for (int idx=0; idx < mesh.shape(); ++idx)
                 {
-                // explicitly apply pbcs on the index
-                // TODO: add a wrapping function to the mesh
-                int left = idx;
-                int right = (idx+1) % shape;
-                const double next_rate = (next_j[left]-next_j[right])/dx;
-                const double try_rho = last_rho[idx] + 0.5*timestep*(last_rate[idx]+next_rate);
-                const double drho = alpha*(try_rho-next_rho[idx]);
+                // TODO: remove this wrapping
+                const int right = (idx+1) % mesh.shape();
+                const double next_rate = (next_j(idx)-next_j(right))/mesh.step();
+                const double try_rho = last_rho(idx) + 0.5*timestep*(last_rate(idx)+next_rate);
+                const double drho = alpha*(try_rho-next_rho(idx));
                 if (drho > tol)
                     {
                     converged = false;
                     }
-                next_rho[idx] += drho;
+                next_rho(idx) += drho;
                 }
             }
         }

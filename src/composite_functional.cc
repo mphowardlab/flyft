@@ -1,5 +1,4 @@
 #include "flyft/composite_functional.h"
-#include "flyft/parallel.h"
 
 #include <algorithm>
 
@@ -9,14 +8,14 @@ namespace flyft
 void CompositeFunctional::compute(std::shared_ptr<State> state)
     {
     allocate(state);
-    auto mesh = state->getMesh();
 
     // initialize to zeros
     value_ = 0.0;
+    const auto mesh = *state->getMesh();
     for (const auto& t : state->getTypes())
         {
-        auto d = derivatives_.at(t)->data();
-        parallel::fill(d,mesh->shape(),0.);
+        auto d = derivatives_.at(t);
+        std::fill(d->begin(),d->end(),0.);
         }
 
     // combine
@@ -31,16 +30,14 @@ void CompositeFunctional::compute(std::shared_ptr<State> state)
         // accumulate derivatives
         for (const auto& t : state->getTypes())
             {
-            auto d = derivatives_.at(t)->data();
-            auto df = f->getDerivative(t)->data();
-
-            const auto shape = mesh->shape();
+            auto d = derivatives_.at(t)->begin();
+            auto df = f->getDerivative(t)->cbegin();
             #ifdef FLYFT_OPENMP
-            #pragma omp parallel for schedule(static) default(none) firstprivate(shape) shared(d,df)
+            #pragma omp parallel for schedule(static) default(none) firstprivate(mesh) shared(d,df)
             #endif
-            for (int idx=0; idx < shape; ++idx)
+            for (int idx=0; idx < mesh.shape(); ++idx)
                 {
-                d[idx] += df[idx];
+                d(idx) += df(idx);
                 }
             }
         }

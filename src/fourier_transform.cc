@@ -54,13 +54,7 @@ const double* FourierTransform::getRealData() const
 void FourierTransform::setRealData(const double* data)
     {
     const auto size = getRealSize();
-    #ifdef FLYFT_OPENMP
-    #pragma omp parallel for schedule(static) default(none) firstprivate(size) shared(data_,data)
-    #endif
-    for (int idx=0; idx < size; ++idx)
-        {
-        data_[idx] = data[idx];
-        }
+    std::copy(data,data+size,data_);
     space_ = RealSpace;
     }
 
@@ -82,13 +76,7 @@ void FourierTransform::setReciprocalData(const std::complex<double>* data)
     {
     auto p = reinterpret_cast<const double*>(data);
     const auto size = 2*getReciprocalSize();
-    #ifdef FLYFT_OPENMP
-    #pragma omp parallel for schedule(static) default(none) firstprivate(size) shared(data_,p)
-    #endif
-    for (int idx=0; idx < size; ++idx)
-        {
-        data_[idx] = p[idx];
-        }
+    std::copy(p,p+size,data_);
     space_ = ReciprocalSpace;
     }
 
@@ -108,13 +96,7 @@ void FourierTransform::transform()
         {
         // execute inverse FFT and renormalize by N (FFTW does not)
         fftw_execute(c2r_plan_);
-        #ifdef FLYFT_OPENMP
-        #pragma omp parallel for schedule(static) default(none) shared(data_,N_)
-        #endif
-        for (int i=0; i < N_; ++i)
-            {
-            data_[i] /= N_;
-            }
+        std::transform(data_,data_+N_,data_,[&](auto x){return x/N_;});
         space_ = RealSpace;
         }
     }

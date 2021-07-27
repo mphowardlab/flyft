@@ -15,30 +15,23 @@ void ExplicitEulerIntegrator::step(std::shared_ptr<Flux> flux,
                                    std::shared_ptr<State> state,
                                    double timestep)
     {
-    // mesh properties
-    const auto mesh = state->getMesh();
-    const auto dx = mesh->step();
-    const auto shape = mesh->shape();
-
     // evaluate fluxes and apply to volumes
+    const auto mesh = *state->getMesh();
     flux->compute(grand,state);
     for (const auto& t : state->getTypes())
         {
-        auto rho = state->getField(t)->data();
-        auto j = flux->getFlux(t)->data();
+        auto rho = state->getField(t)->begin();
+        auto j = flux->getFlux(t)->cbegin();
         #ifdef FLYFT_OPENMP
-        #pragma omp parallel for schedule(static) default(none) firstprivate(timestep,dx,shape) shared(rho,j)
+        #pragma omp parallel for schedule(static) default(none) firstprivate(timestep,mesh) shared(rho,j)
         #endif
-        for (int idx=0; idx < shape; ++idx)
+        for (int idx=0; idx < mesh.shape(); ++idx)
             {
-            // explicitly apply pbcs on the index
-            // TODO: add a wrapping function to the mesh
-            int left = idx;
-            int right = (idx+1) % shape;
-
+            // TODO: remove this wrapping
+            const int right = (idx+1) % mesh.shape();
             // change in density is flux in - flux out over time
-            const auto rate = (j[left]-j[right])/dx;
-            rho[idx] += timestep*rate;
+            const auto rate = (j(idx)-j(right))/mesh.step();
+            rho(idx) += timestep*rate;
             }
         }
     state->advanceTime(timestep);

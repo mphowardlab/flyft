@@ -1,6 +1,8 @@
 #ifndef FLYFT_MESH_H_
 #define FLYFT_MESH_H_
 
+#include "flyft/data_layout.h"
+
 namespace flyft
 {
 
@@ -16,19 +18,33 @@ class Mesh
         //! Get the bin for a coordinate
         int bin(double x) const;
 
-        // Length of the mesh
+        //! Length of the mesh
         double L() const;
 
-        //! Shape the mesh
-        int shape() const;
+        //! Length of the mesh buffer
+        double buffer() const;
 
         //! Step size of the mesh
         double step() const;
 
+        const DataLayout& layout() const;
+
+        //! Shape of the mesh
+        int shape() const;
+
+        //! Shape of the mesh buffer
+        int buffer_shape() const;
+
+        //! Shape of the mesh and buffer
+        int full_shape() const;
+
+        void setBuffer(double buffer_request);
+
     private:
         double L_;      //!< Length of the domain
-        int shape_;     //!< Number of mesh points
+        double buffer_; //!< Size of buffer
         double step_;   //!< Spacing between mesh points
+        DataLayout layout_;
     };
 
 }

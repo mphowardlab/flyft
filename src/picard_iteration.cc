@@ -15,11 +15,10 @@ PicardIteration::PicardIteration(double mix_param,
 
 bool PicardIteration::solve(std::shared_ptr<GrandPotential> grand, std::shared_ptr<State> state)
     {
-    const auto mesh = state->getMesh();
+    const auto mesh = *state->getMesh();
     const auto alpha = getMixParameter();
     const auto tol = getTolerance();
 
-    Field tmp(mesh->shape());
     bool converged = false;
     for (int iter=0; iter < getMaxIterations() && !converged; ++iter)
         {
@@ -38,11 +37,11 @@ bool PicardIteration::solve(std::shared_ptr<GrandPotential> grand, std::shared_p
         // apply picard mixing scheme
         for (const auto& t : state->getTypes())
             {
-            auto rho = state->getField(t)->data();
-            auto rho_tmp = tmp.data();
-            auto mu_ex = (excess) ? excess->getDerivative(t)->data() : nullptr;
-            auto V = (external) ? external->getDerivative(t)->data() : nullptr;
-            const auto shape = mesh->shape();
+            auto rho = state->getField(t)->begin();
+            Field tmp(state->getField(t)->shape(),state->getField(t)->buffer_shape());
+            auto rho_tmp = tmp.begin();
+            auto mu_ex = (excess) ? excess->getDerivative(t)->cbegin() : Field::const_iterator();
+            auto V = (external) ? external->getDerivative(t)->cbegin() : Field::const_iterator();
 
             double norm = 1.0;
             auto constraint_type = grand->getConstraintType(t);
@@ -51,33 +50,43 @@ bool PicardIteration::solve(std::shared_ptr<GrandPotential> grand, std::shared_p
                 auto N = grand->getConstraint(t);
                 double sum = 0.0;
                 #ifdef FLYFT_OPENMP
-                #pragma omp parallel for schedule(static) default(none) firstprivate(shape) shared(mu_ex,V,rho_tmp) reduction(+:sum)
+                #pragma omp parallel for schedule(static) default(none) firstprivate(mesh) shared(mu_ex,V,rho_tmp) reduction(+:sum)
                 #endif
-                for (int idx=0; idx < shape; ++idx)
+                for (int idx=0; idx < mesh.shape(); ++idx)
                     {
                     double eff_energy = 0.0;
-                    if (mu_ex) eff_energy += mu_ex[idx];
-                    if (V) eff_energy += V[idx];
-
-                    rho_tmp[idx] = std::exp(-eff_energy);
-                    sum += rho_tmp[idx];
+                    if (mu_ex)
+                        {
+                        eff_energy += mu_ex(idx);
+                        }
+                    if (V)
+                        {
+                        eff_energy += V(idx);
+                        }
+                    rho_tmp(idx) = std::exp(-eff_energy);
+                    sum += rho_tmp(idx);
                     }
-                sum *= mesh->step();
+                sum *= mesh.step();
                 norm = N/sum;
                 }
             else if (constraint_type == GrandPotential::Constraint::mu)
                 {
                 const auto mu_bulk = grand->getConstraint(t);
                 #ifdef FLYFT_OPENMP
-                #pragma omp parallel for schedule(static) default(none) firstprivate(shape,mu_bulk) shared(mu_ex,V,rho_tmp)
+                #pragma omp parallel for schedule(static) default(none) firstprivate(mesh,mu_bulk) shared(mu_ex,V,rho_tmp)
                 #endif
-                for (int idx=0; idx < shape; ++idx)
+                for (int idx=0; idx < mesh.shape(); ++idx)
                     {
                     double eff_energy = 0.0;
-                    if (mu_ex) eff_energy += mu_ex[idx];
-                    if (V) eff_energy += V[idx];
-
-                    rho_tmp[idx] = std::exp(-eff_energy+mu_bulk);
+                    if (mu_ex)
+                        {
+                        eff_energy += mu_ex(idx);
+                        }
+                    if (V)
+                        {
+                        eff_energy += V(idx);
+                        }
+                    rho_tmp(idx) = std::exp(-eff_energy+mu_bulk);
                     }
                 norm = 1.0/ideal->getVolume(t);
                 }
@@ -89,12 +98,12 @@ bool PicardIteration::solve(std::shared_ptr<GrandPotential> grand, std::shared_p
             // apply Picard mixing along with appropriate norm on value
             // during the same loop while checking convergence
             #ifdef FLYFT_OPENMP
-            #pragma omp parallel for schedule(static) default(none) firstprivate(shape,alpha,norm,tol) shared(rho,rho_tmp,converged)
+            #pragma omp parallel for schedule(static) default(none) firstprivate(mesh,alpha,norm,tol) shared(rho,rho_tmp,converged)
             #endif
-            for (int idx=0; idx < shape; ++idx)
+            for (int idx=0; idx < mesh.shape(); ++idx)
                 {
-                const double drho = alpha*(norm*rho_tmp[idx]-rho[idx]);
-                rho[idx] += drho;
+                const double drho = alpha*(norm*rho_tmp(idx)-rho(idx));
+                rho(idx) += drho;
 
                 // check on convergence from absolute change in rho (might also want a percentage check)
                 if (std::abs(drho) > tol)

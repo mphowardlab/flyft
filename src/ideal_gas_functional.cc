@@ -8,33 +8,30 @@ void IdealGasFunctional::compute(std::shared_ptr<State> state)
     allocate(state);
 
     // compute derivatives and accumulate energy
-    auto mesh = state->getMesh();
+    const auto mesh = *state->getMesh();
     value_ = 0.0;
     for (const auto& t : state->getTypes())
         {
         const auto vol = volumes_.at(t);
 
         // compute the total potential by integration
-        auto f = state->getField(t)->data();
-        auto d = derivatives_.at(t)->data();
-
-        const auto shape = mesh->shape();
-        const auto dx = mesh->step();
+        auto f = state->getField(t)->cbegin();
+        auto d = derivatives_.at(t)->begin();
         #ifdef FLYFT_OPENMP
-        #pragma omp parallel for schedule(static) default(none) firstprivate(shape,dx,vol) shared(f,d) reduction(+:value_)
+        #pragma omp parallel for schedule(static) default(none) firstprivate(mesh,vol) shared(f,d) reduction(+:value_)
         #endif
-        for (int idx=0; idx < shape; ++idx)
+        for (int idx=0; idx < mesh.shape(); ++idx)
             {
-            const double rho = f[idx];
+            const double rho = f(idx);
             double energy;
             if (rho > 0)
                 {
-                d[idx] = std::log(vol*rho);
-                energy = dx*rho*(d[idx]-1.);
+                d(idx) = std::log(vol*rho);
+                energy = mesh.step()*rho*(d(idx)-1.);
                 }
             else
                 {
-                d[idx] = -std::numeric_limits<double>::infinity();
+                d(idx) = -std::numeric_limits<double>::infinity();
                 // no contribution to total in limit rho -> 0
                 energy = 0.0;
                 }
