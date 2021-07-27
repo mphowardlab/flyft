@@ -19,21 +19,20 @@ void RosenfeldFMT::compute(std::shared_ptr<State> state)
         max_d = std::max(max_d,diameters_.at(t));
         }
     state->requestBuffer(0.5*max_d);
-
     // TODO: revamp ReciprocalMesh for MPI, this will still work for now
     const auto mesh = *state->getMesh();
-    const ReciprocalMesh kmesh(mesh.step()*mesh.shape(),mesh.shape());
+    const ReciprocalMesh kmesh(mesh.step()*mesh.full_shape(),mesh.full_shape());
     allocate(state);
 
     // compute n weights in fourier space
         {
         // zero the weights before accumulating by type
-        std::fill(n0k_->begin(), n0k_->end(), 0.);
-        std::fill(n1k_->begin(), n1k_->end(), 0.);
-        std::fill(n2k_->begin(), n2k_->end(), 0.);
-        std::fill(n3k_->begin(), n3k_->end(), 0.);
-        std::fill(nv1k_->begin(), nv1k_->end(), 0.);
-        std::fill(nv2k_->begin(), nv2k_->end(), 0.);
+        std::fill(n0k_->begin_full(), n0k_->end_full(), 0.);
+        std::fill(n1k_->begin_full(), n1k_->end_full(), 0.);
+        std::fill(n2k_->begin_full(), n2k_->end_full(), 0.);
+        std::fill(n3k_->begin_full(), n3k_->end_full(), 0.);
+        std::fill(nv1k_->begin_full(), nv1k_->end_full(), 0.);
+        std::fill(nv2k_->begin_full(), nv2k_->end_full(), 0.);
 
         for (const auto& t : state->getTypes())
             {
@@ -46,17 +45,17 @@ void RosenfeldFMT::compute(std::shared_ptr<State> state)
                 }
 
             // fft the density
-            ft_->setRealData(state->getField(t)->begin().get());
+            ft_->setRealData(state->getField(t)->begin_full().get());
             ft_->transform();
             auto rhok = ft_->getReciprocalData();
 
             // accumulate the fourier transformed densities into n
-            auto n0k = n0k_->begin();
-            auto n1k = n1k_->begin();
-            auto n2k = n2k_->begin();
-            auto n3k = n3k_->begin();
-            auto nv1k = nv1k_->begin();
-            auto nv2k = nv2k_->begin();
+            auto n0k = n0k_->begin_full();
+            auto n1k = n1k_->begin_full();
+            auto n2k = n2k_->begin_full();
+            auto n3k = n3k_->begin_full();
+            auto nv1k = nv1k_->begin_full();
+            auto nv2k = nv2k_->begin_full();
             const auto size = ft_->getReciprocalSize();
             #ifdef FLYFT_OPENMP
             #pragma omp parallel for schedule(static) default(none) firstprivate(R,size,kmesh) shared(rhok,n0k,n1k,n2k,n3k,nv1k,nv2k)
@@ -82,29 +81,29 @@ void RosenfeldFMT::compute(std::shared_ptr<State> state)
     // transform n weights to real space to finish convolution
     // no need for a factor of mesh.step() here because w is analytical
         {
-        ft_->setReciprocalData(n0k_->cbegin().get());
+        ft_->setReciprocalData(n0k_->cbegin_full().get());
         ft_->transform();
-        std::copy(ft_->getRealData(),ft_->getRealData()+ft_->getRealSize(),n0_->begin().get());
+        std::copy(ft_->getRealData(),ft_->getRealData()+ft_->getRealSize(),n0_->begin_full().get());
 
-        ft_->setReciprocalData(n1k_->cbegin().get());
+        ft_->setReciprocalData(n1k_->cbegin_full().get());
         ft_->transform();
-        std::copy(ft_->getRealData(),ft_->getRealData()+ft_->getRealSize(),n1_->begin().get());
+        std::copy(ft_->getRealData(),ft_->getRealData()+ft_->getRealSize(),n1_->begin_full().get());
 
-        ft_->setReciprocalData(n2k_->cbegin().get());
+        ft_->setReciprocalData(n2k_->cbegin_full().get());
         ft_->transform();
-        std::copy(ft_->getRealData(),ft_->getRealData()+ft_->getRealSize(),n2_->begin().get());
+        std::copy(ft_->getRealData(),ft_->getRealData()+ft_->getRealSize(),n2_->begin_full().get());
 
-        ft_->setReciprocalData(n3k_->cbegin().get());
+        ft_->setReciprocalData(n3k_->cbegin_full().get());
         ft_->transform();
-        std::copy(ft_->getRealData(),ft_->getRealData()+ft_->getRealSize(),n3_->begin().get());
+        std::copy(ft_->getRealData(),ft_->getRealData()+ft_->getRealSize(),n3_->begin_full().get());
 
-        ft_->setReciprocalData(nv1k_->cbegin().get());
+        ft_->setReciprocalData(nv1k_->cbegin_full().get());
         ft_->transform();
-        std::copy(ft_->getRealData(),ft_->getRealData()+ft_->getRealSize(),nv1_->begin().get());
+        std::copy(ft_->getRealData(),ft_->getRealData()+ft_->getRealSize(),nv1_->begin_full().get());
 
-        ft_->setReciprocalData(nv2k_->cbegin().get());
+        ft_->setReciprocalData(nv2k_->cbegin_full().get());
         ft_->transform();
-        std::copy(ft_->getRealData(),ft_->getRealData()+ft_->getRealSize(),nv2_->begin().get());
+        std::copy(ft_->getRealData(),ft_->getRealData()+ft_->getRealSize(),nv2_->begin_full().get());
         }
 
     // evaluate phi and partial derivatives in real space using n
@@ -125,7 +124,7 @@ void RosenfeldFMT::compute(std::shared_ptr<State> state)
         auto dphi_dnv2 = dphi_dnv2_->begin();
 
         //////////////// The functions in here could be templated out too
-        const auto size = ft_->getRealSize();
+        const auto size = mesh.shape();
         #ifdef FLYFT_OPENMP
         #pragma omp parallel for schedule(static) default(none) firstprivate(size) shared(n0,n1,n2,n3,nv1,nv2,phi,dphi_dn0,dphi_dn1,dphi_dn2,dphi_dn3,dphi_dnv1,dphi_dnv2)
         #endif
@@ -166,44 +165,61 @@ void RosenfeldFMT::compute(std::shared_ptr<State> state)
         ////////////////
         }
 
+    // copy buffers for second fourier transform
+    // TODO: move this to a function of a communication class
+        {
+        std::copy(dphi_dn0_->cbegin(), dphi_dn0_->cbegin()+dphi_dn0_->buffer_shape(), dphi_dn0_->end());
+        std::copy(dphi_dn0_->cend()-dphi_dn0_->buffer_shape(), dphi_dn0_->cend(), dphi_dn0_->begin()-dphi_dn0_->buffer_shape());
+        std::copy(dphi_dn1_->cbegin(), dphi_dn1_->cbegin()+dphi_dn1_->buffer_shape(), dphi_dn1_->end());
+        std::copy(dphi_dn1_->cend()-dphi_dn1_->buffer_shape(), dphi_dn1_->cend(), dphi_dn1_->begin()-dphi_dn1_->buffer_shape());
+        std::copy(dphi_dn2_->cbegin(), dphi_dn2_->cbegin()+dphi_dn2_->buffer_shape(), dphi_dn2_->end());
+        std::copy(dphi_dn2_->cend()-dphi_dn2_->buffer_shape(), dphi_dn2_->cend(), dphi_dn2_->begin()-dphi_dn2_->buffer_shape());
+        std::copy(dphi_dn3_->cbegin(), dphi_dn3_->cbegin()+dphi_dn3_->buffer_shape(), dphi_dn3_->end());
+        std::copy(dphi_dn3_->cend()-dphi_dn3_->buffer_shape(), dphi_dn3_->cend(), dphi_dn3_->begin()-dphi_dn3_->buffer_shape());
+        std::copy(dphi_dnv1_->cbegin(), dphi_dnv1_->cbegin()+dphi_dnv1_->buffer_shape(), dphi_dnv1_->end());
+        std::copy(dphi_dnv1_->cend()-dphi_dnv1_->buffer_shape(), dphi_dnv1_->cend(), dphi_dnv1_->begin()-dphi_dnv1_->buffer_shape());
+        std::copy(dphi_dnv2_->cbegin(), dphi_dnv2_->cbegin()+dphi_dnv2_->buffer_shape(), dphi_dnv2_->end());
+        std::copy(dphi_dnv2_->cend()-dphi_dnv2_->buffer_shape(), dphi_dnv2_->cend(), dphi_dnv2_->begin()-dphi_dnv2_->buffer_shape());
+        }
+
     // convert phi derivatives to Fourier space
         {
-        ft_->setRealData(dphi_dn0_->cbegin().get());
+        ft_->setRealData(dphi_dn0_->cbegin_full().get());
         ft_->transform();
-        std::copy(ft_->getReciprocalData(),ft_->getReciprocalData()+ft_->getReciprocalSize(),dphi_dn0k_->begin().get());
+        std::copy(ft_->getReciprocalData(),ft_->getReciprocalData()+ft_->getReciprocalSize(),dphi_dn0k_->begin_full().get());
 
-        ft_->setRealData(dphi_dn1_->cbegin().get());
+        ft_->setRealData(dphi_dn1_->cbegin_full().get());
         ft_->transform();
-        std::copy(ft_->getReciprocalData(),ft_->getReciprocalData()+ft_->getReciprocalSize(),dphi_dn1k_->begin().get());
+        std::copy(ft_->getReciprocalData(),ft_->getReciprocalData()+ft_->getReciprocalSize(),dphi_dn1k_->begin_full().get());
 
-        ft_->setRealData(dphi_dn2_->cbegin().get());
+        ft_->setRealData(dphi_dn2_->cbegin_full().get());
         ft_->transform();
-        std::copy(ft_->getReciprocalData(),ft_->getReciprocalData()+ft_->getReciprocalSize(),dphi_dn2k_->begin().get());
+        std::copy(ft_->getReciprocalData(),ft_->getReciprocalData()+ft_->getReciprocalSize(),dphi_dn2k_->begin_full().get());
 
-        ft_->setRealData(dphi_dn3_->cbegin().get());
+        ft_->setRealData(dphi_dn3_->cbegin_full().get());
         ft_->transform();
-        std::copy(ft_->getReciprocalData(),ft_->getReciprocalData()+ft_->getReciprocalSize(),dphi_dn3k_->begin().get());
+        std::copy(ft_->getReciprocalData(),ft_->getReciprocalData()+ft_->getReciprocalSize(),dphi_dn3k_->begin_full().get());
 
-        ft_->setRealData(dphi_dnv1_->cbegin().get());
+        ft_->setRealData(dphi_dnv1_->cbegin_full().get());
         ft_->transform();
-        std::copy(ft_->getReciprocalData(),ft_->getReciprocalData()+ft_->getReciprocalSize(),dphi_dnv1k_->begin().get());
+        std::copy(ft_->getReciprocalData(),ft_->getReciprocalData()+ft_->getReciprocalSize(),dphi_dnv1k_->begin_full().get());
 
-        ft_->setRealData(dphi_dnv2_->cbegin().get());
+        ft_->setRealData(dphi_dnv2_->cbegin_full().get());
         ft_->transform();
-        std::copy(ft_->getReciprocalData(),ft_->getReciprocalData()+ft_->getReciprocalSize(),dphi_dnv2k_->begin().get());
+        std::copy(ft_->getReciprocalData(),ft_->getReciprocalData()+ft_->getReciprocalSize(),dphi_dnv2k_->begin_full().get());
         }
 
     // convolve phi derivatives with weights to get functional derivatives
     // again, no need for a factor of mesh.step() here because w is analytical
         {
-        auto dphi_dn0k = dphi_dn0k_->cbegin();
-        auto dphi_dn1k = dphi_dn1k_->cbegin();
-        auto dphi_dn2k = dphi_dn2k_->cbegin();
-        auto dphi_dn3k = dphi_dn3k_->cbegin();
-        auto dphi_dnv1k = dphi_dnv1k_->cbegin();
-        auto dphi_dnv2k = dphi_dnv2k_->cbegin();
+        auto dphi_dn0k = dphi_dn0k_->cbegin_full();
+        auto dphi_dn1k = dphi_dn1k_->cbegin_full();
+        auto dphi_dn2k = dphi_dn2k_->cbegin_full();
+        auto dphi_dn3k = dphi_dn3k_->cbegin_full();
+        auto dphi_dnv1k = dphi_dnv1k_->cbegin_full();
+        auto dphi_dnv2k = dphi_dnv2k_->cbegin_full();
 
-        auto derivativek = derivativek_->begin();
+        auto derivativek = derivativek_->begin_full();
         for (const auto& t : state->getTypes())
             {
             // hard-sphere radius
@@ -238,7 +254,7 @@ void RosenfeldFMT::compute(std::shared_ptr<State> state)
             ft_->transform();
 
             // copy the valid values
-            auto din = ft_->getRealData();
+            auto din = ft_->getRealData()+mesh.buffer_shape();
             auto dout = derivatives_.at(t)->begin();
             #ifdef FLYFT_OPENMP
             #pragma omp parallel for schedule(static) default(none) firstprivate(mesh) shared(din,dout)
@@ -271,9 +287,9 @@ void RosenfeldFMT::allocate(std::shared_ptr<State> state)
     const auto mesh = *state->getMesh();
 
     // update Fourier transform to mesh shape
-    if (!ft_ || (ft_->getRealSize() != mesh.shape()))
+    if (!ft_ || (ft_->getRealSize() != mesh.full_shape()))
         {
-        ft_ = std::make_unique<FourierTransform>(mesh.shape());
+        ft_ = std::make_unique<FourierTransform>(mesh.full_shape());
         }
 
     // update shape of internal fields (alloc handled in a smart way by Field)
@@ -301,11 +317,11 @@ void RosenfeldFMT::setupField(std::unique_ptr<Field>& field, const Mesh& mesh)
     {
     if (!field)
         {
-        field = std::make_unique<Field>(mesh.shape(),0);
+        field = std::make_unique<Field>(mesh.layout());
         }
     else
         {
-        field->reshape(mesh.shape(),0);
+        field->reshape(mesh.layout());
         }
     }
 

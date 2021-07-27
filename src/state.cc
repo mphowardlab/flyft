@@ -1,7 +1,6 @@
 #include "flyft/state.h"
 
 #include <algorithm>
-#include <iostream>
 
 namespace flyft
 {

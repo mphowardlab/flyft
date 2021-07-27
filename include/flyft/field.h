@@ -208,7 +208,7 @@ class GenericField
             return iterator(data_,layout_.withoutBuffer());
             }
 
-        iterator begin_end()
+        iterator end_full()
             {
             return begin_full()+layout_.full_shape();
             }

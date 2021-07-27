@@ -1,7 +1,6 @@
 #include "flyft/virial_expansion.h"
 
 #include <algorithm>
-#include <iostream>
 
 namespace flyft
 {
@@ -17,27 +16,7 @@ void VirialExpansion::compute(std::shared_ptr<State> state)
     value_ = 0.0;
     for (const auto& t : types)
         {
-        std::cout << "before:";
-        auto d = derivatives_.at(t)->begin();
-        for (int idx=0; idx < mesh.shape(); ++idx)
-            {
-            std::cout << " " << d(idx);
-            }
-        std::cout << std::endl;
-
         std::fill(derivatives_.at(t)->begin(),derivatives_.at(t)->end(),0.);
-//         for (auto it = derivatives_.at(t)->begin(); it != derivatives_.at(t)->end(); ++it)
-//         for (int idx=0; idx < mesh.shape(); ++idx)
-//             {
-//             d[idx] = 0.;
-//             }
-
-        std::cout << "after:";
-        for (int idx=0; idx < mesh.shape(); ++idx)
-            {
-            std::cout << " " << d(idx);
-            }
-        std::cout << std::endl;
         }
 
     for (auto it_i=types.cbegin(); it_i != types.cend(); ++it_i)

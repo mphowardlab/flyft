@@ -6,9 +6,8 @@ namespace flyft
 {
 
 Mesh::Mesh(double L, int shape)
-    : L_(L), shape_(shape), step_(L_/shape)
+    : L_(L), buffer_(0), step_(L_/shape), layout_(shape,0)
     {
-    setBuffer(0);
     }
 
 double Mesh::coordinate(int i) const
@@ -31,30 +30,36 @@ double Mesh::buffer() const
     return buffer_;
     }
 
-int Mesh::shape() const
-    {
-    return shape_;
-    }
-
-int Mesh::buffer_shape() const
-    {
-    return buffer_shape_;
-    }
-
-DataLayout Mesh::layout() const
-    {
-    return DataLayout(shape_,buffer_shape_);
-    }
-
 double Mesh::step() const
     {
     return step_;
     }
 
+const DataLayout& Mesh::layout() const
+    {
+    return layout_;
+    }
+
+int Mesh::shape() const
+    {
+    return layout_.shape();
+    }
+
+int Mesh::buffer_shape() const
+    {
+    return layout_.buffer_shape();
+    }
+
+int Mesh::full_shape() const
+    {
+    return layout_.full_shape();
+    }
+
 void Mesh::setBuffer(double buffer_request)
     {
-    buffer_shape_ = static_cast<int>(std::ceil(buffer_request/step_));
-    buffer_ = buffer_shape_*step_;
+    const int buffer_shape = static_cast<int>(std::ceil(buffer_request/step_));
+    buffer_ = buffer_shape*step_;
+    layout_ = DataLayout(layout_.shape(),buffer_shape);
     }
 
 }
