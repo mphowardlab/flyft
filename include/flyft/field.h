@@ -280,6 +280,19 @@ class GenericField
                 }
             }
 
+        void setBuffer(int buffer_shape)
+            {
+            reshape(layout_.shape(),buffer_shape);
+            }
+
+        void requestBuffer(int buffer_shape)
+            {
+            if (buffer_shape > layout_.buffer_shape())
+                {
+                setBuffer(buffer_shape);
+                }
+            }
+
     private:
         T* data_;
         DataLayout layout_;

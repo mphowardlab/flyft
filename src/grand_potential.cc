@@ -78,6 +78,24 @@ void GrandPotential::compute(std::shared_ptr<State> state)
         }
     }
 
+int GrandPotential::determineBufferShape(std::shared_ptr<State> state, const std::string& type)
+    {
+    int max_buffer_shape = 0;
+    if (ideal_)
+        {
+        max_buffer_shape = std::max(ideal_->determineBufferShape(state,type),max_buffer_shape);
+        }
+    if (excess_)
+        {
+        max_buffer_shape = std::max(excess_->determineBufferShape(state,type),max_buffer_shape);
+        }
+    if (external_)
+        {
+        max_buffer_shape = std::max(external_->determineBufferShape(state,type),max_buffer_shape);
+        }
+    return max_buffer_shape;
+    }
+
 std::shared_ptr<IdealGasFunctional> GrandPotential::getIdealGasFunctional()
     {
     return ideal_;

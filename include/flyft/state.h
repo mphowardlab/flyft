@@ -1,6 +1,7 @@
 #ifndef FLYFT_STATE_H_
 #define FLYFT_STATE_H_
 
+#include "flyft/communicator.h"
 #include "flyft/field.h"
 #include "flyft/mesh.h"
 #include "flyft/type_map.h"
@@ -16,14 +17,15 @@ class State
     {
     public:
         State() = delete;
-        State(std::shared_ptr<Mesh> mesh, const std::string& type);
-        State(std::shared_ptr<Mesh> mesh, const std::vector<std::string>& types);
+        State(std::shared_ptr<const Mesh> mesh, const std::string& type);
+        State(std::shared_ptr<const Mesh> mesh, const std::vector<std::string>& types);
         State(const State& other);
         State(State&& other);
         State& operator=(const State& other);
         State& operator=(State&& other);
 
-        std::shared_ptr<Mesh> getMesh();
+        std::shared_ptr<const Mesh> getMesh();
+        std::shared_ptr<Communicator> getCommunicator();
 
         int getNumFields() const;
         const std::vector<std::string>& getTypes();
@@ -39,10 +41,9 @@ class State
         void setTime(double time);
         void advanceTime(double timestep);
 
-        void requestBuffer(double buffer_request);
-
     private:
-        std::shared_ptr<Mesh> mesh_;
+        std::shared_ptr<const Mesh> mesh_;
+        std::shared_ptr<Communicator> comm_;
         std::vector<std::string> types_;
         TypeMap<std::shared_ptr<Field>> fields_;
         double time_;

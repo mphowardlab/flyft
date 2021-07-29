@@ -13,16 +13,10 @@ void RosenfeldFMT::compute(std::shared_ptr<State> state)
     {
     // (re-)allocate the memory needed to work with this state
     // kmesh should really be coming from somewhere else (like the FFT)
-    auto max_d = 0.0;
-    for (const auto& t : state->getTypes())
-        {
-        max_d = std::max(max_d,diameters_.at(t));
-        }
-    state->requestBuffer(0.5*max_d);
     // TODO: revamp ReciprocalMesh for MPI, this will still work for now
-    const auto mesh = *state->getMesh();
-    const ReciprocalMesh kmesh(mesh.step()*mesh.full_shape(),mesh.full_shape());
     allocate(state);
+    const auto mesh = *state->getMesh();
+    const ReciprocalMesh kmesh(mesh.asLength(layout_.full_shape()),layout_.full_shape());
 
     // compute n weights in fourier space
         {
@@ -124,11 +118,10 @@ void RosenfeldFMT::compute(std::shared_ptr<State> state)
         auto dphi_dnv2 = dphi_dnv2_->begin();
 
         //////////////// The functions in here could be templated out too
-        const auto size = mesh.shape();
         #ifdef FLYFT_OPENMP
-        #pragma omp parallel for schedule(static) default(none) firstprivate(size) shared(n0,n1,n2,n3,nv1,nv2,phi,dphi_dn0,dphi_dn1,dphi_dn2,dphi_dn3,dphi_dnv1,dphi_dnv2)
+        #pragma omp parallel for schedule(static) default(none) firstprivate(mesh) shared(n0,n1,n2,n3,nv1,nv2,phi,dphi_dn0,dphi_dn1,dphi_dn2,dphi_dn3,dphi_dnv1,dphi_dnv2)
         #endif
-        for (int idx=0; idx < size; ++idx)
+        for (int idx=0; idx < mesh.shape(); ++idx)
             {
             // precompute the "void fraction" vf, which is only a function of n3
             const double vf = 1.-n3(idx);
@@ -165,21 +158,15 @@ void RosenfeldFMT::compute(std::shared_ptr<State> state)
         ////////////////
         }
 
-    // copy buffers for second fourier transform
-    // TODO: move this to a function of a communication class
+    // sync buffers for second fourier transform
         {
-        std::copy(dphi_dn0_->cbegin(), dphi_dn0_->cbegin()+dphi_dn0_->buffer_shape(), dphi_dn0_->end());
-        std::copy(dphi_dn0_->cend()-dphi_dn0_->buffer_shape(), dphi_dn0_->cend(), dphi_dn0_->begin()-dphi_dn0_->buffer_shape());
-        std::copy(dphi_dn1_->cbegin(), dphi_dn1_->cbegin()+dphi_dn1_->buffer_shape(), dphi_dn1_->end());
-        std::copy(dphi_dn1_->cend()-dphi_dn1_->buffer_shape(), dphi_dn1_->cend(), dphi_dn1_->begin()-dphi_dn1_->buffer_shape());
-        std::copy(dphi_dn2_->cbegin(), dphi_dn2_->cbegin()+dphi_dn2_->buffer_shape(), dphi_dn2_->end());
-        std::copy(dphi_dn2_->cend()-dphi_dn2_->buffer_shape(), dphi_dn2_->cend(), dphi_dn2_->begin()-dphi_dn2_->buffer_shape());
-        std::copy(dphi_dn3_->cbegin(), dphi_dn3_->cbegin()+dphi_dn3_->buffer_shape(), dphi_dn3_->end());
-        std::copy(dphi_dn3_->cend()-dphi_dn3_->buffer_shape(), dphi_dn3_->cend(), dphi_dn3_->begin()-dphi_dn3_->buffer_shape());
-        std::copy(dphi_dnv1_->cbegin(), dphi_dnv1_->cbegin()+dphi_dnv1_->buffer_shape(), dphi_dnv1_->end());
-        std::copy(dphi_dnv1_->cend()-dphi_dnv1_->buffer_shape(), dphi_dnv1_->cend(), dphi_dnv1_->begin()-dphi_dnv1_->buffer_shape());
-        std::copy(dphi_dnv2_->cbegin(), dphi_dnv2_->cbegin()+dphi_dnv2_->buffer_shape(), dphi_dnv2_->end());
-        std::copy(dphi_dnv2_->cend()-dphi_dnv2_->buffer_shape(), dphi_dnv2_->cend(), dphi_dnv2_->begin()-dphi_dnv2_->buffer_shape());
+        auto comm = state->getCommunicator();
+        comm->sync(dphi_dn0_);
+        comm->sync(dphi_dn1_);
+        comm->sync(dphi_dn2_);
+        comm->sync(dphi_dn3_);
+        comm->sync(dphi_dnv1_);
+        comm->sync(dphi_dnv2_);
         }
 
     // convert phi derivatives to Fourier space
@@ -254,14 +241,14 @@ void RosenfeldFMT::compute(std::shared_ptr<State> state)
             ft_->transform();
 
             // copy the valid values
-            auto din = ft_->getRealData()+mesh.buffer_shape();
+            Field::const_iterator din(ft_->getRealData(),layout_);
             auto dout = derivatives_.at(t)->begin();
             #ifdef FLYFT_OPENMP
             #pragma omp parallel for schedule(static) default(none) firstprivate(mesh) shared(din,dout)
             #endif
             for (int idx=0; idx < mesh.shape(); ++idx)
                 {
-                dout(idx) = din[idx];
+                dout(idx) = din(idx);
                 }
             }
         }
@@ -280,70 +267,62 @@ void RosenfeldFMT::compute(std::shared_ptr<State> state)
         }
     }
 
+int RosenfeldFMT::determineBufferShape(std::shared_ptr<State> state, const std::string& /*type*/)
+    {
+    // TODO: cache this
+    const double buffer = std::max_element(diameters_.begin(),diameters_.end())->second;
+    buffer_shape_ = state->getMesh()->asShape(buffer);
+    return buffer_shape_;
+    }
+
 void RosenfeldFMT::allocate(std::shared_ptr<State> state)
     {
     Functional::allocate(state);
 
+    // update Fourier transform to mesh shape + buffer
     const auto mesh = *state->getMesh();
-
-    // update Fourier transform to mesh shape
-    if (!ft_ || (ft_->getRealSize() != mesh.full_shape()))
+    layout_ = DataLayout(mesh.shape(),buffer_shape_);
+    if (!ft_ || (ft_->getRealSize() != layout_.full_shape()))
         {
-        ft_ = std::make_unique<FourierTransform>(mesh.full_shape());
+        ft_ = std::make_unique<FourierTransform>(layout_.full_shape());
         }
 
     // update shape of internal fields (alloc handled in a smart way by Field)
     // TODO: use plain old data for this stuff, since it does not need advanced padding?
-    setupFourierFields(n0_, n0k_, mesh, ft_->getReciprocalSize());
-    setupFourierFields(n1_, n1k_, mesh, ft_->getReciprocalSize());
-    setupFourierFields(n2_, n2k_, mesh, ft_->getReciprocalSize());
-    setupFourierFields(n3_, n3k_, mesh, ft_->getReciprocalSize());
-    setupFourierFields(nv1_, nv1k_, mesh, ft_->getReciprocalSize());
-    setupFourierFields(nv2_, nv2k_, mesh, ft_->getReciprocalSize());
-
-    setupFourierFields(dphi_dn0_, dphi_dn0k_, mesh, ft_->getReciprocalSize());
-    setupFourierFields(dphi_dn1_, dphi_dn1k_, mesh, ft_->getReciprocalSize());
-    setupFourierFields(dphi_dn2_, dphi_dn2k_, mesh, ft_->getReciprocalSize());
-    setupFourierFields(dphi_dn3_, dphi_dn3k_, mesh, ft_->getReciprocalSize());
-    setupFourierFields(dphi_dnv1_, dphi_dnv1k_, mesh, ft_->getReciprocalSize());
-    setupFourierFields(dphi_dnv2_, dphi_dnv2k_, mesh, ft_->getReciprocalSize());
+    setupField(n0_); setupComplexField(n0k_); setupField(dphi_dn0_); setupComplexField(dphi_dn0k_);
+    setupField(n1_); setupComplexField(n1k_); setupField(dphi_dn1_); setupComplexField(dphi_dn1k_);
+    setupField(n2_); setupComplexField(n2k_); setupField(dphi_dn2_); setupComplexField(dphi_dn2k_);
+    setupField(n3_); setupComplexField(n3k_); setupField(dphi_dn3_); setupComplexField(dphi_dn3k_);
+    setupField(nv1_); setupComplexField(nv1k_); setupField(dphi_dnv1_); setupComplexField(dphi_dnv1k_);
+    setupField(nv2_); setupComplexField(nv2k_); setupField(dphi_dnv2_); setupComplexField(dphi_dnv2k_);
 
     // these two fields only exist in one space
-    setupField(phi_,mesh);
-    setupComplexField(derivativek_, ft_->getReciprocalSize());
+    setupField(phi_);
+    setupComplexField(derivativek_);
     }
 
-void RosenfeldFMT::setupField(std::unique_ptr<Field>& field, const Mesh& mesh)
+void RosenfeldFMT::setupField(std::shared_ptr<Field>& field)
     {
     if (!field)
         {
-        field = std::make_unique<Field>(mesh.layout());
+        field = std::make_shared<Field>(layout_);
         }
     else
         {
-        field->reshape(mesh.layout());
+        field->reshape(layout_);
         }
     }
 
-void RosenfeldFMT::setupComplexField(std::unique_ptr<ComplexField>& kfield, int shape)
+void RosenfeldFMT::setupComplexField(std::unique_ptr<ComplexField>& kfield)
     {
     if (!kfield)
         {
-        kfield = std::make_unique<ComplexField>(shape,0);
+        kfield = std::make_unique<ComplexField>(ft_->getReciprocalSize(),0);
         }
     else
         {
-        kfield->reshape(shape,0);
+        kfield->reshape(ft_->getReciprocalSize(),0);
         }
-    }
-
-void RosenfeldFMT::setupFourierFields(std::unique_ptr<Field>& field,
-                                      std::unique_ptr<ComplexField>& kfield,
-                                      const Mesh& mesh,
-                                      int kshape)
-    {
-    setupField(field,mesh);
-    setupComplexField(kfield,kshape);
     }
 
 void RosenfeldFMT::computeWeights(std::complex<double>& w0,

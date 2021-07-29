@@ -43,4 +43,15 @@ void CompositeFunctional::compute(std::shared_ptr<State> state)
         }
     }
 
+int CompositeFunctional::determineBufferShape(std::shared_ptr<State> state, const std::string& type)
+    {
+    int max_buffer_shape = 0;
+    for (const auto& f : objects_)
+        {
+        int buffer_shape = f->determineBufferShape(state,type);
+        max_buffer_shape = std::max(buffer_shape,max_buffer_shape);
+        }
+    return max_buffer_shape;
+    }
+
 }

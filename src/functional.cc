@@ -34,8 +34,20 @@ std::shared_ptr<const Field> Functional::getDerivative(const std::string& type) 
     return derivatives_.at(type);
     }
 
+int Functional::determineBufferShape(std::shared_ptr<State> /*state*/, const std::string& /*type*/)
+    {
+    return 0;
+    }
+
 void Functional::allocate(std::shared_ptr<State> state)
     {
+    auto comm = state->getCommunicator();
+    for (const auto& t : state->getTypes())
+        {
+        auto f = state->getField(t);
+        f->requestBuffer(determineBufferShape(state,t));
+        comm->sync(f);
+        }
     state->syncFields(derivatives_);
     }
 }
