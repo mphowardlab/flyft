@@ -10,10 +10,6 @@
             80
         ]
     },
-    "python.linting.flake8Enabled": true,
-    "python.linting.pycodestyleEnabled": true,
-    "python.linting.pylintEnabled": false,
-    "python.formatting.provider": "yapf",
     "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
     "files.associations": {
         "istream": "cpp",
