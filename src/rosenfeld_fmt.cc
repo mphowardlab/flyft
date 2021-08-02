@@ -14,7 +14,7 @@ void RosenfeldFMT::compute(std::shared_ptr<State> state)
     // (re-)allocate the memory needed to work with this state
     // kmesh should really be coming from somewhere else (like the FFT)
     // TODO: revamp ReciprocalMesh for MPI, this will still work for now
-    allocate(state);
+    setup(state);
     const auto mesh = *state->getMesh();
     const ReciprocalMesh kmesh(mesh.asLength(layout_.full_shape()),layout_.full_shape());
 
@@ -275,9 +275,9 @@ int RosenfeldFMT::determineBufferShape(std::shared_ptr<State> state, const std::
     return buffer_shape_;
     }
 
-void RosenfeldFMT::allocate(std::shared_ptr<State> state)
+void RosenfeldFMT::setup(std::shared_ptr<State> state)
     {
-    Functional::allocate(state);
+    Functional::setup(state);
 
     // update Fourier transform to mesh shape + buffer
     const auto mesh = *state->getMesh();

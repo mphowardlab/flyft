@@ -7,7 +7,7 @@ namespace flyft
 
 void VirialExpansion::compute(std::shared_ptr<State> state)
     {
-    allocate(state);
+    setup(state);
 
     auto types = state->getTypes();
     const auto mesh = *state->getMesh();

@@ -7,7 +7,7 @@ namespace flyft
 
 void CompositeFunctional::compute(std::shared_ptr<State> state)
     {
-    allocate(state);
+    setup(state);
 
     // initialize to zeros
     value_ = 0.0;

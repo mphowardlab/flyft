@@ -64,7 +64,7 @@ class RosenfeldFMT : public Functional
 
         std::unique_ptr<ComplexField> derivativek_;
 
-        void allocate(std::shared_ptr<State> state) override;
+        void setup(std::shared_ptr<State> state) override;
 
         void setupField(std::shared_ptr<Field>& field);
         void setupComplexField(std::unique_ptr<ComplexField>& kfield);

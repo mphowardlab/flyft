@@ -39,7 +39,7 @@ int Functional::determineBufferShape(std::shared_ptr<State> /*state*/, const std
     return 0;
     }
 
-void Functional::allocate(std::shared_ptr<State> state)
+void Functional::setup(std::shared_ptr<State> state)
     {
     auto comm = state->getCommunicator();
     for (const auto& t : state->getTypes())

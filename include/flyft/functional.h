@@ -37,7 +37,7 @@ class Functional
         double value_;
         TypeMap<std::shared_ptr<Field>> derivatives_;
 
-        virtual void allocate(std::shared_ptr<State> state);
+        virtual void setup(std::shared_ptr<State> state);
     };
 
 }

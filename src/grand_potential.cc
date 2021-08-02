@@ -11,7 +11,7 @@ GrandPotential::GrandPotential()
 
 void GrandPotential::compute(std::shared_ptr<State> state)
     {
-    allocate(state);
+    setup(state);
     const auto mesh = *state->getMesh();
 
     // evaluate functionals
