@@ -5,7 +5,6 @@
 
 #include <algorithm>
 #include <complex>
-#include <iterator>
 
 namespace flyft
 {
@@ -38,135 +37,8 @@ class GenericField
             if (data_) delete[] data_;
             }
 
-        template<typename U>
-        class Iterator_
-            {
-            public:
-                using iterator_category = std::bidirectional_iterator_tag;
-                using difference_type = int;
-                using value_type = U;
-                using pointer = U*;
-                using reference = U&;
-
-                Iterator_()
-                    : Iterator_(nullptr,DataLayout(0,0))
-                    {}
-
-                Iterator_(value_type* data, const DataLayout& layout)
-                    : data_(data), layout_(layout), current_offset_(0)
-                    {}
-
-                reference operator()(int offset) const
-                    {
-                    return data_[layout_(current_offset_+offset)];
-                    }
-
-                reference operator[](difference_type n) const
-                    {
-                    // TODO: add method to layout to handle 1d offsets even if data is not 1d
-                    return data_[layout_(current_offset_+n)];
-                    }
-
-                reference operator*() const
-                    {
-                    return *get();
-                    }
-
-                pointer operator->() const
-                    {
-                    return get();
-                    }
-
-                pointer get() const
-                    {
-                    return data_+layout_(current_offset_);
-                    }
-
-                Iterator_& operator++()
-                    {
-                    ++current_offset_;
-                    return *this;
-                    }
-
-                Iterator_ operator++(int)
-                    {
-                    Iterator_ tmp(*this);
-                    ++current_offset_;
-                    return tmp;
-                    }
-
-                Iterator_& operator--()
-                    {
-                    --current_offset_;
-                    return *this;
-                    }
-
-                Iterator_ operator--(int)
-                    {
-                    Iterator_ tmp(*this);
-                    --current_offset_;
-                    return tmp;
-                    }
-
-                Iterator_& operator+=(difference_type n)
-                    {
-                    current_offset_ += n;
-                    return *this;
-                    }
-
-                Iterator_ operator+(difference_type n) const
-                    {
-                    Iterator_ tmp(*this);
-                    tmp += n;
-                    return tmp;
-                    }
-
-                friend Iterator_ operator+(difference_type n, const Iterator_ self)
-                    {
-                    return self+n;
-                    }
-
-                Iterator_& operator-=(difference_type n)
-                    {
-                    current_offset_ -= n;
-                    return *this;
-                    }
-
-                Iterator_ operator-(difference_type n) const
-                    {
-                    Iterator_ tmp(*this);
-                    tmp -= n;
-                    return tmp;
-                    }
-
-                difference_type operator-(const Iterator_ other) const
-                    {
-                    // TODO: add method to layout to figure out distance between two elements
-                    return (current_offset_-other.current_offset_);
-                    }
-
-                operator bool() const
-                    {
-                    return data_ != nullptr;
-                    }
-
-                bool operator==(const Iterator_& other) const
-                    {
-                    return (get() == other.get());
-                    }
-
-                bool operator!=(const Iterator_& other) const
-                    {
-                    return !(*this == other);
-                    }
-
-            private:
-                value_type* data_;
-                DataLayout layout_;
-                int current_offset_;
-            };
-        using iterator = Iterator_<T>;
-        using const_iterator = Iterator_<const T>;
+        using iterator = DataIterator<T>;
+        using const_iterator = DataIterator<const T>;
 
         T& operator()(int idx)
             {
@@ -205,7 +77,7 @@ class GenericField
 
         iterator begin_full()
             {
-            return iterator(data_,layout_.withoutBuffer());
+            return iterator(data_,DataLayout(layout_.full_shape(),0));
             }
 
         iterator end_full()
@@ -225,7 +97,7 @@ class GenericField
 
         const_iterator cbegin_full()
             {
-            return const_iterator(static_cast<const T*>(data_),layout_.withoutBuffer());
+            return const_iterator(static_cast<const T*>(data_),DataLayout(layout_.full_shape(),0));
             }
 
         const_iterator cend_full()
