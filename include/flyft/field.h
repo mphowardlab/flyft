@@ -2,6 +2,7 @@
 #define FLYFT_FIELD_H_
 
 #include "flyft/data_layout.h"
+#include "flyft/data_token.h"
 #include "flyft/data_view.h"
 
 #include <algorithm>
@@ -19,7 +20,7 @@ class GenericField
             : GenericField(shape,0)
             {}
         GenericField(int shape, int buffer_shape)
-            : data_(nullptr), shape_(0), buffer_shape_(0), layout_(0)
+            : id_(count++), token_(id_), data_(nullptr), shape_(0), buffer_shape_(0), layout_(0)
             {
             reshape(shape,buffer_shape);
             }
@@ -39,6 +40,7 @@ class GenericField
         using ConstantView = DataView<const T>;
         using Iterator = typename View::Iterator;
         using ConstantIterator = typename ConstantView::Iterator;
+        using Identifier = typename DataToken::Type;
 
         T& operator()(int idx)
             {
@@ -65,8 +67,19 @@ class GenericField
             return shape_+2*buffer_shape_;
             }
 
+        Identifier id() const
+            {
+            return id_;
+            }
+
+        const DataToken& token() const
+            {
+            return token_;
+            }
+
         View view()
             {
+            token_.advance();
             return View(data_,layout_,buffer_shape_,full_shape()-buffer_shape_);
             }
 
@@ -77,6 +90,7 @@ class GenericField
 
         View full_view()
             {
+            token_.advance();
             return View(data_,layout_,0,full_shape());
             }
 
@@ -129,6 +143,7 @@ class GenericField
                 shape_ = shape;
                 buffer_shape_ = buffer_shape;
                 layout_ = layout;
+                token_.advance();
                 }
             }
 
@@ -146,11 +161,17 @@ class GenericField
             }
 
     private:
+        Identifier id_;
+        DataToken token_;
         T* data_;
         int shape_;
         int buffer_shape_;
         DataLayout layout_;
+
+        static Identifier count;
     };
+template<typename T>
+typename GenericField<T>::Identifier GenericField<T>::count = 0;
 
 using Field = GenericField<double>;
 using ComplexField = GenericField<std::complex<double>>;

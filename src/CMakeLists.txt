@@ -7,6 +7,7 @@ add_library(flyft SHARED
     composite_functional.cc
     crank_nicolson_integrator.cc
     data_layout.cc
+    data_token.cc
     diffusive_flux.cc
     explicit_euler_integrator.cc
     exponential_wall_potential.cc

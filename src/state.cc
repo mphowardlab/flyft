@@ -12,6 +12,7 @@ State::State(std::shared_ptr<const Mesh> mesh, const std::string& type)
 State::State(std::shared_ptr<const Mesh> mesh, const std::vector<std::string>& types)
     : mesh_(mesh), types_(types), time_(0)
     {
+    comm_ = std::make_shared<Communicator>();
     for (const auto& t : types_)
         {
         fields_[t] = std::make_shared<Field>(mesh_->shape());
@@ -20,6 +21,7 @@ State::State(std::shared_ptr<const Mesh> mesh, const std::vector<std::string>& t
 
 State::State(const State& other)
     : mesh_(other.mesh_),
+      comm_(other.comm_),
       types_(other.types_),
       time_(other.time_)
     {
@@ -33,6 +35,7 @@ State::State(const State& other)
 
 State::State(State&& other)
     : mesh_(std::move(other.mesh_)),
+      comm_(std::move(other.comm_)),
       types_(std::move(other.types_)),
       fields_(std::move(other.fields_)),
       time_(std::move(other.time_))
@@ -44,6 +47,7 @@ State& State::operator=(const State& other)
     if (&other != this)
         {
         mesh_ = other.mesh_;
+        comm_ = other.comm_;
         types_ = other.types_;
         time_ = other.time_;
 
@@ -62,6 +66,7 @@ State& State::operator=(const State& other)
 State& State::operator=(State&& other)
     {
     mesh_ = std::move(other.mesh_);
+    comm_ = std::move(other.comm_);
     types_ = std::move(other.types_);
     fields_ = std::move(other.fields_);
     time_ = std::move(other.time_);
