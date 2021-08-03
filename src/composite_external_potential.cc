@@ -19,12 +19,12 @@ void CompositeExternalPotential::potential(std::shared_ptr<Field> V, const std::
         }
 
     // fill total potential with zeros and accumulate
-    auto data = V->begin();
-    std::fill(V->begin(),V->end(),0.);
+    auto data = V->view();
+    std::fill(data.begin(),data.end(),0.);
     for (const auto& potential : objects_)
         {
         potential->potential(Vtmp_,type,state);
-        auto tmp = Vtmp_->cbegin();
+        auto tmp = Vtmp_->const_view();
         #ifdef FLYFT_OPENMP
         #pragma omp parallel for schedule(static) default(none) firstprivate(mesh) shared(data,tmp)
         #endif

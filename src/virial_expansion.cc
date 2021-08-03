@@ -16,20 +16,20 @@ void VirialExpansion::compute(std::shared_ptr<State> state)
     value_ = 0.0;
     for (const auto& t : types)
         {
-        std::fill(derivatives_.at(t)->begin(),derivatives_.at(t)->end(),0.);
+        std::fill(derivatives_.at(t)->view().begin(),derivatives_.at(t)->view().end(),0.);
         }
 
     for (auto it_i=types.cbegin(); it_i != types.cend(); ++it_i)
         {
         const auto i = *it_i;
-        auto fi = state->getField(i)->cbegin();
-        auto di = derivatives_.at(i)->begin();
+        auto fi = state->getField(i)->const_view();
+        auto di = derivatives_.at(i)->view();
 
         for (auto it_j=it_i; it_j != types.cend(); ++it_j)
             {
             const auto j = *it_j;
-            auto fj = state->getField(j)->cbegin();
-            auto dj = derivatives_.at(j)->begin();
+            auto fj = state->getField(j)->const_view();
+            auto dj = derivatives_.at(j)->view();
 
             const double Bij = coeffs_(i,j);
             #ifdef FLYFT_OPENMP

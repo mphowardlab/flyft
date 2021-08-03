@@ -24,10 +24,10 @@ void BrownianDiffusiveFlux::compute(std::shared_ptr<GrandPotential> grand, std::
     for (const auto& t : state->getTypes())
         {
         const auto D = diffusivities_.at(t);
-        auto rho = state->getField(t)->cbegin();
-        auto mu_ex = (excess) ? excess->getDerivative(t)->cbegin() : Field::const_iterator();
-        auto V = (external) ? external->getDerivative(t)->cbegin() : Field::const_iterator();
-        auto flux = fluxes_.at(t)->begin();
+        auto rho = state->getField(t)->const_view();
+        auto mu_ex = (excess) ? excess->getDerivative(t)->const_view() : Field::ConstantView();
+        auto V = (external) ? external->getDerivative(t)->const_view() : Field::ConstantView();
+        auto flux = fluxes_.at(t)->view();
 
         #ifdef FLYFT_OPENMP
         #pragma omp parallel for schedule(static) default(none) firstprivate(D,mesh) shared(rho,mu_ex,V,flux)

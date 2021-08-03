@@ -10,152 +10,161 @@ class DataLayout
     {
     public:
         DataLayout();
-        DataLayout(int shape_, int buffer_shape_);
-        DataLayout(const DataLayout& other);
-        DataLayout(DataLayout&& other);
-        DataLayout& operator=(const DataLayout& other);
-        DataLayout& operator=(DataLayout&& other);
+        explicit DataLayout(int shape_);
 
         int operator()(int idx) const;
         int shape() const;
-        int buffer_shape() const;
-        int full_shape() const;
+        int size() const;
 
         bool operator==(const DataLayout& other) const;
         bool operator!=(const DataLayout& other) const;
 
     private:
         int shape_;
-        int buffer_shape_;
-        int full_shape_;
     };
 
 template<typename T>
-class DataIterator
+class DataView
     {
     public:
-        using iterator_category = std::random_access_iterator_tag;
-        using difference_type = int;
         using value_type = typename std::remove_reference<T>::type;
         using pointer = value_type*;
         using reference = value_type&;
 
-        DataIterator()
-            : DataIterator(nullptr,DataLayout(0,0))
+        class Iterator
+            {
+            public:
+                using iterator_category = std::bidirectional_iterator_tag;
+                using difference_type = int;
+                using value_type = DataView::value_type;
+                using pointer = DataView::pointer;
+                using reference = DataView::reference;
+
+                Iterator()
+                    : Iterator(DataView())
+                    {}
+
+                explicit Iterator(const DataView& view)
+                    : Iterator(view,0)
+                    {}
+
+                Iterator(const DataView& view, int current)
+                    : view_(view), current_(current)
+                    {}
+
+                reference operator*() const
+                    {
+                    return view_(current_);
+                    }
+
+                pointer operator->() const
+                    {
+                    return get();
+                    }
+
+                pointer get() const
+                    {
+                    return &view_(current_);
+                    }
+
+                Iterator& operator++()
+                    {
+                    ++current_;
+                    return *this;
+                    }
+
+                Iterator operator++(int)
+                    {
+                    Iterator tmp(*this);
+                    ++current_;
+                    return tmp;
+                    }
+
+                Iterator& operator--()
+                    {
+                    --current_;
+                    return *this;
+                    }
+
+                Iterator operator--(int)
+                    {
+                    Iterator tmp(*this);
+                    --current_;
+                    return tmp;
+                    }
+
+                bool operator==(const Iterator& other) const
+                    {
+                    return (get() == other.get());
+                    }
+
+                bool operator!=(const Iterator& other) const
+                    {
+                    return !(*this == other);
+                    }
+
+            private:
+                DataView view_;
+                int current_;
+            };
+
+        DataView()
+            : DataView(nullptr,DataLayout())
             {}
 
-        DataIterator(value_type* data, const DataLayout& layout)
-            : data_(data), layout_(layout), current_offset_(0)
+        DataView(pointer data, const DataLayout& layout)
+            : DataView(data,layout,0,layout.shape())
+            {}
+
+        DataView(pointer data, const DataLayout& layout, int start, int end)
+            : data_(data), layout_(layout), start_(start), end_(end)
             {}
 
         reference operator()(int idx) const
             {
-            return data_[layout_(idx)];
+            return data_[layout_(start_+idx)];
             }
 
-        reference operator[](difference_type n) const
+        int shape() const
             {
-            // TODO: add method to layout to handle 1d offsets even if data is not 1d
-            return data_[layout_(current_offset_+n)];
+            return end_-start_;
             }
 
-        reference operator*() const
+        int size() const
             {
-            return *get();
+            return shape();
             }
 
-        pointer operator->() const
-            {
-            return get();
-            }
-
-        pointer get() const
-            {
-            return data_+layout_(current_offset_);
-            }
-
-        DataIterator& operator++()
-            {
-            ++current_offset_;
-            return *this;
-            }
-
-        DataIterator operator++(int)
-            {
-            DataIterator tmp(*this);
-            ++current_offset_;
-            return tmp;
-            }
-
-        DataIterator& operator--()
-            {
-            --current_offset_;
-            return *this;
-            }
-
-        DataIterator operator--(int)
-            {
-            DataIterator tmp(*this);
-            --current_offset_;
-            return tmp;
-            }
-
-        DataIterator& operator+=(difference_type n)
-            {
-            current_offset_ += n;
-            return *this;
-            }
-
-        DataIterator operator+(difference_type n) const
-            {
-            DataIterator tmp(*this);
-            tmp += n;
-            return tmp;
-            }
-
-        friend DataIterator operator+(difference_type n, const DataIterator self)
-            {
-            return self+n;
-            }
-
-        DataIterator& operator-=(difference_type n)
-            {
-            current_offset_ -= n;
-            return *this;
-            }
-
-        DataIterator operator-(difference_type n) const
-            {
-            DataIterator tmp(*this);
-            tmp -= n;
-            return tmp;
-            }
-
-        difference_type operator-(const DataIterator other) const
-            {
-            // TODO: add method to layout to figure out distance between two elements
-            return (current_offset_-other.current_offset_);
-            }
-
-        operator bool() const
+        explicit operator bool() const
             {
             return (data_ != nullptr);
             }
 
-        bool operator==(const DataIterator& other) const
+        Iterator begin() const
             {
-            return (get() == other.get());
+            return Iterator(*this,0);
             }
 
-        bool operator!=(const DataIterator& other) const
+        Iterator end() const
+            {
+            return Iterator(*this,end_);
+            }
+
+        bool operator==(const DataView& other) const
+            {
+            return (data_ == other.data_ && layout_ == other.layout_ && start_ == other.start_ && end_ == other.end_);
+            }
+
+        bool operator!=(const DataView& other) const
             {
             return !(*this == other);
             }
 
     private:
-        value_type* data_;
+        pointer data_;
         DataLayout layout_;
-        int current_offset_;
+        int start_;
+        int end_;
     };
 
 }

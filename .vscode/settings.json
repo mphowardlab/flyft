@@ -85,6 +85,8 @@
         "map": "cpp",
         "memory_resource": "cpp",
         "ranges": "cpp",
-        "stop_token": "cpp"
+        "stop_token": "cpp",
+        "__tree": "cpp",
+        "version": "cpp"
     }
 }

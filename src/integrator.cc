@@ -75,8 +75,8 @@ bool Integrator::advance(std::shared_ptr<Flux> flux,
                 double max_err = 0.;
                 for (const auto& t : state->getTypes())
                     {
-                    auto rho = state->getField(t)->cbegin();
-                    auto rho_err = adaptive_err_state_->getField(t)->cbegin();
+                    auto rho = state->getField(t)->const_view();
+                    auto rho_err = adaptive_err_state_->getField(t)->const_view();
                     // find max error on mesh
                     double type_max_err = 0.;
                     #ifdef FLYFT_OPENMP

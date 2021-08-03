@@ -14,14 +14,14 @@ void BoublikHardSphereFunctional::compute(std::shared_ptr<State> state)
 
     // process maps into indexed arrays for quicker access inside loop
     const auto num_types = types.size();
-    std::vector<Field::const_iterator> fields(num_types);
-    std::vector<Field::iterator> derivs(num_types);
+    std::vector<Field::ConstantView> fields(num_types);
+    std::vector<Field::View> derivs(num_types);
     std::vector<double> diams(num_types);
     for (size_t i=0; i < num_types; ++i)
         {
         const auto type_i = types[i];
-        fields[i] = state->getField(type_i)->cbegin();
-        derivs[i] = derivatives_.at(type_i)->begin();
+        fields[i] = state->getField(type_i)->const_view();
+        derivs[i] = derivatives_.at(type_i)->view();
         diams[i] = diameters_.at(type_i);
         }
 

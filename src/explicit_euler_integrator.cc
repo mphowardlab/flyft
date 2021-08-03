@@ -20,8 +20,8 @@ void ExplicitEulerIntegrator::step(std::shared_ptr<Flux> flux,
     flux->compute(grand,state);
     for (const auto& t : state->getTypes())
         {
-        auto rho = state->getField(t)->begin();
-        auto j = flux->getFlux(t)->cbegin();
+        auto rho = state->getField(t)->view();
+        auto j = flux->getFlux(t)->const_view();
         #ifdef FLYFT_OPENMP
         #pragma omp parallel for schedule(static) default(none) firstprivate(timestep,mesh) shared(rho,j)
         #endif

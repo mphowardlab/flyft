@@ -14,16 +14,13 @@ class GenericField
     {
     public:
         GenericField() = delete;
-        GenericField(int shape)
+        explicit GenericField(int shape)
             : GenericField(shape,0)
             {}
         GenericField(int shape, int buffer_shape)
-            : GenericField(DataLayout(shape,buffer_shape))
-            {}
-        GenericField(const DataLayout& layout)
-            : data_(nullptr)
+            : data_(nullptr), shape_(0), buffer_shape_(0), layout_(0)
             {
-            reshape(layout);
+            reshape(shape,buffer_shape);
             }
 
         // noncopyable / nonmovable
@@ -37,102 +34,82 @@ class GenericField
             if (data_) delete[] data_;
             }
 
-        using iterator = DataIterator<T>;
-        using const_iterator = DataIterator<const T>;
+        using View = DataView<T>;
+        using ConstantView = DataView<const T>;
+        using Iterator = typename View::Iterator;
+        using ConstantIterator = typename ConstantView::Iterator;
 
         T& operator()(int idx)
             {
-            return data_[layout_(idx)];
+            return view()(idx);
             }
 
         const T& operator()(int idx) const
             {
-            return data_[layout_(idx)];
+            return const_view()(idx);
             }
 
         int shape() const
             {
-            return layout_.shape();
+            return shape_;
             }
 
         int buffer_shape() const
             {
-            return layout_.buffer_shape();
+            return buffer_shape_;
             }
 
         int full_shape() const
             {
-            return layout_.full_shape();
+            return shape_+2*buffer_shape_;
             }
 
-        iterator begin()
+        View view()
             {
-            return iterator(data_,layout_);
+            return View(data_,layout_,buffer_shape_,full_shape()-buffer_shape_);
             }
 
-        iterator end()
+        ConstantView const_view() const
             {
-            return begin()+layout_.shape();
+            return ConstantView(static_cast<const T*>(data_),layout_,buffer_shape_,full_shape()-buffer_shape_);
             }
 
-        iterator begin_full()
+        View full_view()
             {
-            return iterator(data_,DataLayout(layout_.full_shape(),0));
+            return View(data_,layout_,0,full_shape());
             }
 
-        iterator end_full()
+        ConstantView const_full_view() const
             {
-            return begin_full()+layout_.full_shape();
-            }
-
-        const_iterator cbegin() const
-            {
-            return const_iterator(static_cast<const T*>(data_),layout_);
-            }
-
-        const_iterator cend() const
-            {
-            return cbegin()+layout_.shape();
-            }
-
-        const_iterator cbegin_full()
-            {
-            return const_iterator(static_cast<const T*>(data_),DataLayout(layout_.full_shape(),0));
-            }
-
-        const_iterator cend_full()
-            {
-            return cbegin_full()+layout_.full_shape();
+            return ConstantView(data_,layout_,0,full_shape());
             }
 
         void reshape(int shape, int buffer_shape)
             {
-            reshape(DataLayout(shape,buffer_shape));
-            }
-
-        void reshape(const DataLayout& layout)
-            {
-            if (layout != layout_)
+            if (shape != shape_ || buffer_shape != buffer_shape_)
                 {
+                DataLayout layout(shape+2*buffer_shape);
+
                 // if data is alloc'd, decide what to do with it
                 if (data_ != nullptr)
                     {
-                    if (layout.shape() == layout_.shape())
+                    if (shape == shape_)
                         {
                         // data shape is the same but buffer changed, copy
-                        T* tmp = new T[layout.full_shape()];
-                        std::fill(tmp,tmp+layout.full_shape(),T(0));
-                        for (int i=0; i < layout.shape(); ++i)
-                            {
-                            tmp[layout(i)] = data_[layout_(i)];
-                            }
+                        T* tmp = new T[layout.size()];
+                        std::fill(tmp,tmp+layout.size(),T(0));
+
+                        // copy the data from old to new
+                        auto view_old = const_view();
+                        DataView<T> view_new(tmp,layout,buffer_shape,buffer_shape+shape);
+                        std::copy(view_old.begin(),view_old.end(),view_new.begin());
                         std::swap(data_,tmp);
                         delete[] tmp;
                         }
-                    else if (layout.full_shape() == layout_.full_shape() && layout.full_shape() > 0)
+                    else if (layout.size() == layout_.size() && layout.size() > 0)
                         {
                         // total shape is still the same, just reset the data
-                        std::fill(data_,data_+layout.full_shape(),T(0));
+                        std::fill(data_,data_+layout.size(),T(0));
                         }
                     else
                         {
@@ -143,23 +120,25 @@ class GenericField
                     }
 
                 // if data is still not alloc'd, make it so
-                if (data_ == nullptr && layout.full_shape() > 0)
+                if (data_ == nullptr && layout.size() > 0)
                     {
-                    data_ = new T[layout.full_shape()];
-                    std::fill(data_,data_+layout.full_shape(),T(0));
+                    data_ = new T[layout.size()];
+                    std::fill(data_,data_+layout.size(),T(0));
                     }
+                shape_ = shape;
+                buffer_shape_ = buffer_shape;
                 layout_ = layout;
                 }
             }
 
         void setBuffer(int buffer_shape)
             {
-            reshape(layout_.shape(),buffer_shape);
+            reshape(shape_,buffer_shape);
             }
 
         void requestBuffer(int buffer_shape)
             {
-            if (buffer_shape > layout_.buffer_shape())
+            if (buffer_shape > buffer_shape_)
                 {
                 setBuffer(buffer_shape);
                 }
@@ -167,6 +146,8 @@ class GenericField
 
     private:
         T* data_;
+        int shape_;
+        int buffer_shape_;
         DataLayout layout_;
     };
 

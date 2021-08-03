@@ -14,8 +14,8 @@ void CompositeFunctional::compute(std::shared_ptr<State> state)
     const auto mesh = *state->getMesh();
     for (const auto& t : state->getTypes())
         {
-        auto d = derivatives_.at(t);
-        std::fill(d->begin(),d->end(),0.);
+        auto d = derivatives_.at(t)->view();
+        std::fill(d.begin(),d.end(),0.);
         }
 
     // combine
@@ -30,8 +30,8 @@ void CompositeFunctional::compute(std::shared_ptr<State> state)
         // accumulate derivatives
         for (const auto& t : state->getTypes())
             {
-            auto d = derivatives_.at(t)->begin();
-            auto df = f->getDerivative(t)->cbegin();
+            auto d = derivatives_.at(t)->view();
+            auto df = f->getDerivative(t)->const_view();
             #ifdef FLYFT_OPENMP
             #pragma omp parallel for schedule(static) default(none) firstprivate(mesh) shared(d,df)
             #endif

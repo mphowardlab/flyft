@@ -13,7 +13,7 @@ Communicator::~Communicator()
 
 void Communicator::sync(std::shared_ptr<Field> field)
     {
-    const auto f = field->begin();
+    const auto f = field->view();
     const int shape = field->shape();
     const int buffer_shape = field->buffer_shape();
     for (int idx=0; idx < buffer_shape; ++idx)

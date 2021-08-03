@@ -27,7 +27,7 @@ State::State(const State& other)
         {
         auto other_field = other.fields_.at(t);
         fields_[t] = std::make_shared<Field>(other_field->shape(),other_field->buffer_shape());
-        std::copy(other_field->cbegin_full(),other_field->cend_full(),fields_.at(t)->begin_full());
+        std::copy(other_field->const_full_view().begin(),other_field->const_full_view().end(),fields_.at(t)->full_view().begin());
         }
     }
 
@@ -53,7 +53,7 @@ State& State::operator=(const State& other)
             auto this_field = fields_.at(t);
             auto other_field = other.fields_.at(t);
             this_field->reshape(other_field->shape(),other_field->buffer_shape());
-            std::copy(other_field->cbegin_full(),other_field->cend_full(),fields_.at(t)->begin_full());
+            std::copy(other_field->const_full_view().begin(),other_field->const_full_view().end(),fields_.at(t)->full_view().begin());
             }
         }
     return *this;

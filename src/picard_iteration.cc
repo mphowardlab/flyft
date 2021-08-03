@@ -37,11 +37,11 @@ bool PicardIteration::solve(std::shared_ptr<GrandPotential> grand, std::shared_p
         // apply picard mixing scheme
         for (const auto& t : state->getTypes())
             {
-            auto rho = state->getField(t)->begin();
+            auto rho = state->getField(t)->view();
             Field tmp(state->getField(t)->shape(),state->getField(t)->buffer_shape());
-            auto rho_tmp = tmp.begin();
-            auto mu_ex = (excess) ? excess->getDerivative(t)->cbegin() : Field::const_iterator();
-            auto V = (external) ? external->getDerivative(t)->cbegin() : Field::const_iterator();
+            auto rho_tmp = tmp.view();
+            auto mu_ex = (excess) ? excess->getDerivative(t)->const_view() : Field::ConstantView();
+            auto V = (external) ? external->getDerivative(t)->const_view() : Field::ConstantView();
 
             double norm = 1.0;
             auto constraint_type = grand->getConstraintType(t);
