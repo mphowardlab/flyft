@@ -2,6 +2,7 @@
 #define FLYFT_FIELD_H_
 
 #include "flyft/data_layout.h"
+#include "flyft/data_view.h"
 
 #include <algorithm>
 #include <complex>
