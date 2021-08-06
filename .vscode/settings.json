@@ -88,6 +88,7 @@
         "stop_token": "cpp",
         "__tree": "cpp",
         "version": "cpp",
-        "iostream": "cpp"
+        "iostream": "cpp",
+        "__functional_03": "cpp"
     }
 }

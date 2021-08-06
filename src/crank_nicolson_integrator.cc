@@ -18,8 +18,8 @@ bool CrankNicolsonIntegrator::advance(std::shared_ptr<Flux> flux,
                                       std::shared_ptr<State> state,
                                       double time)
     {
-    state->syncFields(last_fields_);
-    state->syncFields(last_rates_);
+    state->matchFields(last_fields_);
+    state->matchFields(last_rates_);
     return Integrator::advance(flux,grand,state,time);
     }
 

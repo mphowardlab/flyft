@@ -43,6 +43,14 @@ void CompositeFunctional::compute(std::shared_ptr<State> state)
         }
     }
 
+void CompositeFunctional::requestDerivativeBuffer(const std::string& type, int buffer_request)
+    {
+    for (const auto& f : objects_)
+        {
+        f->requestDerivativeBuffer(type,buffer_request);
+        }
+    }
+
 int CompositeFunctional::determineBufferShape(std::shared_ptr<State> state, const std::string& type)
     {
     int max_buffer_shape = 0;

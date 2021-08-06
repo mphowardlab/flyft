@@ -7,7 +7,7 @@ namespace flyft
 
 void CompositeFlux::compute(std::shared_ptr<GrandPotential> grand, std::shared_ptr<State> state)
     {
-    allocate(state);
+    setup(grand,state);
 
     // initialize to zeros
     const auto mesh = *state->getMesh();
@@ -33,6 +33,14 @@ void CompositeFlux::compute(std::shared_ptr<GrandPotential> grand, std::shared_p
                 j(idx) += jo(idx);
                 }
             }
+        }
+    }
+
+void CompositeFlux::requestFluxBuffer(const std::string& type, int buffer_request)
+    {
+    for (auto& o : objects_)
+        {
+        o->requestFluxBuffer(type,buffer_request);
         }
     }
 

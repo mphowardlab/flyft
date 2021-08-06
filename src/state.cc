@@ -51,13 +51,19 @@ State& State::operator=(const State& other)
         types_ = other.types_;
         time_ = other.time_;
 
-        other.syncFields(fields_);
+        // match field types and buffer shapes
+        TypeMap<int> buffers;
         for (const auto& t : types_)
             {
-            auto this_field = fields_.at(t);
+            buffers[t] = other.fields_.at(t)->buffer_shape();
+            }
+        other.matchFields(fields_,buffers);
+
+        // copy contents of other fields
+        for (const auto& t : types_)
+            {
             auto other_field = other.fields_.at(t);
-            this_field->reshape(other_field->shape(),other_field->buffer_shape());
-            std::copy(other_field->const_full_view().begin(),other_field->const_full_view().end(),fields_.at(t)->full_view().begin());
+            std::copy(other_field->const_full_view().begin(),other_field->const_full_view().end(),fields_[t]->full_view().begin());
             }
         }
     return *this;
@@ -123,12 +129,42 @@ std::shared_ptr<const Field> State::getField(const std::string& type) const
     return fields_.at(type);
     }
 
-void State::syncFields(TypeMap<std::shared_ptr<Field>>& fields) const
+void State::requestFieldBuffer(const std::string& type, int buffer_request)
+    {
+    fields_.at(type)->requestBuffer(buffer_request);
+    }
+
+void State::syncFields()
+    {
+    syncFields(fields_);
+    }
+
+void State::syncFields(const TypeMap<std::shared_ptr<Field>>& fields) const
+    {
+    for (auto it=fields.cbegin(); it != fields.cend(); ++it)
+        {
+        if (std::find(types_.begin(), types_.end(), it->first) == types_.end())
+            {
+            // ERROR: types do not match
+            }
+        else
+            {
+            comm_->sync(it->second);
+            }
+        }
+    }
+
+void State::matchFields(TypeMap<std::shared_ptr<Field>>& fields) const
+    {
+    matchFields(fields,TypeMap<int>());
+    }
+
+void State::matchFields(TypeMap<std::shared_ptr<Field>>& fields, const TypeMap<int>& buffer_requests) const
     {
     // purge stored types that are not in the state
-    for (auto it = fields.cbegin(); it != fields.cend(); /* no increment here */)
+    for (auto it=fields.cbegin(); it != fields.cend(); /* no increment here */)
         {
-        auto t = it->first;
+        const auto t = it->first;
         if (std::find(types_.begin(), types_.end(), t) == types_.end())
             {
             it = fields.erase(it);
@@ -139,16 +175,36 @@ void State::syncFields(TypeMap<std::shared_ptr<Field>>& fields) const
             }
         }
 
-    // ensure every type has a field with the right shape
+    // ensure every type has a field with the right shape and buffer
     for (const auto& t : types_)
         {
-        if (fields.find(t) == fields.end())
+        // check if field exists already
+        bool has_type = (fields.find(t) != fields.end());
+
+        // determine buffer request, preserving buffer if type already exists but no request is made
+        int buffer_request;
+        auto it = buffer_requests.find(t);
+        if (it != buffer_requests.end())
             {
-            fields[t] = std::make_shared<Field>(mesh_->shape(),0);
+            buffer_request = it->second;
+            }
+        else if (has_type)
+            {
+            buffer_request = fields[t]->buffer_shape();
             }
         else
             {
-            fields[t]->reshape(mesh_->shape(),fields[t]->buffer_shape());
+            buffer_request = 0;
+            }
+
+        // make sure field exists and has the right shape
+        if (!has_type)
+            {
+            fields[t] = std::make_shared<Field>(mesh_->shape(), buffer_request);
+            }
+        else
+            {
+            fields[t]->reshape(mesh_->shape(), buffer_request);
             }
         }
     }

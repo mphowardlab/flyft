@@ -29,11 +29,15 @@ class Flux
         const TypeMap<std::shared_ptr<Field>>& getFluxes();
         std::shared_ptr<Field> getFlux(const std::string& type);
         std::shared_ptr<const Field> getFlux(const std::string& type) const;
+        virtual void requestFluxBuffer(const std::string& type, int buffer_request);
+
+        virtual int determineBufferShape(std::shared_ptr<State> state, const std::string& type);
 
     protected:
         TypeMap<std::shared_ptr<Field>> fluxes_;
+        TypeMap<int> buffer_requests_;
 
-        virtual void allocate(std::shared_ptr<State> state);
+        virtual void setup(std::shared_ptr<GrandPotential> grand, std::shared_ptr<State> state);
 
         virtual bool validateConstraints(std::shared_ptr<GrandPotential> grand, std::shared_ptr<State> state) const;
     };

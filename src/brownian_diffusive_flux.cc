@@ -5,11 +5,7 @@ namespace flyft
 
 void BrownianDiffusiveFlux::compute(std::shared_ptr<GrandPotential> grand, std::shared_ptr<State> state)
     {
-    if (!validateConstraints(grand,state))
-        {
-        // ERROR: need constant N in "grand" potential
-        }
-    allocate(state);
+    setup(grand,state);
 
     // evaluate functionals separately to handle ideal as special case
     auto excess = grand->getExcessFunctional();
@@ -81,6 +77,11 @@ void BrownianDiffusiveFlux::compute(std::shared_ptr<GrandPotential> grand, std::
                 }
             }
         }
+    }
+
+int BrownianDiffusiveFlux::determineBufferShape(std::shared_ptr<State> /*state*/, const std::string& /*type*/)
+    {
+    return 1;
     }
 
 }

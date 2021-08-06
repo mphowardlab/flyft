@@ -78,6 +78,22 @@ void GrandPotential::compute(std::shared_ptr<State> state)
         }
     }
 
+void GrandPotential::requestDerivativeBuffer(const std::string& type, int buffer_request)
+    {
+    if (ideal_)
+        {
+        ideal_->requestDerivativeBuffer(type,buffer_request);
+        }
+    if (excess_)
+        {
+        excess_->requestDerivativeBuffer(type,buffer_request);
+        }
+    if (external_)
+        {
+        external_->requestDerivativeBuffer(type,buffer_request);
+        }
+    }
+
 int GrandPotential::determineBufferShape(std::shared_ptr<State> state, const std::string& type)
     {
     int max_buffer_shape = 0;

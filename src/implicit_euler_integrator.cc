@@ -19,7 +19,7 @@ bool ImplicitEulerIntegrator::advance(std::shared_ptr<Flux> flux,
                                       std::shared_ptr<State> state,
                                       double time)
     {
-    state->syncFields(last_fields_);
+    state->matchFields(last_fields_);
     return Integrator::advance(flux,grand,state,time);
     }
 
@@ -29,7 +29,6 @@ void ImplicitEulerIntegrator::step(std::shared_ptr<Flux> flux,
                                    double timestep)
     {
     // copy densities at the **current** timestep
-    const auto mesh = *state->getMesh();
     for (const auto& t : state->getTypes())
         {
         auto f = state->getField(t)->const_view();
@@ -40,6 +39,7 @@ void ImplicitEulerIntegrator::step(std::shared_ptr<Flux> flux,
     state->advanceTime(timestep);
 
     // solve nonlinear equation for **next** timestep by fixed-point iteration
+    const auto mesh = *state->getMesh();
     const auto alpha = getMixParameter();
     const auto tol = getTolerance();
     bool converged = false;
