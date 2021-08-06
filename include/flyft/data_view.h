@@ -130,7 +130,7 @@ class DataView
 
         Iterator end() const
             {
-            return Iterator(*this,end_);
+            return Iterator(*this,shape());
             }
 
         bool operator==(const DataView& other) const
