@@ -34,8 +34,31 @@ std::shared_ptr<const Field> Functional::getDerivative(const std::string& type) 
     return derivatives_.at(type);
     }
 
-void Functional::allocate(std::shared_ptr<State> state)
+void Functional::requestDerivativeBuffer(const std::string& type, int buffer_request)
     {
-    state->syncFields(derivatives_);
+    auto it = buffer_requests_.find(type);
+    if (it == buffer_requests_.end() || buffer_request > it->second)
+        {
+        buffer_requests_[type] = buffer_request;
+        }
+    }
+
+int Functional::determineBufferShape(std::shared_ptr<State> /*state*/, const std::string& /*type*/)
+    {
+    return 0;
+    }
+
+void Functional::setup(std::shared_ptr<State> state)
+    {
+    // sync required fields
+    for (const auto& t : state->getTypes())
+        {
+        state->requestFieldBuffer(t,determineBufferShape(state,t));
+        }
+    // TODO: move this call to be explicit, programmers should know when they are intending a sync
+    state->syncFields();
+
+    // match derivatives to state types
+    state->matchFields(derivatives_,buffer_requests_);
     }
 }

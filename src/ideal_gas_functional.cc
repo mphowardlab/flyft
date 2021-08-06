@@ -5,7 +5,7 @@ namespace flyft
 
 void IdealGasFunctional::compute(std::shared_ptr<State> state)
     {
-    allocate(state);
+    setup(state);
 
     // compute derivatives and accumulate energy
     const auto mesh = *state->getMesh();
@@ -15,8 +15,8 @@ void IdealGasFunctional::compute(std::shared_ptr<State> state)
         const auto vol = volumes_.at(t);
 
         // compute the total potential by integration
-        auto f = state->getField(t)->cbegin();
-        auto d = derivatives_.at(t)->begin();
+        auto f = state->getField(t)->const_view();
+        auto d = derivatives_.at(t)->view();
         #ifdef FLYFT_OPENMP
         #pragma omp parallel for schedule(static) default(none) firstprivate(mesh,vol) shared(f,d) reduction(+:value_)
         #endif
@@ -35,7 +35,6 @@ void IdealGasFunctional::compute(std::shared_ptr<State> state)
                 // no contribution to total in limit rho -> 0
                 energy = 0.0;
                 }
-
             value_ += energy;
             }
         }

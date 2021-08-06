@@ -13,7 +13,8 @@ namespace flyft
 class BrownianDiffusiveFlux : public DiffusiveFlux
     {
     public:
-        virtual void compute(std::shared_ptr<GrandPotential> grand, std::shared_ptr<State> state) override;
+        void compute(std::shared_ptr<GrandPotential> grand, std::shared_ptr<State> state) override;
+        int determineBufferShape(std::shared_ptr<State> state, const std::string& type) override;
     };
 
 }

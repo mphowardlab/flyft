@@ -7,15 +7,15 @@ namespace flyft
 
 void CompositeFunctional::compute(std::shared_ptr<State> state)
     {
-    allocate(state);
+    setup(state);
 
     // initialize to zeros
     value_ = 0.0;
     const auto mesh = *state->getMesh();
     for (const auto& t : state->getTypes())
         {
-        auto d = derivatives_.at(t);
-        std::fill(d->begin(),d->end(),0.);
+        auto d = derivatives_.at(t)->view();
+        std::fill(d.begin(),d.end(),0.);
         }
 
     // combine
@@ -30,8 +30,8 @@ void CompositeFunctional::compute(std::shared_ptr<State> state)
         // accumulate derivatives
         for (const auto& t : state->getTypes())
             {
-            auto d = derivatives_.at(t)->begin();
-            auto df = f->getDerivative(t)->cbegin();
+            auto d = derivatives_.at(t)->view();
+            auto df = f->getDerivative(t)->const_view();
             #ifdef FLYFT_OPENMP
             #pragma omp parallel for schedule(static) default(none) firstprivate(mesh) shared(d,df)
             #endif
@@ -41,6 +41,25 @@ void CompositeFunctional::compute(std::shared_ptr<State> state)
                 }
             }
         }
+    }
+
+void CompositeFunctional::requestDerivativeBuffer(const std::string& type, int buffer_request)
+    {
+    for (const auto& f : objects_)
+        {
+        f->requestDerivativeBuffer(type,buffer_request);
+        }
+    }
+
+int CompositeFunctional::determineBufferShape(std::shared_ptr<State> state, const std::string& type)
+    {
+    int max_buffer_shape = 0;
+    for (const auto& f : objects_)
+        {
+        int buffer_shape = f->determineBufferShape(state,type);
+        max_buffer_shape = std::max(buffer_shape,max_buffer_shape);
+        }
+    return max_buffer_shape;
     }
 
 }

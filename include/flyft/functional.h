@@ -30,12 +30,16 @@ class Functional
         const TypeMap<std::shared_ptr<Field>>& getDerivatives();
         std::shared_ptr<Field> getDerivative(const std::string& type);
         std::shared_ptr<const Field> getDerivative(const std::string& type) const;
+        virtual void requestDerivativeBuffer(const std::string& type, int buffer_request);
+
+        virtual int determineBufferShape(std::shared_ptr<State> state, const std::string& type);
 
     protected:
         double value_;
         TypeMap<std::shared_ptr<Field>> derivatives_;
+        TypeMap<int> buffer_requests_;
 
-        virtual void allocate(std::shared_ptr<State> state);
+        virtual void setup(std::shared_ptr<State> state);
     };
 
 }

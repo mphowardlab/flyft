@@ -13,8 +13,7 @@ void ExponentialWallPotential::potential(std::shared_ptr<Field> V, const std::st
     const auto normal = normal_;
 
     const auto mesh = *state->getMesh();
-    auto data = V->begin();
-
+    auto data = V->view();
     #ifdef FLYFT_OPENMP
     #pragma omp parallel for schedule(static) default(none) firstprivate(epsilon,kappa,shift,x0,normal,mesh) shared(data)
     #endif

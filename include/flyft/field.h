@@ -2,10 +2,11 @@
 #define FLYFT_FIELD_H_
 
 #include "flyft/data_layout.h"
+#include "flyft/data_token.h"
+#include "flyft/data_view.h"
 
 #include <algorithm>
 #include <complex>
-#include <iterator>
 
 namespace flyft
 {
@@ -15,16 +16,13 @@ class GenericField
     {
     public:
         GenericField() = delete;
-        GenericField(int shape)
+        explicit GenericField(int shape)
             : GenericField(shape,0)
             {}
         GenericField(int shape, int buffer_shape)
-            : GenericField(DataLayout(shape,buffer_shape))
-            {}
-        GenericField(const DataLayout& layout)
-            : data_(nullptr)
+            : id_(count++), token_(id_), data_(nullptr), shape_(0), buffer_shape_(0), layout_(0)
             {
-            reshape(layout);
+            reshape(shape,buffer_shape);
             }
 
         // noncopyable / nonmovable
@@ -38,229 +36,95 @@ class GenericField
             if (data_) delete[] data_;
             }
 
-        template<typename U>
-        class Iterator_
-            {
-            public:
-                using iterator_category = std::bidirectional_iterator_tag;
-                using difference_type = int;
-                using value_type = U;
-                using pointer = U*;
-                using reference = U&;
-
-                Iterator_()
-                    : Iterator_(nullptr,DataLayout(0,0))
-                    {}
-
-                Iterator_(value_type* data, const DataLayout& layout)
-                    : data_(data), layout_(layout), current_offset_(0)
-                    {}
-
-                reference operator()(int offset) const
-                    {
-                    return data_[layout_(current_offset_+offset)];
-                    }
-
-                reference operator[](difference_type n) const
-                    {
-                    // TODO: add method to layout to handle 1d offsets even if data is not 1d
-                    return data_[layout_(current_offset_+n)];
-                    }
-
-                reference operator*() const
-                    {
-                    return *get();
-                    }
-
-                pointer operator->() const
-                    {
-                    return get();
-                    }
-
-                pointer get() const
-                    {
-                    return data_+layout_(current_offset_);
-                    }
-
-                Iterator_& operator++()
-                    {
-                    ++current_offset_;
-                    return *this;
-                    }
-
-                Iterator_ operator++(int)
-                    {
-                    Iterator_ tmp(*this);
-                    ++current_offset_;
-                    return tmp;
-                    }
-
-                Iterator_& operator--()
-                    {
-                    --current_offset_;
-                    return *this;
-                    }
-
-                Iterator_ operator--(int)
-                    {
-                    Iterator_ tmp(*this);
-                    --current_offset_;
-                    return tmp;
-                    }
-
-                Iterator_& operator+=(difference_type n)
-                    {
-                    current_offset_ += n;
-                    return *this;
-                    }
-
-                Iterator_ operator+(difference_type n) const
-                    {
-                    Iterator_ tmp(*this);
-                    tmp += n;
-                    return tmp;
-                    }
-
-                friend Iterator_ operator+(difference_type n, const Iterator_ self)
-                    {
-                    return self+n;
-                    }
-
-                Iterator_& operator-=(difference_type n)
-                    {
-                    current_offset_ -= n;
-                    return *this;
-                    }
-
-                Iterator_ operator-(difference_type n) const
-                    {
-                    Iterator_ tmp(*this);
-                    tmp -= n;
-                    return tmp;
-                    }
-
-                difference_type operator-(const Iterator_ other) const
-                    {
-                    // TODO: add method to layout to figure out distance between two elements
-                    return (current_offset_-other.current_offset_);
-                    }
-
-                operator bool() const
-                    {
-                    return data_ != nullptr;
-                    }
-
-                bool operator==(const Iterator_& other) const
-                    {
-                    return (get() == other.get());
-                    }
-
-                bool operator!=(const Iterator_& other) const
-                    {
-                    return !(*this == other);
-                    }
-
-            private:
-                value_type* data_;
-                DataLayout layout_;
-                int current_offset_;
-            };
-        using iterator = Iterator_<T>;
-        using const_iterator = Iterator_<const T>;
+        using View = DataView<T>;
+        using ConstantView = DataView<const T>;
+        using Iterator = typename View::Iterator;
+        using ConstantIterator = typename ConstantView::Iterator;
+        using Identifier = typename DataToken::Type;
 
         T& operator()(int idx)
             {
-            return data_[layout_(idx)];
+            return view()(idx);
             }
 
         const T& operator()(int idx) const
             {
-            return data_[layout_(idx)];
+            return const_view()(idx);
             }
 
         int shape() const
             {
-            return layout_.shape();
+            return shape_;
             }
 
         int buffer_shape() const
             {
-            return layout_.buffer_shape();
+            return buffer_shape_;
             }
 
         int full_shape() const
             {
-            return layout_.full_shape();
+            return shape_+2*buffer_shape_;
             }
 
-        iterator begin()
+        Identifier id() const
             {
-            return iterator(data_,layout_);
+            return id_;
             }
 
-        iterator end()
+        const DataToken& token() const
             {
-            return begin()+layout_.shape();
+            return token_;
             }
 
-        iterator begin_full()
+        View view()
             {
-            return iterator(data_,layout_.withoutBuffer());
+            token_.advance();
+            return View(data_,layout_,buffer_shape_,full_shape()-buffer_shape_);
             }
 
-        iterator end_full()
+        ConstantView const_view() const
             {
-            return begin_full()+layout_.full_shape();
+            return ConstantView(static_cast<const T*>(data_),layout_,buffer_shape_,full_shape()-buffer_shape_);
             }
 
-        const_iterator cbegin() const
+        View full_view()
             {
-            return const_iterator(static_cast<const T*>(data_),layout_);
+            token_.advance();
+            return View(data_,layout_,0,full_shape());
             }
 
-        const_iterator cend() const
+        ConstantView const_full_view() const
             {
-            return cbegin()+layout_.shape();
-            }
-
-        const_iterator cbegin_full()
-            {
-            return const_iterator(static_cast<const T*>(data_),layout_.withoutBuffer());
-            }
-
-        const_iterator cend_full()
-            {
-            return cbegin_full()+layout_.full_shape();
+            return ConstantView(data_,layout_,0,full_shape());
             }
 
         void reshape(int shape, int buffer_shape)
             {
-            reshape(DataLayout(shape,buffer_shape));
-            }
-
-        void reshape(const DataLayout& layout)
-            {
-            if (layout != layout_)
+            if (shape != shape_ || buffer_shape != buffer_shape_)
                 {
+                DataLayout layout(shape+2*buffer_shape);
+
                 // if data is alloc'd, decide what to do with it
                 if (data_ != nullptr)
                     {
-                    if (layout.shape() == layout_.shape())
+                    if (shape == shape_)
                         {
                         // data shape is the same but buffer changed, copy
-                        T* tmp = new T[layout.full_shape()];
-                        std::fill(tmp,tmp+layout.full_shape(),T(0));
-                        for (int i=0; i < layout.shape(); ++i)
-                            {
-                            tmp[layout(i)] = data_[layout_(i)];
-                            }
+                        T* tmp = new T[layout.size()];
+                        std::fill(tmp,tmp+layout.size(),T(0));
+
+                        // copy the data from old to new
+                        auto view_old = const_view();
+                        DataView<T> view_new(tmp,layout,buffer_shape,buffer_shape+shape);
+                        std::copy(view_old.begin(),view_old.end(),view_new.begin());
                         std::swap(data_,tmp);
                         delete[] tmp;
                         }
-                    else if (layout.full_shape() == layout_.full_shape() && layout.full_shape() > 0)
+                    else if (layout.size() == layout_.size() && layout.size() > 0)
                         {
                         // total shape is still the same, just reset the data
-                        std::fill(data_,data_+layout.full_shape(),T(0));
+                        std::fill(data_,data_+layout.size(),T(0));
                         }
                     else
                         {
@@ -271,19 +135,43 @@ class GenericField
                     }
 
                 // if data is still not alloc'd, make it so
-                if (data_ == nullptr && layout.full_shape() > 0)
+                if (data_ == nullptr && layout.size() > 0)
                     {
-                    data_ = new T[layout.full_shape()];
-                    std::fill(data_,data_+layout.full_shape(),T(0));
+                    data_ = new T[layout.size()];
+                    std::fill(data_,data_+layout.size(),T(0));
                     }
+                shape_ = shape;
+                buffer_shape_ = buffer_shape;
                 layout_ = layout;
+                token_.advance();
+                }
+            }
+
+        void setBuffer(int buffer_shape)
+            {
+            reshape(shape_,buffer_shape);
+            }
+
+        void requestBuffer(int buffer_shape)
+            {
+            if (buffer_shape > buffer_shape_)
+                {
+                setBuffer(buffer_shape);
                 }
             }
 
     private:
+        Identifier id_;
+        DataToken token_;
         T* data_;
+        int shape_;
+        int buffer_shape_;
         DataLayout layout_;
+
+        static Identifier count;
     };
+template<typename T>
+typename GenericField<T>::Identifier GenericField<T>::count = 0;
 
 using Field = GenericField<double>;
 using ComplexField = GenericField<std::complex<double>>;

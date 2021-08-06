@@ -11,7 +11,7 @@ GrandPotential::GrandPotential()
 
 void GrandPotential::compute(std::shared_ptr<State> state)
     {
-    allocate(state);
+    setup(state);
     const auto mesh = *state->getMesh();
 
     // evaluate functionals
@@ -35,10 +35,10 @@ void GrandPotential::compute(std::shared_ptr<State> state)
     // sum up contributions to derivatives for each type
     for (const auto& t : state->getTypes())
         {
-        auto d = derivatives_.at(t)->begin();
-        auto did = (ideal_) ? ideal_->getDerivative(t)->cbegin() : Field::const_iterator();
-        auto dex = (excess_) ? excess_->getDerivative(t)->cbegin() : Field::const_iterator();
-        auto dext = (external_) ? external_->getDerivative(t)->cbegin() : Field::const_iterator();
+        auto d = derivatives_.at(t)->view();
+        auto did = (ideal_) ? ideal_->getDerivative(t)->const_view() : Field::ConstantView();
+        auto dex = (excess_) ? excess_->getDerivative(t)->const_view() : Field::ConstantView();
+        auto dext = (external_) ? external_->getDerivative(t)->const_view() : Field::ConstantView();
         #ifdef FLYFT_OPENMP
         #pragma omp parallel for schedule(static) default(none) firstprivate(mesh) shared(d,did,dex,dext)
         #endif
@@ -65,7 +65,7 @@ void GrandPotential::compute(std::shared_ptr<State> state)
         if (constraint_type == Constraint::mu)
             {
             const auto mu_bulk = constraints_.at(t);
-            auto rho = state->getField(t)->cbegin();
+            auto rho = state->getField(t)->const_view();
             #ifdef FLYFT_OPENMP
             #pragma omp parallel for schedule(static) default(none) firstprivate(mesh,mu_bulk) shared(rho,d) reduction(-:value_)
             #endif
@@ -76,6 +76,40 @@ void GrandPotential::compute(std::shared_ptr<State> state)
                 }
             }
         }
+    }
+
+void GrandPotential::requestDerivativeBuffer(const std::string& type, int buffer_request)
+    {
+    if (ideal_)
+        {
+        ideal_->requestDerivativeBuffer(type,buffer_request);
+        }
+    if (excess_)
+        {
+        excess_->requestDerivativeBuffer(type,buffer_request);
+        }
+    if (external_)
+        {
+        external_->requestDerivativeBuffer(type,buffer_request);
+        }
+    }
+
+int GrandPotential::determineBufferShape(std::shared_ptr<State> state, const std::string& type)
+    {
+    int max_buffer_shape = 0;
+    if (ideal_)
+        {
+        max_buffer_shape = std::max(ideal_->determineBufferShape(state,type),max_buffer_shape);
+        }
+    if (excess_)
+        {
+        max_buffer_shape = std::max(excess_->determineBufferShape(state,type),max_buffer_shape);
+        }
+    if (external_)
+        {
+        max_buffer_shape = std::max(external_->determineBufferShape(state,type),max_buffer_shape);
+        }
+    return max_buffer_shape;
     }
 
 std::shared_ptr<IdealGasFunctional> GrandPotential::getIdealGasFunctional()

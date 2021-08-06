@@ -18,9 +18,8 @@ class Field(mirror.Mirror,mirrorclass=_flyft.Field):
 
     @property
     def data(self):
-        if not hasattr(self, '_data'):
-            self._data = np.array(self._self,copy=False)
-        return self._data
+        # TODO: expose this using a cachable view property instead?
+        return np.array(self._self,copy=False)
 
     @data.setter
     def data(self, value):

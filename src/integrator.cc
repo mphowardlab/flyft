@@ -20,6 +20,12 @@ bool Integrator::advance(std::shared_ptr<Flux> flux,
                          std::shared_ptr<State> state,
                          double time)
     {
+    // request flux buffers
+    for (const auto& t : state->getTypes())
+        {
+        flux->requestFluxBuffer(t,determineBufferShape(state,t));
+        }
+
     // alloc adaptive step state memory
     if (use_adaptive_timestep_)
         {
@@ -75,8 +81,8 @@ bool Integrator::advance(std::shared_ptr<Flux> flux,
                 double max_err = 0.;
                 for (const auto& t : state->getTypes())
                     {
-                    auto rho = state->getField(t)->cbegin();
-                    auto rho_err = adaptive_err_state_->getField(t)->cbegin();
+                    auto rho = state->getField(t)->const_view();
+                    auto rho_err = adaptive_err_state_->getField(t)->const_view();
                     // find max error on mesh
                     double type_max_err = 0.;
                     #ifdef FLYFT_OPENMP
@@ -202,6 +208,11 @@ bool Integrator::usingAdaptiveTimestep() const
 void Integrator::enableAdaptiveTimestep(bool enable)
     {
     use_adaptive_timestep_ = enable;
+    }
+
+int Integrator::determineBufferShape(std::shared_ptr<State> /*state*/, const std::string& /*type*/)
+    {
+    return 1;
     }
 
 }

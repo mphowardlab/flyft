@@ -25,24 +25,28 @@ class RosenfeldFMT : public Functional
         void setDiameters(const TypeMap<double>& diameters);
         void setDiameter(const std::string& type, double diameter);
 
+        int determineBufferShape(std::shared_ptr<State> state, const std::string& type) override;
+
     protected:
         TypeMap<double> diameters_;
         std::unique_ptr<FourierTransform> ft_;
+        int buffer_shape_;
+        DataLayout layout_;
 
-        std::unique_ptr<Field> n0_;
-        std::unique_ptr<Field> n1_;
-        std::unique_ptr<Field> n2_;
-        std::unique_ptr<Field> n3_;
-        std::unique_ptr<Field> nv1_;
-        std::unique_ptr<Field> nv2_;
+        std::shared_ptr<Field> n0_;
+        std::shared_ptr<Field> n1_;
+        std::shared_ptr<Field> n2_;
+        std::shared_ptr<Field> n3_;
+        std::shared_ptr<Field> nv1_;
+        std::shared_ptr<Field> nv2_;
 
-        std::unique_ptr<Field> phi_;
-        std::unique_ptr<Field> dphi_dn0_;
-        std::unique_ptr<Field> dphi_dn1_;
-        std::unique_ptr<Field> dphi_dn2_;
-        std::unique_ptr<Field> dphi_dn3_;
-        std::unique_ptr<Field> dphi_dnv1_;
-        std::unique_ptr<Field> dphi_dnv2_;
+        std::shared_ptr<Field> phi_;
+        std::shared_ptr<Field> dphi_dn0_;
+        std::shared_ptr<Field> dphi_dn1_;
+        std::shared_ptr<Field> dphi_dn2_;
+        std::shared_ptr<Field> dphi_dn3_;
+        std::shared_ptr<Field> dphi_dnv1_;
+        std::shared_ptr<Field> dphi_dnv2_;
 
         std::unique_ptr<ComplexField> n0k_;
         std::unique_ptr<ComplexField> n1k_;
@@ -60,14 +64,10 @@ class RosenfeldFMT : public Functional
 
         std::unique_ptr<ComplexField> derivativek_;
 
-        void allocate(std::shared_ptr<State> state) override;
+        void setup(std::shared_ptr<State> state) override;
 
-        void setupField(std::unique_ptr<Field>& field, const Mesh& mesh);
-        void setupComplexField(std::unique_ptr<ComplexField>& kfield, int kshape);
-        void setupFourierFields(std::unique_ptr<Field>& field,
-                                std::unique_ptr<ComplexField>& kfield,
-                                const Mesh& mesh,
-                                int kshape);
+        void setupField(std::shared_ptr<Field>& field);
+        void setupComplexField(std::unique_ptr<ComplexField>& kfield);
 
         // replace this by a template evaluator for flexibility (requires templating whole class though)
         void computeWeights(std::complex<double>& w0,

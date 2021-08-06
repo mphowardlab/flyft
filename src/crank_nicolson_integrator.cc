@@ -18,8 +18,8 @@ bool CrankNicolsonIntegrator::advance(std::shared_ptr<Flux> flux,
                                       std::shared_ptr<State> state,
                                       double time)
     {
-    state->syncFields(last_fields_);
-    state->syncFields(last_rates_);
+    state->matchFields(last_fields_);
+    state->matchFields(last_rates_);
     return Integrator::advance(flux,grand,state,time);
     }
 
@@ -31,12 +31,14 @@ void CrankNicolsonIntegrator::step(std::shared_ptr<Flux> flux,
     // evaluate initial fluxes at the **current** timestep
     const auto mesh = *state->getMesh();
     flux->compute(grand,state);
+    state->syncFields(flux->getFluxes());
+
     for (const auto& t : state->getTypes())
         {
-        auto rho = state->getField(t)->cbegin();
-        auto j = flux->getFlux(t)->cbegin();
-        auto last_rho = last_fields_.at(t)->begin();
-        auto last_rate = last_rates_.at(t)->begin();
+        auto rho = state->getField(t)->const_view();
+        auto j = flux->getFlux(t)->const_view();
+        auto last_rho = last_fields_.at(t)->view();
+        auto last_rate = last_rates_.at(t)->view();
 
         #ifdef FLYFT_OPENMP
         #pragma omp parallel for schedule(static) default(none) firstprivate(mesh) \
@@ -44,11 +46,9 @@ void CrankNicolsonIntegrator::step(std::shared_ptr<Flux> flux,
         #endif
         for (int idx=0; idx < mesh.shape(); ++idx)
             {
-            // TODO: remove this wrapping
-            const int right = (idx+1) % mesh.shape();
             // change in density is flux in - flux out over time
             last_rho(idx) = rho(idx);
-            last_rate(idx) = (j(idx)-j(right))/mesh.step();
+            last_rate(idx) = (j(idx)-j(idx+1))/mesh.step();
             }
         }
 
@@ -66,14 +66,15 @@ void CrankNicolsonIntegrator::step(std::shared_ptr<Flux> flux,
 
         // get flux of the new state
         flux->compute(grand,state);
+        state->syncFields(flux->getFluxes());
 
         // check for convergence new state
         for (const auto& t : state->getTypes())
             {
-            auto last_rho = last_fields_.at(t)->cbegin();
-            auto last_rate = last_rates_.at(t)->cbegin();
-            auto next_rho = state->getField(t)->begin();
-            auto next_j = flux->getFlux(t)->cbegin();
+            auto last_rho = last_fields_.at(t)->const_view();
+            auto last_rate = last_rates_.at(t)->const_view();
+            auto next_rho = state->getField(t)->view();
+            auto next_j = flux->getFlux(t)->const_view();
 
             #ifdef FLYFT_OPENMP
             #pragma omp parallel for schedule(static) default(none) firstprivate(timestep,mesh,alpha,tol) \
@@ -81,9 +82,7 @@ void CrankNicolsonIntegrator::step(std::shared_ptr<Flux> flux,
             #endif
             for (int idx=0; idx < mesh.shape(); ++idx)
                 {
-                // TODO: remove this wrapping
-                const int right = (idx+1) % mesh.shape();
-                const double next_rate = (next_j(idx)-next_j(right))/mesh.step();
+                const double next_rate = (next_j(idx)-next_j(idx+1))/mesh.step();
                 const double try_rho = last_rho(idx) + 0.5*timestep*(last_rate(idx)+next_rate);
                 const double drho = alpha*(try_rho-next_rho(idx));
                 if (drho > tol)
