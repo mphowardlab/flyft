@@ -6,6 +6,7 @@
 #include "flyft/state.h"
 
 #include <memory>
+#include <string>
 
 namespace flyft
 {
@@ -41,6 +42,8 @@ class Integrator
 
         double getAdaptiveTimestepMinimum() const;
         void setAdaptiveTimestepMinimum(double timestep);
+
+        virtual int determineBufferShape(std::shared_ptr<State> state, const std::string& type);
 
     protected:
         double timestep_;

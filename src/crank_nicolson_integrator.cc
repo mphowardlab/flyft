@@ -31,6 +31,8 @@ void CrankNicolsonIntegrator::step(std::shared_ptr<Flux> flux,
     // evaluate initial fluxes at the **current** timestep
     const auto mesh = *state->getMesh();
     flux->compute(grand,state);
+    state->syncFields(flux->getFluxes());
+
     for (const auto& t : state->getTypes())
         {
         auto rho = state->getField(t)->const_view();
@@ -44,11 +46,9 @@ void CrankNicolsonIntegrator::step(std::shared_ptr<Flux> flux,
         #endif
         for (int idx=0; idx < mesh.shape(); ++idx)
             {
-            // TODO: remove this wrapping
-            const int right = (idx+1) % mesh.shape();
             // change in density is flux in - flux out over time
             last_rho(idx) = rho(idx);
-            last_rate(idx) = (j(idx)-j(right))/mesh.step();
+            last_rate(idx) = (j(idx)-j(idx+1))/mesh.step();
             }
         }
 
@@ -66,6 +66,7 @@ void CrankNicolsonIntegrator::step(std::shared_ptr<Flux> flux,
 
         // get flux of the new state
         flux->compute(grand,state);
+        state->syncFields(flux->getFluxes());
 
         // check for convergence new state
         for (const auto& t : state->getTypes())
@@ -81,9 +82,7 @@ void CrankNicolsonIntegrator::step(std::shared_ptr<Flux> flux,
             #endif
             for (int idx=0; idx < mesh.shape(); ++idx)
                 {
-                // TODO: remove this wrapping
-                const int right = (idx+1) % mesh.shape();
-                const double next_rate = (next_j(idx)-next_j(right))/mesh.step();
+                const double next_rate = (next_j(idx)-next_j(idx+1))/mesh.step();
                 const double try_rho = last_rho(idx) + 0.5*timestep*(last_rate(idx)+next_rate);
                 const double drho = alpha*(try_rho-next_rho(idx));
                 if (drho > tol)

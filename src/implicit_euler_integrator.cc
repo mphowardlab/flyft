@@ -50,6 +50,7 @@ void ImplicitEulerIntegrator::step(std::shared_ptr<Flux> flux,
 
         // get flux of the new state
         flux->compute(grand,state);
+        state->syncFields(flux->getFluxes());
 
         // check for convergence new state
         for (const auto& t : state->getTypes())
@@ -63,9 +64,7 @@ void ImplicitEulerIntegrator::step(std::shared_ptr<Flux> flux,
             #endif
             for (int idx=0; idx < mesh.shape(); ++idx)
                 {
-                // TODO: remove this wrapping
-                const int right = (idx+1) % mesh.shape();
-                const double next_rate = (next_j(idx)-next_j(right))/mesh.step();
+                const double next_rate = (next_j(idx)-next_j(idx+1))/mesh.step();
                 double try_rho = last_rho(idx) + timestep*next_rate;
                 const double drho = alpha*(try_rho-next_rho(idx));
                 if (drho > tol)
