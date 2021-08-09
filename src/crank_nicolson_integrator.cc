@@ -29,7 +29,7 @@ void CrankNicolsonIntegrator::step(std::shared_ptr<Flux> flux,
                                    double timestep)
     {
     // evaluate initial fluxes at the **current** timestep
-    const auto mesh = *state->getMesh();
+    const auto mesh = *state->getMesh()->local();
     flux->compute(grand,state);
     state->syncFields(flux->getFluxes());
 

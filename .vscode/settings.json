@@ -89,6 +89,15 @@
         "__tree": "cpp",
         "version": "cpp",
         "iostream": "cpp",
-        "__functional_03": "cpp"
+        "__functional_03": "cpp",
+        "forward_list": "cpp",
+        "list": "cpp",
+        "numbers": "cpp",
+        "set": "cpp",
+        "typeindex": "cpp",
+        "unordered_set": "cpp",
+        "valarray": "cpp",
+        "variant": "cpp",
+        "cinttypes": "cpp"
     }
 }

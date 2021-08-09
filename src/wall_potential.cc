@@ -18,7 +18,7 @@ WallPotential::WallPotential(std::shared_ptr<DoubleParameter> origin, double nor
 void WallPotential::compute(std::shared_ptr<State> state)
     {
     const auto x0 = origin_->evaluate(state);
-    if (x0 < 0 || x0 > state->getMesh()->L())
+    if (x0 < 0 || x0 > state->getMesh()->global()->L())
         {
         // origin out of bounds
         }

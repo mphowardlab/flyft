@@ -39,7 +39,7 @@ void ImplicitEulerIntegrator::step(std::shared_ptr<Flux> flux,
     state->advanceTime(timestep);
 
     // solve nonlinear equation for **next** timestep by fixed-point iteration
-    const auto mesh = *state->getMesh();
+    const auto mesh = *state->getMesh()->local();
     const auto alpha = getMixParameter();
     const auto tol = getTolerance();
     bool converged = false;

@@ -15,7 +15,7 @@ void RosenfeldFMT::compute(std::shared_ptr<State> state)
     // kmesh should really be coming from somewhere else (like the FFT)
     // TODO: revamp ReciprocalMesh for MPI, this will still work for now
     setup(state);
-    const auto mesh = *state->getMesh();
+    const auto mesh = *state->getMesh()->local();
     const ReciprocalMesh kmesh(mesh.asLength(layout_.shape()),layout_.shape());
 
     // compute n weights in fourier space
@@ -160,7 +160,7 @@ void RosenfeldFMT::compute(std::shared_ptr<State> state)
 
     // sync buffers for second fourier transform
         {
-        auto comm = state->getCommunicator();
+        auto comm = state->getMesh();
         comm->sync(dphi_dn0_);
         comm->sync(dphi_dn1_);
         comm->sync(dphi_dn2_);
@@ -271,7 +271,7 @@ int RosenfeldFMT::determineBufferShape(std::shared_ptr<State> state, const std::
     {
     // TODO: cache this
     const double buffer = std::max_element(diameters_.begin(),diameters_.end())->second;
-    buffer_shape_ = state->getMesh()->asShape(buffer);
+    buffer_shape_ = state->getMesh()->local()->asShape(buffer);
     return buffer_shape_;
     }
 
@@ -280,7 +280,7 @@ void RosenfeldFMT::setup(std::shared_ptr<State> state)
     Functional::setup(state);
 
     // update Fourier transform to mesh shape + buffer
-    const auto mesh = *state->getMesh();
+    const auto mesh = *state->getMesh()->local();
     layout_ = DataLayout(mesh.shape()+2*buffer_shape_);
     if (!ft_ || (ft_->getRealSize() != layout_.shape()))
         {

@@ -16,7 +16,7 @@ void ExplicitEulerIntegrator::step(std::shared_ptr<Flux> flux,
                                    double timestep)
     {
     // evaluate fluxes and apply to volumes
-    const auto mesh = *state->getMesh();
+    const auto mesh = *state->getMesh()->local();
     flux->compute(grand,state);
     state->syncFields(flux->getFluxes());
 

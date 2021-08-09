@@ -10,7 +10,7 @@ void BoublikHardSphereFunctional::compute(std::shared_ptr<State> state)
     setup(state);
 
     auto types = state->getTypes();
-    const auto mesh = *state->getMesh();
+    const auto mesh = *state->getMesh()->local();
 
     // process maps into indexed arrays for quicker access inside loop
     const auto num_types = types.size();

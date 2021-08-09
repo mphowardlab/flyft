@@ -10,7 +10,7 @@ void CompositeFlux::compute(std::shared_ptr<GrandPotential> grand, std::shared_p
     setup(grand,state);
 
     // initialize to zeros
-    const auto mesh = *state->getMesh();
+    const auto mesh = *state->getMesh()->local();
     for (const auto& t : state->getTypes())
         {
         auto j = fluxes_.at(t)->view();

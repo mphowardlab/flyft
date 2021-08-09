@@ -1,9 +1,9 @@
 #ifndef FLYFT_STATE_H_
 #define FLYFT_STATE_H_
 
-#include "flyft/communicator.h"
 #include "flyft/field.h"
 #include "flyft/mesh.h"
+#include "flyft/parallel_mesh.h"
 #include "flyft/type_map.h"
 
 #include <memory>
@@ -24,8 +24,8 @@ class State
         State& operator=(const State& other);
         State& operator=(State&& other);
 
-        std::shared_ptr<const Mesh> getMesh();
-        std::shared_ptr<Communicator> getCommunicator();
+        std::shared_ptr<ParallelMesh> getMesh();
+        std::shared_ptr<const ParallelMesh> getMesh() const;
 
         int getNumFields() const;
         const std::vector<std::string>& getTypes();
@@ -47,8 +47,7 @@ class State
         void advanceTime(double timestep);
 
     private:
-        std::shared_ptr<const Mesh> mesh_;
-        std::shared_ptr<Communicator> comm_;
+        std::shared_ptr<ParallelMesh> mesh_;
         std::vector<std::string> types_;
         TypeMap<std::shared_ptr<Field>> fields_;
         double time_;

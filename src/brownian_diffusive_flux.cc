@@ -23,7 +23,7 @@ void BrownianDiffusiveFlux::compute(std::shared_ptr<GrandPotential> grand, std::
     state->syncFields();
 
     // compute fluxes on the left edge of the volumes
-    const auto mesh = *state->getMesh();
+    const auto mesh = *state->getMesh()->local();
     for (const auto& t : state->getTypes())
         {
         const auto D = diffusivities_.at(t);

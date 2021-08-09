@@ -6,18 +6,33 @@ namespace flyft
 {
 
 Mesh::Mesh(double L, int shape)
-    : L_(L), shape_(shape), step_(L_/shape_)
+    : Mesh(L,shape,0)
+    {
+    }
+
+Mesh::Mesh(double L, int shape, double origin)
+    : L_(L), shape_(shape), step_(L_/shape_), origin_(origin)
+    {
+    }
+
+Mesh::Mesh(int shape, double step)
+    : Mesh(shape,step,0)
+    {
+    }
+
+Mesh::Mesh(int shape, double step, double origin)
+    : L_(shape*step), shape_(shape), step_(step), origin_(origin)
     {
     }
 
 double Mesh::coordinate(int i) const
     {
-    return static_cast<double>(i+0.5)*step_;
+    return origin_+static_cast<double>(i+0.5)*step_;
     }
 
 int Mesh::bin(double x) const
     {
-    return static_cast<int>(x/step_);
+    return static_cast<int>((x-origin_)/step_);
     }
 
 double Mesh::L() const
@@ -33,6 +48,11 @@ int Mesh::shape() const
 double Mesh::step() const
     {
     return step_;
+    }
+
+double Mesh::origin() const
+    {
+    return origin_;
     }
 
 int Mesh::asShape(double dx) const

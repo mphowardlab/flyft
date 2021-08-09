@@ -8,7 +8,7 @@ void IdealGasFunctional::compute(std::shared_ptr<State> state)
     setup(state);
 
     // compute derivatives and accumulate energy
-    const auto mesh = *state->getMesh();
+    const auto mesh = *state->getMesh()->local();
     value_ = 0.0;
     for (const auto& t : state->getTypes())
         {

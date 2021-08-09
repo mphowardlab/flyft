@@ -10,7 +10,7 @@ void VirialExpansion::compute(std::shared_ptr<State> state)
     setup(state);
 
     auto types = state->getTypes();
-    const auto mesh = *state->getMesh();
+    const auto mesh = *state->getMesh()->local();
 
     // reset energy and chemical potentials to zero before accumulating
     value_ = 0.0;

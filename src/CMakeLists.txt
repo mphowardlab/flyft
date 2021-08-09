@@ -1,7 +1,6 @@
 add_library(flyft SHARED
     boublik_hard_sphere_functional.cc
     brownian_diffusive_flux.cc
-    communicator.cc
     composite_external_potential.cc
     composite_flux.cc
     composite_functional.cc
@@ -24,6 +23,7 @@ add_library(flyft SHARED
     lennard_jones_93_wall_potential.cc
     linear_potential.cc
     mesh.cc
+    parallel_mesh.cc
     picard_iteration.cc
     reciprocal_mesh.cc
     rosenfeld_fmt.cc

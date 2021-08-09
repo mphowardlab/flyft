@@ -12,7 +12,7 @@ void HardWallPotential::potential(std::shared_ptr<Field> V, const std::string& t
     const double edge = origin_->evaluate(state) + normal_*R;
     const auto normal = normal_;
 
-    const auto mesh = *state->getMesh();
+    const auto mesh = *state->getMesh()->local();
     auto data = V->view();
     #ifdef FLYFT_OPENMP
     #pragma omp parallel for schedule(static) default(none) firstprivate(mesh,edge,normal) shared(data)

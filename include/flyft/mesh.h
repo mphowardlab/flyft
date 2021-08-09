@@ -9,6 +9,9 @@ class Mesh
     public:
         Mesh() = delete;
         Mesh(double L, int shape);
+        Mesh(double L, int shape, double origin);
+        Mesh(int shape, double step);
+        Mesh(int shape, double step, double origin);
 
         //! Get position on the mesh, defined as center of bin
         double coordinate(int i) const;
@@ -25,6 +28,9 @@ class Mesh
         //! Step size of the mesh
         double step() const;
 
+        //! Mesh origin
+        double origin() const;
+
         int asShape(double dx) const;
 
         double asLength(int shape) const;
@@ -33,6 +39,7 @@ class Mesh
         double L_;      //!< Length of the domain
         int shape_;     //!< Shape of the mesh
         double step_;   //!< Spacing between mesh points
+        double origin_; //!< Origin of the mesh
     };
 
 }

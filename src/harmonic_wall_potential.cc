@@ -11,7 +11,7 @@ void HarmonicWallPotential::potential(std::shared_ptr<Field> V, const std::strin
     const double x0 = origin_->evaluate(state) + shift;
     const auto normal = normal_;
 
-    const auto mesh = *state->getMesh();
+    const auto mesh = *state->getMesh()->local();
     auto data = V->view();
     #ifdef FLYFT_OPENMP
     #pragma omp parallel for schedule(static) default(none) firstprivate(k,x0,normal,mesh) shared(data)

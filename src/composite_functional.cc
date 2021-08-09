@@ -11,7 +11,7 @@ void CompositeFunctional::compute(std::shared_ptr<State> state)
 
     // initialize to zeros
     value_ = 0.0;
-    const auto mesh = *state->getMesh();
+    const auto mesh = *state->getMesh()->local();
     for (const auto& t : state->getTypes())
         {
         auto d = derivatives_.at(t)->view();

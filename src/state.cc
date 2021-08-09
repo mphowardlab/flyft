@@ -10,18 +10,17 @@ State::State(std::shared_ptr<const Mesh> mesh, const std::string& type)
     {}
 
 State::State(std::shared_ptr<const Mesh> mesh, const std::vector<std::string>& types)
-    : mesh_(mesh), types_(types), time_(0)
+    : types_(types), time_(0)
     {
-    comm_ = std::make_shared<Communicator>();
+    mesh_ = std::make_shared<ParallelMesh>(mesh);
     for (const auto& t : types_)
         {
-        fields_[t] = std::make_shared<Field>(mesh_->shape());
+        fields_[t] = std::make_shared<Field>(mesh_->local()->shape());
         }
     }
 
 State::State(const State& other)
     : mesh_(other.mesh_),
-      comm_(other.comm_),
       types_(other.types_),
       time_(other.time_)
     {
@@ -35,7 +34,6 @@ State::State(const State& other)
 
 State::State(State&& other)
     : mesh_(std::move(other.mesh_)),
-      comm_(std::move(other.comm_)),
       types_(std::move(other.types_)),
       fields_(std::move(other.fields_)),
       time_(std::move(other.time_))
@@ -47,7 +45,6 @@ State& State::operator=(const State& other)
     if (&other != this)
         {
         mesh_ = other.mesh_;
-        comm_ = other.comm_;
         types_ = other.types_;
         time_ = other.time_;
 
@@ -72,21 +69,20 @@ State& State::operator=(const State& other)
 State& State::operator=(State&& other)
     {
     mesh_ = std::move(other.mesh_);
-    comm_ = std::move(other.comm_);
     types_ = std::move(other.types_);
     fields_ = std::move(other.fields_);
     time_ = std::move(other.time_);
     return *this;
     }
 
-std::shared_ptr<const Mesh> State::getMesh()
+std::shared_ptr<ParallelMesh> State::getMesh()
     {
     return mesh_;
     }
 
-std::shared_ptr<Communicator> State::getCommunicator()
+std::shared_ptr<const ParallelMesh> State::getMesh() const
     {
-    return comm_;
+    return mesh_;
     }
 
 int State::getNumFields() const
@@ -149,7 +145,7 @@ void State::syncFields(const TypeMap<std::shared_ptr<Field>>& fields) const
             }
         else
             {
-            comm_->sync(it->second);
+            mesh_->sync(it->second);
             }
         }
     }
@@ -200,11 +196,11 @@ void State::matchFields(TypeMap<std::shared_ptr<Field>>& fields, const TypeMap<i
         // make sure field exists and has the right shape
         if (!has_type)
             {
-            fields[t] = std::make_shared<Field>(mesh_->shape(), buffer_request);
+            fields[t] = std::make_shared<Field>(mesh_->local()->shape(), buffer_request);
             }
         else
             {
-            fields[t]->reshape(mesh_->shape(), buffer_request);
+            fields[t]->reshape(mesh_->local()->shape(), buffer_request);
             }
         }
     }

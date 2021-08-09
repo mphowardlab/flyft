@@ -8,7 +8,7 @@ namespace flyft
 void CompositeExternalPotential::potential(std::shared_ptr<Field> V, const std::string& type, std::shared_ptr<State> state)
     {
     // size temporary array
-    const auto mesh = *state->getMesh();
+    const auto mesh = *state->getMesh()->local();
     if (!Vtmp_)
         {
         Vtmp_ = std::make_shared<Field>(mesh.shape());

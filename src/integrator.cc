@@ -31,11 +31,11 @@ bool Integrator::advance(std::shared_ptr<Flux> flux,
         {
         if (!adaptive_cur_state_)
             {
-            adaptive_cur_state_ = std::make_shared<State>(state->getMesh(),state->getTypes());
+            adaptive_cur_state_ = std::make_shared<State>(state->getMesh()->global(),state->getTypes());
             }
         if (!adaptive_err_state_)
             {
-            adaptive_err_state_ = std::make_shared<State>(state->getMesh(),state->getTypes());
+            adaptive_err_state_ = std::make_shared<State>(state->getMesh()->global(),state->getTypes());
             }
         }
     else
@@ -55,7 +55,7 @@ bool Integrator::advance(std::shared_ptr<Flux> flux,
             2.*timestep_ < time_remain)
             {
             adaptive_last_remain = time_remain;
-            const auto mesh = *state->getMesh();
+            const auto mesh = *state->getMesh()->local();
 
             *adaptive_cur_state_ = *state;
 

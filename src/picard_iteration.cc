@@ -15,7 +15,7 @@ PicardIteration::PicardIteration(double mix_param,
 
 bool PicardIteration::solve(std::shared_ptr<GrandPotential> grand, std::shared_ptr<State> state)
     {
-    const auto mesh = *state->getMesh();
+    const auto mesh = *state->getMesh()->local();
     const auto alpha = getMixParameter();
     const auto tol = getTolerance();
 
