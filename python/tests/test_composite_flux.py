@@ -49,23 +49,23 @@ def test_append_extend_remove(comp,bd):
     assert len(comp.objects) == 2
     assert len(comp._self.objects) == 2
 
-def test_compute(comp,bd,grand,ig,mesh,state):
+def test_compute(comp,bd,grand,ig,state):
     grand.ideal = ig
     ig.volumes['A'] = 1.0
 
-    x = mesh.coordinates
-    state.fields['A'][:] = 3.0/mesh.L*x
-    grand.constrain('A', mesh.L*1.5, grand.Constraint.N)
+    x = state.mesh.local.coordinates
+    state.fields['A'][:] = 3.0/state.mesh.full.L*x
+    grand.constrain('A', state.mesh.full.L*1.5, grand.Constraint.N)
 
     comp.append(bd)
     bd.diffusivities['A'] = 1.0
 
     comp.compute(grand,state)
-    assert np.allclose(comp.fluxes['A'][1:], -1.0*3.0/mesh.L)
+    assert np.allclose(comp.fluxes['A'][1:], -1.0*3.0/state.mesh.full.L)
 
     bd2 = flyft.dynamics.BrownianDiffusiveFlux()
     bd2.diffusivities['A'] = 2.0
     comp.append(bd2)
 
     comp.compute(grand,state)
-    assert np.allclose(comp.fluxes['A'][1:], -(1.0+2.0)*3.0/mesh.L)
+    assert np.allclose(comp.fluxes['A'][1:], -(1.0+2.0)*3.0/state.mesh.full.L)

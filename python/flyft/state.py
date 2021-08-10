@@ -3,6 +3,10 @@ import numpy as np
 from . import _flyft
 from . import mirror
 
+class Communicator(mirror.Mirror,mirrorclass=_flyft.Communicator):
+    size = mirror.Property()
+    rank = mirror.Property()
+
 class Field(mirror.Mirror,mirrorclass=_flyft.Field):
     def __init__(self, shape):
         super().__init__(shape)
@@ -55,6 +59,13 @@ class Mesh(mirror.Mirror,mirrorclass=_flyft.Mesh):
     shape = mirror.Property()
     step = mirror.Property()
 
+class ParallelMesh(mirror.Mirror,mirrorclass=_flyft.ParallelMesh):
+    def __init__(self, mesh, communicator):
+        super().__init__(mesh, communicator)
+
+    local = mirror.Property()
+    full = mirror.Property()
+
 class State(mirror.Mirror,mirrorclass=_flyft.State):
     def __init__(self, mesh, types):
         # cast type list into vector
@@ -65,6 +76,7 @@ class State(mirror.Mirror,mirrorclass=_flyft.State):
         # manually store input mesh into the cache
         self._mesh = mesh
 
+    communicator = mirror.Property()
     fields = mirror.WrappedProperty(Fields)
     mesh = mirror.Property()
     time = mirror.Property()

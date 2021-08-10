@@ -1,6 +1,7 @@
 #ifndef FLYFT_STATE_H_
 #define FLYFT_STATE_H_
 
+#include "flyft/communicator.h"
 #include "flyft/field.h"
 #include "flyft/mesh.h"
 #include "flyft/parallel_mesh.h"
@@ -19,6 +20,8 @@ class State
         State() = delete;
         State(std::shared_ptr<const Mesh> mesh, const std::string& type);
         State(std::shared_ptr<const Mesh> mesh, const std::vector<std::string>& types);
+        State(std::shared_ptr<const Mesh> mesh, const std::string& type, std::shared_ptr<const Communicator> comm);
+        State(std::shared_ptr<const Mesh> mesh, const std::vector<std::string>& types, std::shared_ptr<const Communicator> comm);
         State(const State& other);
         State(State&& other);
         State& operator=(const State& other);
@@ -26,6 +29,7 @@ class State
 
         std::shared_ptr<ParallelMesh> getMesh();
         std::shared_ptr<const ParallelMesh> getMesh() const;
+        std::shared_ptr<const Communicator> getCommunicator() const;
 
         int getNumFields() const;
         const std::vector<std::string>& getTypes();

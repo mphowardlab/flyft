@@ -4,9 +4,9 @@ import pytest
 import flyft
 
 def test_init(state):
-    assert isinstance(state.mesh, flyft.Mesh)
-    assert state.mesh.L == pytest.approx(10.0)
-    assert state.mesh.shape == 20
+    assert isinstance(state.mesh, flyft.state.ParallelMesh)
+    assert state.mesh.full.L == pytest.approx(10.0)
+    assert state.mesh.full.shape == 20
     assert state.time == pytest.approx(0.0)
 
 def test_fields(binary_state):

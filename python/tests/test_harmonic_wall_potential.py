@@ -92,7 +92,7 @@ def test_potential(hw,mesh,state):
     hw.shifts['A'] = 0.0
     state.fields['A'][:] = 2.0
 
-    x = state.mesh.coordinates
+    x = state.mesh.local.coordinates
 
     # initial state
     hw.compute(state)

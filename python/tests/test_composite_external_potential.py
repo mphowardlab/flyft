@@ -49,7 +49,7 @@ def test_append_extend_remove(comp,walls):
     assert len(comp._self.objects) == 2
 
 def test_compute(comp,walls,mesh,state):
-    x = state.mesh.coordinates
+    x = state.mesh.local.coordinates
     state.fields['A'][:] = 1.0
 
     lo,hi = walls

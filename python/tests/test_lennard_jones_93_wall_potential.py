@@ -138,7 +138,7 @@ def test_potential(lj,mesh,state):
     lj.shifts['A'] = False
     state.fields['A'][:] = 2.0
 
-    x = state.mesh.coordinates
+    x = state.mesh.local.coordinates
 
     # initial state
     lj.compute(state)

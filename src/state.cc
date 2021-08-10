@@ -6,13 +6,21 @@ namespace flyft
 {
 
 State::State(std::shared_ptr<const Mesh> mesh, const std::string& type)
-    : State(mesh, std::vector<std::string>({type}))
+    : State(mesh, std::vector<std::string>({type}), std::make_shared<const Communicator>())
     {}
 
 State::State(std::shared_ptr<const Mesh> mesh, const std::vector<std::string>& types)
+    : State(mesh,types,std::make_shared<const Communicator>())
+    {}
+
+State::State(std::shared_ptr<const Mesh> mesh, const std::string& type, std::shared_ptr<const Communicator> comm)
+    : State(mesh, std::vector<std::string>({type}), comm)
+    {}
+
+State::State(std::shared_ptr<const Mesh> mesh, const std::vector<std::string>& types, std::shared_ptr<const Communicator> comm)
     : types_(types), time_(0)
     {
-    mesh_ = std::make_shared<ParallelMesh>(mesh);
+    mesh_ = std::make_shared<ParallelMesh>(mesh,comm);
     for (const auto& t : types_)
         {
         fields_[t] = std::make_shared<Field>(mesh_->local()->shape());
@@ -83,6 +91,11 @@ std::shared_ptr<ParallelMesh> State::getMesh()
 std::shared_ptr<const ParallelMesh> State::getMesh() const
     {
     return mesh_;
+    }
+
+std::shared_ptr<const Communicator> State::getCommunicator() const
+    {
+    return mesh_->getCommunicator();
     }
 
 int State::getNumFields() const

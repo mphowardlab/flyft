@@ -76,7 +76,7 @@ def test_advance(mesh,state,grand,ig,linear,bd,euler):
 def test_sine(adapt,euler):
     mesh = flyft.Mesh(2.,100)
     state = flyft.State(mesh,'A')
-    x = state.mesh.coordinates
+    x = state.mesh.local.coordinates
     state.fields['A'][:] = 0.5*np.sin(2*np.pi*x/mesh.L)+1.
 
     ig = flyft.functional.IdealGas()
