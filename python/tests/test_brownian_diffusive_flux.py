@@ -26,7 +26,7 @@ def test_diffusivities(bd):
     assert bd._self.diffusivities['B'] == pytest.approx(2.5)
 
 def test_ideal(grand,ig,bd):
-    state = flyft.State(flyft.Mesh(10.0,500),'A')
+    state = flyft.State(10.0,500,'A')
 
     ig.volumes['A'] = 1.0
     grand.ideal = ig
@@ -62,7 +62,7 @@ def test_ideal(grand,ig,bd):
     assert np.allclose(bd.fluxes['A'], j, rtol=1e-3, atol=1e-2)
 
 def test_excess(grand,ig,fmt,bd):
-    state = flyft.State(flyft.Mesh(10.0,500),'A')
+    state = flyft.State(10.0,500,'A')
 
     ig.volumes['A'] = 1.0
     fmt.diameters['A'] = 1.0

@@ -18,10 +18,10 @@ class State
     {
     public:
         State() = delete;
-        State(std::shared_ptr<const Mesh> mesh, const std::string& type);
-        State(std::shared_ptr<const Mesh> mesh, const std::vector<std::string>& types);
-        State(std::shared_ptr<const Mesh> mesh, const std::string& type, std::shared_ptr<const Communicator> comm);
-        State(std::shared_ptr<const Mesh> mesh, const std::vector<std::string>& types, std::shared_ptr<const Communicator> comm);
+        State(double L, int shape, const std::string& type);
+        State(double L, int shape, const std::vector<std::string>& types);
+        State(double L, int shape, const std::string& type, std::shared_ptr<const Communicator> comm);
+        State(double L, int shape, const std::vector<std::string>& types, std::shared_ptr<const Communicator> comm);
         State(const State& other);
         State(State&& other);
         State& operator=(const State& other);

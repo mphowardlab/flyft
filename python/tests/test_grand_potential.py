@@ -62,7 +62,7 @@ def test_constraints(grand):
     assert grand.constraint_types['A'] == grand.Constraint.mu
     assert grand._self.constraint_types['A'] == grand.Constraint.mu
 
-def test_compute(grand, mesh, state):
+def test_compute(grand,state):
     d = 1.0
     v = np.pi*d**3/6.
     eta = 0.1

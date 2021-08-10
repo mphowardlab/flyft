@@ -65,7 +65,7 @@ def test_origin(hw,state):
     assert hw2.origin is param
     assert hw2._self.origin is param._self
 
-def test_potential(hw,mesh,state):
+def test_potential(hw,state):
     hw.diameters['A'] = 1.0
     state.fields['A'][:] = 2.0
 

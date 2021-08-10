@@ -7,9 +7,11 @@ void bindState(py::module_& m)
     {
     using namespace flyft;
 
-    py::class_<State,std::shared_ptr<State>> state(m, "State");
-    state.def(py::init<std::shared_ptr<const Mesh>,const std::string&>())
-        .def(py::init<std::shared_ptr<const Mesh>,const std::vector<std::string>&>())
+    py::class_<State,std::shared_ptr<State>>(m, "State")
+        .def(py::init<double,int,const std::string&>())
+        .def(py::init<double,int,const std::vector<std::string>&>())
+        .def(py::init<double,int,const std::string&,std::shared_ptr<Communicator>>())
+        .def(py::init<double,int,const std::vector<std::string>&,std::shared_ptr<Communicator>>())
         .def_property_readonly("communicator", &State::getCommunicator)
         .def_property_readonly("mesh", py::overload_cast<>(&State::getMesh,py::const_))
         .def_property_readonly("num_fields", &State::getNumFields)

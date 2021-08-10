@@ -31,11 +31,11 @@ bool Integrator::advance(std::shared_ptr<Flux> flux,
         {
         if (!adaptive_cur_state_)
             {
-            adaptive_cur_state_ = std::make_shared<State>(state->getMesh()->full(),state->getTypes());
+            adaptive_cur_state_ = std::make_shared<State>(*state);
             }
         if (!adaptive_err_state_)
             {
-            adaptive_err_state_ = std::make_shared<State>(state->getMesh()->full(),state->getTypes());
+            adaptive_err_state_ = std::make_shared<State>(*state);
             }
         }
     else

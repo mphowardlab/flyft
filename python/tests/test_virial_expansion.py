@@ -61,7 +61,7 @@ def test_coefficients(virial):
     assert virial._self.coefficients['A','B'] == pytest.approx(3.5)
     assert virial._self.coefficients['B','B'] == pytest.approx(4.0)
 
-def test_compute(virial,mesh,binary_state):
+def test_compute(virial,binary_state):
     state = binary_state
 
     # compute with only one component present

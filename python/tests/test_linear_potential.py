@@ -69,7 +69,7 @@ def test_slopes(linear):
     assert linear._self.slopes['A'] == pytest.approx(1.5)
     assert linear._self.slopes['B'] == pytest.approx(2.5)
 
-def test_potential(linear,mesh,state):
+def test_potential(linear,state):
     linear.xs['A'] = 2.0
     linear.ys['A'] = 10.0
     linear.slopes['A'] = 0.5

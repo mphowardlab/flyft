@@ -32,14 +32,14 @@ def test_init(cn):
     assert cn.tolerance == pytest.approx(1.e-7)
     assert cn._self.tolerance == pytest.approx(1.e-7)
 
-def test_advance(mesh,state,grand,ig,linear,bd,cn):
+def test_advance(state,grand,ig,linear,bd,cn):
     ig.volumes['A'] = 1.0
     grand.ideal = ig
     bd.diffusivities['A'] = 2.0
 
     # first check OK with all ones (no change)
     state.fields['A'][:] = 1.0
-    grand.constrain('A', 1.0*mesh.L, grand.Constraint.N)
+    grand.constrain('A', 1.0*state.mesh.full.L, grand.Constraint.N)
     # run forward one step
     cn.advance(bd, grand, state, cn.timestep)
     assert state.time == pytest.approx(1.e-3)
@@ -74,15 +74,14 @@ def test_advance(mesh,state,grand,ig,linear,bd,cn):
 
 @pytest.mark.parametrize("adapt",[False,True])
 def test_sine(adapt,cn):
-    mesh = flyft.Mesh(2.,100)
-    state = flyft.State(mesh,'A')
+    state = flyft.State(2.,100,'A')
     x = state.mesh.local.coordinates
-    state.fields['A'][:] = 0.5*np.sin(2*np.pi*x/mesh.L)+1.
+    state.fields['A'][:] = 0.5*np.sin(2*np.pi*x/state.mesh.full.L)+1.
 
     ig = flyft.functional.IdealGas()
     ig.volumes['A'] = 1.
     grand = flyft.functional.GrandPotential(ig)
-    grand.constrain('A', 1.0*mesh.L, grand.Constraint.N)
+    grand.constrain('A', 1.0*state.mesh.full.L, grand.Constraint.N)
 
     bd = flyft.dynamics.BrownianDiffusiveFlux()
     bd.diffusivities['A'] = 0.5
@@ -93,9 +92,9 @@ def test_sine(adapt,cn):
         cn.adaptive = False
         cn.timestep = 1.e-5
 
-    tau = mesh.L**2/(4*np.pi**2*bd.diffusivities['A'])
+    tau = state.mesh.full.L**2/(4*np.pi**2*bd.diffusivities['A'])
     t = 1.5*tau
     cn.advance(bd, grand, state, t)
 
-    sol = 0.5*np.exp(-t/tau)*np.sin(2*np.pi*x/mesh.L)+1
+    sol = 0.5*np.exp(-t/tau)*np.sin(2*np.pi*x/state.mesh.full.L)+1
     assert np.allclose(state.fields['A'],sol,atol=1.e-4)

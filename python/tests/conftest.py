@@ -14,16 +14,12 @@ def grand():
     return flyft.functional.GrandPotential()
 
 @pytest.fixture
-def mesh():
-    return flyft.Mesh(10.0,20)
+def state():
+    return flyft.State(10.0,20,'A')
 
 @pytest.fixture
-def state(mesh):
-    return flyft.State(mesh,'A')
-
-@pytest.fixture
-def binary_state(mesh):
-    return flyft.State(mesh,('A','B'))
+def binary_state():
+    return flyft.State(10.0,20,('A','B'))
 
 @pytest.fixture
 def linear():

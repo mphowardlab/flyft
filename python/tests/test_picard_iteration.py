@@ -29,7 +29,7 @@ def test_init(piccard):
     assert piccard.tolerance == pytest.approx(1.e-7)
     assert piccard._self.tolerance == pytest.approx(1.e-7)
 
-def test_solve(piccard,grand,fmt,walls,mesh,state):
+def test_solve(piccard,grand,fmt,walls,state):
     rho = 0.1
     grand.ideal = flyft.functional.IdealGas()
     grand.ideal.volumes['A'] = 1.0

@@ -46,8 +46,8 @@ class Fields(mirror.Mapping):
         return self._cache[key]
 
 class Mesh(mirror.Mirror,mirrorclass=_flyft.Mesh):
-    def __init__(self, L, shape):
-        super().__init__(L, shape)
+    def __init__(self, L, shape, origin=0.):
+        super().__init__(L, shape, origin)
 
     @property
     def coordinates(self):
@@ -56,25 +56,30 @@ class Mesh(mirror.Mirror,mirrorclass=_flyft.Mesh):
         return self._coordinates
 
     L = mirror.Property()
+    origin = mirror.Property()
     shape = mirror.Property()
     step = mirror.Property()
 
 class ParallelMesh(mirror.Mirror,mirrorclass=_flyft.ParallelMesh):
-    def __init__(self, mesh, communicator):
-        super().__init__(mesh, communicator)
+    def __init__(self, L, shape, communicator):
+        super().__init__(Mesh(L,shape), communicator)
+        self._communicator = communicator
 
-    local = mirror.Property()
     full = mirror.Property()
+    local = mirror.Property()
 
 class State(mirror.Mirror,mirrorclass=_flyft.State):
-    def __init__(self, mesh, types):
+    def __init__(self, L, shape, types, communicator=None):
         # cast type list into vector
         if isinstance(types, str):
             types = (types,)
-        super().__init__(mesh,_flyft.VectorString(types))
 
-        # manually store input mesh into the cache
-        self._mesh = mesh
+        # initialize using communicator, if specified
+        if communicator is None:
+            super().__init__(L,shape,_flyft.VectorString(types))
+        else:
+            super().__init__(L,shape,_flyft.VectorString(types),communicator)
+            self._communicator = communicator
 
     communicator = mirror.Property()
     fields = mirror.WrappedProperty(Fields)

@@ -131,7 +131,7 @@ def test_origin(lj,state):
     assert lj2.origin is param
     assert lj2._self.origin is param._self
 
-def test_potential(lj,mesh,state):
+def test_potential(lj,state):
     lj.epsilons['A'] = 2.0
     lj.sigmas['A'] = 1.5
     lj.cutoffs['A'] = np.inf
