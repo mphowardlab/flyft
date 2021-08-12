@@ -55,8 +55,6 @@ void Functional::setup(std::shared_ptr<State> state)
         {
         state->requestFieldBuffer(t,determineBufferShape(state,t));
         }
-    // TODO: move this call to be explicit, programmers should know when they are intending a sync
-    state->syncFields();
 
     // match derivatives to state types
     state->matchFields(derivatives_,buffer_requests_);

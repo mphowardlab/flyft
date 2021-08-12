@@ -15,6 +15,7 @@ void RosenfeldFMT::compute(std::shared_ptr<State> state)
     // kmesh should really be coming from somewhere else (like the FFT)
     // TODO: revamp ReciprocalMesh for MPI, this will still work for now
     setup(state);
+    state->syncFields();
     const auto mesh = *state->getMesh()->local();
     const ReciprocalMesh kmesh(mesh.asLength(layout_.shape()),layout_.shape());
 
