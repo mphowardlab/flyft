@@ -160,7 +160,7 @@ void RosenfeldFMT::compute(std::shared_ptr<State> state)
 
     // sync buffers for second fourier transform
         {
-        auto comm = state->getMesh();
+        auto comm = state->getCommunicator();
         comm->sync(dphi_dn0_);
         comm->sync(dphi_dn1_);
         comm->sync(dphi_dn2_);

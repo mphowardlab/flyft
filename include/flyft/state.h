@@ -20,8 +20,8 @@ class State
         State() = delete;
         State(double L, int shape, const std::string& type);
         State(double L, int shape, const std::vector<std::string>& types);
-        State(double L, int shape, const std::string& type, std::shared_ptr<const Communicator> comm);
-        State(double L, int shape, const std::vector<std::string>& types, std::shared_ptr<const Communicator> comm);
+        State(double L, int shape, const std::string& type, std::shared_ptr<Communicator> comm);
+        State(double L, int shape, const std::vector<std::string>& types, std::shared_ptr<Communicator> comm);
         State(const State& other);
         State(State&& other);
         State& operator=(const State& other);
@@ -29,6 +29,7 @@ class State
 
         std::shared_ptr<ParallelMesh> getMesh();
         std::shared_ptr<const ParallelMesh> getMesh() const;
+        std::shared_ptr<Communicator> getCommunicator();
         std::shared_ptr<const Communicator> getCommunicator() const;
 
         int getNumFields() const;
