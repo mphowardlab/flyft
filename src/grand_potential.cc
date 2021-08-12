@@ -33,6 +33,7 @@ void GrandPotential::compute(std::shared_ptr<State> state)
         }
 
     // sum up contributions to derivatives for each type
+    double constraint_value = 0.0;
     for (const auto& t : state->getTypes())
         {
         auto d = derivatives_.at(t)->view();
@@ -72,10 +73,13 @@ void GrandPotential::compute(std::shared_ptr<State> state)
             for (int idx=0; idx < mesh.shape(); ++idx)
                 {
                 d(idx) -= mu_bulk;
-                value_ -= mesh.step()*mu_bulk*rho(idx);
+                constraint_value -= mesh.step()*mu_bulk*rho(idx);
                 }
             }
         }
+
+    // reduce and add constraint contribution to value
+    value_ += state->getCommunicator()->sum(constraint_value);
     }
 
 void GrandPotential::requestDerivativeBuffer(const std::string& type, int buffer_request)

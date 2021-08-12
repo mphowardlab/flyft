@@ -103,6 +103,7 @@ bool Integrator::advance(std::shared_ptr<Flux> flux,
                         max_err = type_max_err;
                         }
                     }
+                max_err = state->getCommunicator()->max(max_err);
 
                 // if error is greater than tolerance, reject the step and try again
                 // otherwise, accept the step and scale up if possible

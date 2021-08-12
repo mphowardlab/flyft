@@ -61,4 +61,5 @@ void Functional::setup(std::shared_ptr<State> state)
     // match derivatives to state types
     state->matchFields(derivatives_,buffer_requests_);
     }
+
 }

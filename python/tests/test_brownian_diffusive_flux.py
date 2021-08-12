@@ -59,15 +59,17 @@ def test_ideal(grand,ig,bd):
     bd.compute(grand,state)
     # flux is computed at the left edge
     j = -2.0*(2.*np.pi/state.mesh.full.L)*np.cos(2*np.pi*(x-0.5*state.mesh.full.step)/state.mesh.full.L)
-    assert np.allclose(bd.fluxes['A'], j, rtol=1e-3, atol=1e-2)
+    assert np.allclose(bd.fluxes['A'], j, rtol=1e-3, atol=1e-3)
 
-def test_excess(grand,ig,fmt,bd):
+def test_excess(grand,ig,bd):
     state = flyft.State(10.0,500,'A')
+    virial = flyft.functional.VirialExpansion()
+    B = 5.0
 
     ig.volumes['A'] = 1.0
-    fmt.diameters['A'] = 1.0
+    virial.coefficients['A','A'] = B
     grand.ideal = ig
-    grand.excess = fmt
+    grand.excess = virial
     grand.constrain('A', state.mesh.full.L*1.0, grand.Constraint.N)
     bd.diffusivities['A'] = 2.0
 
@@ -89,16 +91,13 @@ def test_excess(grand,ig,fmt,bd):
     grand.constrain('A', state.mesh.full.L*1.e-1, grand.Constraint.N)
     bd.compute(grand,state)
     # flux is computed at the left edge
-    d = fmt.diameters['A']**3
-    v = np.pi*d**3/6.
     rho = 1.e-1*(np.sin(2*np.pi*(x-0.5*state.mesh.full.step)/state.mesh.full.L)+1)
     drho_dx = 1.e-1*(2.*np.pi/state.mesh.full.L)*np.cos(2*np.pi*(x-0.5*state.mesh.full.step)/state.mesh.full.L)
-    eta = rho*v
-    dmuex_drho = ((14-26*eta+15*eta**2+3/(1-eta)*(14*eta-13*eta**2+5*eta**3))/(2*(1-eta)**3)+1/(1-eta))*v
+    dmuex_drho = 2*B
     jid = -2.0*drho_dx
     jex = -2.0*rho*dmuex_drho*drho_dx
     j = jid + jex
-    assert np.allclose(bd.fluxes['A'], j, rtol=1e-3, atol=5e-2)
+    assert np.allclose(bd.fluxes['A'], j, rtol=1e-3, atol=1e-3)
 
 def test_external(state,grand,ig,walls,linear,bd):
     ig.volumes['A'] = 1.0

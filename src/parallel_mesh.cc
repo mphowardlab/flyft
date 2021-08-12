@@ -1,5 +1,7 @@
 #include "flyft/parallel_mesh.h"
 
+#include <stdexcept>
+
 namespace flyft
 {
 
@@ -44,6 +46,7 @@ void ParallelMesh::sync(std::shared_ptr<Field> field)
     if (buffer_shape > local_mesh_->shape())
         {
         // ERROR: overdecomposed (only nearest-neighbor comms supported)
+        throw std::runtime_error("Mesh overdecomposed");
         }
     else if (buffer_shape == 0)
         {

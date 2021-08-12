@@ -265,6 +265,8 @@ void RosenfeldFMT::compute(std::shared_ptr<State> state)
             value_ += mesh.step()*phi(idx);
             }
         }
+
+    value_ = state->getCommunicator()->sum(value_);
     }
 
 int RosenfeldFMT::determineBufferShape(std::shared_ptr<State> state, const std::string& /*type*/)
