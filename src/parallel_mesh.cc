@@ -45,6 +45,11 @@ void ParallelMesh::sync(std::shared_ptr<Field> field)
         {
         // ERROR: overdecomposed (only nearest-neighbor comms supported)
         }
+    else if (buffer_shape == 0)
+        {
+        // nothing to do, no buffer needed
+        return;
+        }
 
 
     #ifdef FLYFT_MPI
@@ -60,7 +65,7 @@ void ParallelMesh::sync(std::shared_ptr<Field> field)
         MPI_Irecv(&f(shape),buffer_shape,MPI_DOUBLE,right,1,comm,&requests[1]);
         // send left edge to left (tag 1), right edge to right (tag 0)
         MPI_Isend(&f(0),buffer_shape,MPI_DOUBLE,left,1,comm,&requests[2]);
-        MPI_Isend(&f(shape-1-buffer_shape),buffer_shape,MPI_DOUBLE,right,0,comm,&requests[3]);
+        MPI_Isend(&f(shape-buffer_shape),buffer_shape,MPI_DOUBLE,right,0,comm,&requests[3]);
         // wait for communication to finish
         MPI_Waitall(4,requests,MPI_STATUSES_IGNORE);
         }
