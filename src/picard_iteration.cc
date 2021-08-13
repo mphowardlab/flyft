@@ -67,6 +67,7 @@ bool PicardIteration::solve(std::shared_ptr<GrandPotential> grand, std::shared_p
                     sum += rho_tmp(idx);
                     }
                 sum *= mesh.step();
+                sum = state->getCommunicator()->sum(sum);
                 norm = N/sum;
                 }
             else if (constraint_type == GrandPotential::Constraint::mu)
@@ -113,6 +114,8 @@ bool PicardIteration::solve(std::shared_ptr<GrandPotential> grand, std::shared_p
                     }
                 }
             }
+
+        converged = state->getCommunicator()->all(converged);
         }
 
     return converged;

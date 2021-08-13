@@ -43,5 +43,7 @@ void ExternalPotential::compute(std::shared_ptr<State> state)
                 }
             }
         }
+
+    value_ = state->getCommunicator()->sum(value_);
     }
 }

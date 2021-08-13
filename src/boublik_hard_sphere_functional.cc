@@ -135,6 +135,8 @@ void BoublikHardSphereFunctional::compute(std::shared_ptr<State> state)
             value_ += energy;
             }
         }
+
+    value_ = state->getCommunicator()->sum(value_);
     }
 
 const TypeMap<double>& BoublikHardSphereFunctional::getDiameters()

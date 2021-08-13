@@ -87,12 +87,12 @@ def test_origin(hw,state):
     assert hw2.origin is param
     assert hw2._self.origin is param._self
 
-def test_potential(hw,mesh,state):
+def test_potential(hw,state):
     hw.spring_constants['A'] = 2.0
     hw.shifts['A'] = 0.0
     state.fields['A'][:] = 2.0
 
-    x = state.mesh.coordinates
+    x = state.mesh.local.coordinates
 
     # initial state
     hw.compute(state)

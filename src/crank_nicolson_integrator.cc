@@ -92,6 +92,8 @@ void CrankNicolsonIntegrator::step(std::shared_ptr<Flux> flux,
                 next_rho(idx) += drho;
                 }
             }
+
+        converged = state->getCommunicator()->all(converged);
         }
     if (!converged)
         {

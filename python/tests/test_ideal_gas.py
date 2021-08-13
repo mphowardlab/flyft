@@ -38,7 +38,7 @@ def test_volumes(ig):
     assert ig._self.volumes['A'] == pytest.approx(1.5)
     assert ig._self.volumes['B'] == pytest.approx(2.5)
 
-def test_compute(ig,mesh,binary_state):
+def test_compute(ig,binary_state):
     state = binary_state
 
     state.fields['A'][:] = 1.0

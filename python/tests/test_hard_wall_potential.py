@@ -65,11 +65,11 @@ def test_origin(hw,state):
     assert hw2.origin is param
     assert hw2._self.origin is param._self
 
-def test_potential(hw,mesh,state):
+def test_potential(hw,state):
     hw.diameters['A'] = 1.0
     state.fields['A'][:] = 2.0
 
-    x = state.mesh.coordinates
+    x = state.mesh.local.coordinates
 
     # some particles overlap, so this is infinite
     hw.compute(state)
@@ -92,7 +92,7 @@ def test_potential(hw,mesh,state):
     assert np.all(hw.derivatives['A'][x > 1.5] == np.inf)
 
     # carve out the density to get finite values
-    state.fields['A'][state.mesh.coordinates >= 1.5] = 0.
+    state.fields['A'][x >= 1.5] = 0.
     hw.compute(state)
     assert hw.value == pytest.approx(0.0)
     assert np.allclose(hw.derivatives['A'][x <= 1.5],0.0)

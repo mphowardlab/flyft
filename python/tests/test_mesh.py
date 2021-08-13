@@ -3,6 +3,10 @@ import pytest
 
 import flyft
 
+@pytest.fixture
+def mesh():
+    return flyft.state.Mesh(10.0,20)
+
 def test_init(mesh):
     assert mesh.L == 10.0
     assert mesh.shape == 20

@@ -32,7 +32,7 @@ def test_diameters(fmt):
     assert fmt._self.diameters['A'] == pytest.approx(1.5)
     assert fmt._self.diameters['B'] == pytest.approx(2.5)
 
-def test_compute(fmt,mesh,binary_state):
+def test_compute(fmt,binary_state):
     state = binary_state
 
     d = 2.0

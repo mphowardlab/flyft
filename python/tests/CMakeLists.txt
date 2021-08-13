@@ -25,6 +25,7 @@ set(FLYFT_PYTEST_SOURCES
     test_rosenfeld_fmt.py
     test_state.py
     test_virial_expansion.py
+    pytest-mpi.sh
     )
 
 # copy pytest files to build directory for testing (not strictly necessary)

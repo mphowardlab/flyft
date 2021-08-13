@@ -169,7 +169,7 @@ class WrappedProperty:
         try:
             v = getattr(obj._self, self.name)
         except:
-            raise AttributeError('Mirror class does not have attribute {}'.format(name))
+            raise AttributeError('Mirror class does not have attribute {}'.format(self.name))
 
         # check for mirror mapping that *may* be cached as obj._name
         has_cache = hasattr(obj, self.cache_name)

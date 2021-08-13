@@ -109,13 +109,13 @@ def test_origin(ew,state):
     assert ew2.origin is param
     assert ew2._self.origin is param._self
 
-def test_potential(ew,mesh,state):
+def test_potential(ew,state):
     ew.epsilons['A'] = 4.0
     ew.kappas['A'] = 1.5
     ew.shifts['A'] = 0.0
     state.fields['A'][:] = 2.0
 
-    x = state.mesh.coordinates
+    x = state.mesh.local.coordinates
 
     # initial state
     ew.compute(state)

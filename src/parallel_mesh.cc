@@ -3,63 +3,38 @@
 namespace flyft
 {
 
-ParallelMesh::ParallelMesh(std::shared_ptr<const Mesh> mesh)
+ParallelMesh::ParallelMesh(std::shared_ptr<Mesh> mesh, std::shared_ptr<Communicator> comm)
     {
-    // initialize the MPI communicator (Cartesian ordering is row-major like DataLayout)
-    layout_ = DataLayout(1);
-    rank_ = 0;
-    coords_ = 0;
-
-    // setup the mesh decomposition
-    setMesh(mesh);
+    setup(mesh,comm);
     }
 
 ParallelMesh::~ParallelMesh()
     {
     }
 
-void ParallelMesh::sync(std::shared_ptr<Field> field)
+std::shared_ptr<Communicator> ParallelMesh::getCommunicator()
     {
-    // check if field was recently synced and stop if not needed
-    auto token = field_tokens_.find(field->id());
-    if (token != field_tokens_.end() && token->second == field->token())
-        {
-        return;
-        }
-
-    // sync field
-    const auto f = field->view();
-    const int shape = field->shape();
-    const int buffer_shape = field->buffer_shape();
-
-    if (buffer_shape > local_mesh_->shape())
-        {
-        // ERROR: overdecomposed (only nearest-neighbor comms supported)
-        }
-
-    for (int idx=0; idx < buffer_shape; ++idx)
-        {
-        f(shape+idx) = f(idx);
-        f(-1-idx) = f(shape-1-idx);
-        }
-
-    // cache token
-    field_tokens_[field->id()] = field->token();
+    return comm_;
     }
 
-int ParallelMesh::getNumProcessors() const
+std::shared_ptr<const Communicator> ParallelMesh::getCommunicator() const
     {
-    return layout_.size();
+    return comm_;
+    }
+
+std::shared_ptr<const Mesh> ParallelMesh::local() const
+    {
+    return local_mesh_;
+    }
+
+std::shared_ptr<const Mesh> ParallelMesh::full() const
+    {
+    return full_mesh_;
     }
 
 int ParallelMesh::getProcessorShape() const
     {
     return layout_.shape();
-    }
-
-int ParallelMesh::getProcessor() const
-    {
-    return rank_;
     }
 
 int ParallelMesh::getProcessorCoordinates() const
@@ -69,7 +44,7 @@ int ParallelMesh::getProcessorCoordinates() const
 
 int ParallelMesh::findProcessor(int idx) const
     {
-    if (idx < 0 || idx >= global_mesh_->shape())
+    if (idx < 0 || idx >= full_mesh_->shape())
         {
         // ERROR: processor out of range
         }
@@ -87,24 +62,19 @@ int ParallelMesh::findProcessor(int idx) const
     return proc;
     }
 
-std::shared_ptr<const Mesh> ParallelMesh::local() const
+void ParallelMesh::setup(std::shared_ptr<Mesh> mesh, std::shared_ptr<Communicator> comm)
     {
-    return local_mesh_;
-    }
+    // set the *full* mesh passed to the communicator
+    full_mesh_ = mesh;
 
-std::shared_ptr<const Mesh> ParallelMesh::global() const
-    {
-    return global_mesh_;
-    }
-
-void ParallelMesh::setMesh(std::shared_ptr<const Mesh> mesh)
-    {
-    // set the *global* mesh passed to the communicator
-    global_mesh_ = mesh;
+    // set the communicator
+    comm_ = comm;
+    layout_ = DataLayout(comm_->size());
+    coords_ = comm_->rank();
 
     // determine the mesh sites that each processor owns
-    const int floor_shape = global_mesh_->shape()/layout_.shape();
-    const int leftover = global_mesh_->shape() - layout_.shape()*floor_shape;
+    const int floor_shape = full_mesh_->shape()/layout_.shape();
+    const int leftover = full_mesh_->shape() - layout_.shape()*floor_shape;
     starts_ = std::vector<int>(layout_.size(),0);
     ends_ = std::vector<int>(layout_.size(),0);
     for (int idx=0; idx < layout_.shape(); ++idx)
@@ -129,7 +99,7 @@ void ParallelMesh::setMesh(std::shared_ptr<const Mesh> mesh)
         {
         // ERROR: cannot have empty processor
         }
-    local_mesh_ = std::make_shared<const Mesh>(end-start,global_mesh_->step(),global_mesh_->asLength(start));
+    local_mesh_ = std::make_shared<Mesh>(end-start,full_mesh_->step(),full_mesh_->asLength(start));
     }
 
 }

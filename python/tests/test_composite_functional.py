@@ -49,7 +49,7 @@ def test_append_extend_remove(comp,ig):
     assert len(comp.objects) == 2
     assert len(comp._self.objects) == 2
 
-def test_compute(comp,ig,mesh,state):
+def test_compute(comp,ig,state):
     state.fields['A'][:] = 1.0
 
     comp.append(ig)

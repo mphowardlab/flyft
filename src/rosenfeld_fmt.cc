@@ -15,6 +15,7 @@ void RosenfeldFMT::compute(std::shared_ptr<State> state)
     // kmesh should really be coming from somewhere else (like the FFT)
     // TODO: revamp ReciprocalMesh for MPI, this will still work for now
     setup(state);
+    state->syncFields();
     const auto mesh = *state->getMesh()->local();
     const ReciprocalMesh kmesh(mesh.asLength(layout_.shape()),layout_.shape());
 
@@ -160,7 +161,7 @@ void RosenfeldFMT::compute(std::shared_ptr<State> state)
 
     // sync buffers for second fourier transform
         {
-        auto comm = state->getMesh();
+        auto comm = state->getCommunicator();
         comm->sync(dphi_dn0_);
         comm->sync(dphi_dn1_);
         comm->sync(dphi_dn2_);
@@ -265,6 +266,8 @@ void RosenfeldFMT::compute(std::shared_ptr<State> state)
             value_ += mesh.step()*phi(idx);
             }
         }
+
+    value_ = state->getCommunicator()->sum(value_);
     }
 
 int RosenfeldFMT::determineBufferShape(std::shared_ptr<State> state, const std::string& /*type*/)

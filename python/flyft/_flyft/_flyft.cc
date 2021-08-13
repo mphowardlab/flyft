@@ -5,8 +5,10 @@ void bindPairMap(py::module_&);
 void bindTypeMap(py::module_&);
 void bindDoubleParameters(py::module_&);
 
+void bindCommunicator(py::module_&);
 void bindField(py::module_&);
 void bindMesh(py::module_&);
+void bindParallelMesh(py::module_&);
 void bindState(py::module_&);
 
 void bindFunctional(py::module_&);
@@ -39,14 +41,30 @@ void bindCrankNicolsonIntegrator(py::module_&);
 void bindExplicitEulerIntegrator(py::module_&);
 void bindImplicitEulerIntegrator(py::module_&);
 
+#ifdef FLYFT_MPI
+#include <mpi.h>
+#endif
+
 PYBIND11_MODULE(_flyft, m)
     {
+    #ifdef FLYFT_MPI
+    int mpi_init = 0;
+    MPI_Initialized(&mpi_init);
+    if (!mpi_init)
+        {
+        MPI_Init(NULL,NULL);
+        Py_AtExit([](){ MPI_Finalize(); });
+        }
+    #endif
+
     bindPairMap(m);
     bindTypeMap(m);
     bindDoubleParameters(m);
 
+    bindCommunicator(m);
     bindField(m);
     bindMesh(m);
+    bindParallelMesh(m);
     bindState(m);
 
     bindFunctional(m);

@@ -31,11 +31,11 @@ bool Integrator::advance(std::shared_ptr<Flux> flux,
         {
         if (!adaptive_cur_state_)
             {
-            adaptive_cur_state_ = std::make_shared<State>(state->getMesh()->global(),state->getTypes());
+            adaptive_cur_state_ = std::make_shared<State>(*state);
             }
         if (!adaptive_err_state_)
             {
-            adaptive_err_state_ = std::make_shared<State>(state->getMesh()->global(),state->getTypes());
+            adaptive_err_state_ = std::make_shared<State>(*state);
             }
         }
     else
@@ -103,6 +103,7 @@ bool Integrator::advance(std::shared_ptr<Flux> flux,
                         max_err = type_max_err;
                         }
                     }
+                max_err = state->getCommunicator()->max(max_err);
 
                 // if error is greater than tolerance, reject the step and try again
                 // otherwise, accept the step and scale up if possible

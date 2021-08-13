@@ -15,14 +15,14 @@ def test_timestep(euler):
 
     # TODO: test raises error if timestep <= 0
 
-def test_advance(mesh,state,grand,ig,linear,bd,euler):
+def test_advance(state,grand,ig,linear,bd,euler):
     ig.volumes['A'] = 1.0
     grand.ideal = ig
     bd.diffusivities['A'] = 2.0
 
     # first check OK with all ones (no change)
     state.fields['A'][:] = 1.0
-    grand.constrain('A', 1.0*mesh.L, grand.Constraint.N)
+    grand.constrain('A', 1.0*state.mesh.full.L, grand.Constraint.N)
     # run forward one step
     euler.advance(bd, grand, state, euler.timestep)
     assert state.time == pytest.approx(1.e-3)
@@ -38,14 +38,20 @@ def test_advance(mesh,state,grand,ig,linear,bd,euler):
     grand.external = linear
     euler.advance(bd, grand, state, euler.timestep)
     assert state.time == pytest.approx(1.e-3)
-    assert np.allclose(state.fields['A'][1:-1], 1.0)
+
+    x = state.mesh.local.coordinates
+    flags = np.logical_and(x >= state.mesh.full.coordinates[1], x <= state.mesh.full.coordinates[-2])
+    assert np.allclose(state.fields['A'][flags], 1.0)
 
     # check everywhere using the flux computed by bd
     state.fields['A'][:] = 1.0
     bd.compute(grand,state)
-    left = bd.fluxes['A']
-    right = np.roll(bd.fluxes['A'], -1)
-    rho = state.fields['A'].data+euler.timestep*(left-right)/mesh.step
+    xfull = state.mesh.full.coordinates
+    ufull = 0.25*xfull
+    jfull = -2*(ufull-np.roll(ufull,1))/state.mesh.full.step
+    ratefull = (jfull-np.roll(jfull,-1))
+    flags = np.logical_and(xfull >= x[0], xfull <= x[-1])
+    rho = state.fields['A'].data+euler.timestep*ratefull[flags]/state.mesh.full.step
     euler.advance(bd, grand, state, euler.timestep)
     assert state.time == pytest.approx(2.e-3)
     assert np.allclose(rho, state.fields['A'])
@@ -67,15 +73,14 @@ def test_advance(mesh,state,grand,ig,linear,bd,euler):
 
 @pytest.mark.parametrize("adapt",[False,True])
 def test_sine(adapt,euler):
-    mesh = flyft.Mesh(2.,100)
-    state = flyft.State(mesh,'A')
-    x = state.mesh.coordinates
-    state.fields['A'][:] = 0.5*np.sin(2*np.pi*x/mesh.L)+1.
+    state = flyft.State(2.,100,'A')
+    x = state.mesh.local.coordinates
+    state.fields['A'][:] = 0.5*np.sin(2*np.pi*x/state.mesh.full.L)+1.
 
     ig = flyft.functional.IdealGas()
     ig.volumes['A'] = 1.
     grand = flyft.functional.GrandPotential(ig)
-    grand.constrain('A', 1.0*mesh.L, grand.Constraint.N)
+    grand.constrain('A', 1.0*state.mesh.full.L, grand.Constraint.N)
 
     bd = flyft.dynamics.BrownianDiffusiveFlux()
     bd.diffusivities['A'] = 0.5
@@ -86,9 +91,9 @@ def test_sine(adapt,euler):
         euler.adaptive = False
         euler.timestep = 1.e-5
 
-    tau = mesh.L**2/(4*np.pi**2*bd.diffusivities['A'])
+    tau = state.mesh.full.L**2/(4*np.pi**2*bd.diffusivities['A'])
     t = 1.5*tau
     euler.advance(bd, grand, state, t)
 
-    sol = 0.5*np.exp(-t/tau)*np.sin(2*np.pi*x/mesh.L)+1
+    sol = 0.5*np.exp(-t/tau)*np.sin(2*np.pi*x/state.mesh.full.L)+1
     assert np.allclose(state.fields['A'],sol,atol=1.e-4)

@@ -4,6 +4,7 @@ add_library(flyft SHARED
     composite_external_potential.cc
     composite_flux.cc
     composite_functional.cc
+    communicator.cc
     crank_nicolson_integrator.cc
     data_layout.cc
     data_token.cc
@@ -39,9 +40,13 @@ target_include_directories(
         $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:flyft/include>
     )
+if(FLYFT_MPI)
+    target_link_libraries(flyft PUBLIC MPI::MPI_CXX)
+    target_compile_definitions(flyft PUBLIC FLYFT_MPI)
+endif()
 if(FLYFT_OPENMP)
-    target_link_libraries(flyft PRIVATE OpenMP::OpenMP_CXX FFTW3::fftw3_omp)
-    target_compile_definitions(flyft PRIVATE FLYFT_OPENMP)
+    target_link_libraries(flyft PUBLIC OpenMP::OpenMP_CXX FFTW3::fftw3_omp)
+    target_compile_definitions(flyft PUBLIC FLYFT_OPENMP)
 endif()
 target_link_libraries(flyft PUBLIC FFTW3::fftw3)
 target_compile_features(flyft PUBLIC cxx_std_14)
