@@ -7,6 +7,7 @@
 #include "flyft/mesh.h"
 
 #include <memory>
+#include <unordered_map>
 #include <vector>
 
 namespace flyft
@@ -27,7 +28,10 @@ class ParallelMesh
 
         int getProcessorShape() const;
         int getProcessorCoordinates() const;
+        int getProcessorCoordinatesByOffset(int offset) const;
         int findProcessor(int idx) const;
+
+        void sync(std::shared_ptr<Field> field);
 
     private:
         std::shared_ptr<Communicator> comm_;
@@ -38,6 +42,8 @@ class ParallelMesh
         std::shared_ptr<Mesh> local_mesh_;
         std::vector<int> starts_;
         std::vector<int> ends_;
+
+        std::unordered_map<Field::Identifier,DataToken> field_tokens_;
 
         void setup(std::shared_ptr<Mesh> mesh, std::shared_ptr<Communicator> comm);
     };

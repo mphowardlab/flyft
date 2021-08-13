@@ -163,7 +163,7 @@ void State::syncFields(const TypeMap<std::shared_ptr<Field>>& fields) const
             }
         else
             {
-            mesh_->getCommunicator()->sync(it->second);
+            mesh_->sync(it->second);
             }
         }
     }
