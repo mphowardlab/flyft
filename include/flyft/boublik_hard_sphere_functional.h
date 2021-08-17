@@ -6,7 +6,6 @@
 #include "flyft/type_map.h"
 
 #include <memory>
-#include <string>
 
 namespace flyft
 {
@@ -16,13 +15,15 @@ class BoublikHardSphereFunctional : public Functional
     public:
         void compute(std::shared_ptr<State> state) override;
 
-        const TypeMap<double>& getDiameters();
-        double getDiameter(const std::string& type) const;
-        void setDiameters(const TypeMap<double>& diameters);
-        void setDiameter(const std::string& type, double diameter);
+        TypeMap<double>& getDiameters();
+        const TypeMap<double>& getDiameters() const;
+
+    protected:
+        bool needsCompute(std::shared_ptr<State> state) override;
 
     private:
         TypeMap<double> diameters_;
+        TypeMap<double>::Token diameters_token_;
     };
 
 }

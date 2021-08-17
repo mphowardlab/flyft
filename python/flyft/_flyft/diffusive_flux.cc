@@ -26,6 +26,6 @@ void bindDiffusiveFlux(py::module_& m)
 
     py::class_<DiffusiveFlux,std::shared_ptr<DiffusiveFlux>,DiffusiveFluxTrampoline,Flux>(m, "DiffusiveFlux")
         .def(py::init<>())
-        .def_property("diffusivities", &DiffusiveFlux::getDiffusivities, &DiffusiveFlux::setDiffusivities, py::return_value_policy::reference_internal)
+        .def_property_readonly("diffusivities", py::overload_cast<>(&DiffusiveFlux::getDiffusivities), py::return_value_policy::reference_internal)
         ;
     }

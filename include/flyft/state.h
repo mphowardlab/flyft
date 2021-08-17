@@ -5,6 +5,7 @@
 #include "flyft/field.h"
 #include "flyft/mesh.h"
 #include "flyft/parallel_mesh.h"
+#include "flyft/tracked_object.h"
 #include "flyft/type_map.h"
 
 #include <memory>
@@ -14,7 +15,7 @@
 namespace flyft
 {
 
-class State
+class State : public TrackedObject
     {
     public:
         State() = delete;
@@ -51,11 +52,16 @@ class State
         void setTime(double time);
         void advanceTime(double timestep);
 
+        const Token& token() override;
+
     private:
         std::shared_ptr<ParallelMesh> mesh_;
         std::vector<std::string> types_;
         TypeMap<std::shared_ptr<Field>> fields_;
         double time_;
+
+        TypeMap<Field::Token> field_tokens_;
+        double token_time_;
     };
 
 }

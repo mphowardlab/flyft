@@ -45,6 +45,7 @@ set(_FLYFT_CC_SOURCES
     solver.cc
     state.cc
     type_map.cc
+    vector.cc
     virial_expansion.cc
     wall_potential.cc
     )

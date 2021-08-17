@@ -17,27 +17,19 @@ class LennardJones93WallPotential : public WallPotential
     public:
         using WallPotential::WallPotential;
 
-        const TypeMap<double>& getEpsilons();
-        double getEpsilon(const std::string& type) const;
-        void setEpsilons(const TypeMap<double>& epsilons);
-        void setEpsilon(const std::string& type, double epsilon);
-
-        const TypeMap<double>& getSigmas();
-        double getSigma(const std::string& type) const;
-        void setSigmas(const TypeMap<double>& sigmas);
-        void setSigma(const std::string& type, double sigma);
-
-        const TypeMap<double>& getCutoffs();
-        double getCutoff(const std::string& type) const;
-        void setCutoffs(const TypeMap<double>& cutoffs);
-        void setCutoff(const std::string& type, double cutoff);
-
-        const TypeMap<bool>& getShifts();
-        bool getShift(const std::string& type) const;
-        void setShifts(const TypeMap<bool>& shifts);
-        void setShift(const std::string& type, bool shift);
-
         void potential(std::shared_ptr<Field> V, const std::string& type, std::shared_ptr<State> state) override;
+
+        TypeMap<double>& getEpsilons();
+        const TypeMap<double>& getEpsilons() const;
+
+        TypeMap<double>& getSigmas();
+        const TypeMap<double>& getSigmas() const;
+
+        TypeMap<double>& getCutoffs();
+        const TypeMap<double>& getCutoffs() const;
+
+        TypeMap<bool>& getShifts();
+        const TypeMap<bool>& getShifts() const;
 
     private:
         TypeMap<double> epsilons_;

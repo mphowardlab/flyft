@@ -8,6 +8,6 @@ void bindIdealGasFunctional(py::module_& m)
 
     py::class_<IdealGasFunctional,std::shared_ptr<IdealGasFunctional>,Functional>(m, "IdealGasFunctional")
         .def(py::init())
-        .def_property("volumes", &IdealGasFunctional::getVolumes, &IdealGasFunctional::setVolumes, py::return_value_policy::reference_internal)
+        .def_property_readonly("volumes", py::overload_cast<>(&IdealGasFunctional::getVolumes), py::return_value_policy::reference_internal)
         ;
     }

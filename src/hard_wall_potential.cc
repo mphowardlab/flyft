@@ -8,7 +8,7 @@ namespace flyft
 void HardWallPotential::potential(std::shared_ptr<Field> V, const std::string& type, std::shared_ptr<State> state)
     {
     // edge where sphere contacts the wall
-    const double R = 0.5*diameters_.at(type);
+    const double R = 0.5*diameters_(type);
     const double edge = origin_->evaluate(state) + normal_*R;
     const auto normal = normal_;
 
@@ -24,31 +24,14 @@ void HardWallPotential::potential(std::shared_ptr<Field> V, const std::string& t
         }
     }
 
-const TypeMap<double>& HardWallPotential::getDiameters()
+TypeMap<double>& HardWallPotential::getDiameters()
     {
     return diameters_;
     }
 
-double HardWallPotential::getDiameter(const std::string& type) const
+const TypeMap<double>& HardWallPotential::getDiameters() const
     {
-    return diameters_.at(type);
-    }
-
-void HardWallPotential::setDiameters(const TypeMap<double>& diameters)
-    {
-    diameters_ = TypeMap<double>(diameters);
-    }
-
-void HardWallPotential::setDiameter(const std::string& type, double diameter)
-    {
-    if (diameter >= 0.)
-        {
-        diameters_[type] = diameter;
-        }
-    else
-        {
-        // error: invalid diameter
-        }
+    return diameters_;
     }
 
 }

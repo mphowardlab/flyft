@@ -1,6 +1,7 @@
 #include "flyft/state.h"
 
 #include <algorithm>
+#include <cmath>
 
 namespace flyft
 {
@@ -18,40 +19,46 @@ State::State(double L, int shape, const std::string& type, std::shared_ptr<Commu
     {}
 
 State::State(double L, int shape, const std::vector<std::string>& types, std::shared_ptr<Communicator> comm)
-    : types_(types), time_(0)
+    : types_(types), time_(0), token_time_(std::nan(""))
     {
     mesh_ = std::make_shared<ParallelMesh>(std::make_shared<Mesh>(L,shape),comm);
     for (const auto& t : types_)
         {
         fields_[t] = std::make_shared<Field>(mesh_->local()->shape());
+        field_tokens_[t] = fields_[t]->token();
         }
     }
 
 State::State(const State& other)
-    : mesh_(other.mesh_),
+    : TrackedObject(other),
+      mesh_(other.mesh_),
       types_(other.types_),
       time_(other.time_)
     {
     for (const auto& t : types_)
         {
-        auto other_field = other.fields_.at(t);
+        auto other_field = other.fields_(t);
         fields_[t] = std::make_shared<Field>(other_field->shape(),other_field->buffer_shape());
-        std::copy(other_field->const_full_view().begin(),other_field->const_full_view().end(),fields_.at(t)->full_view().begin());
+        std::copy(other_field->const_full_view().begin(),other_field->const_full_view().end(),fields_[t]->full_view().begin());
+        field_tokens_[t] = fields_[t]->token();
         }
     }
 
 State::State(State&& other)
-    : mesh_(std::move(other.mesh_)),
+    : TrackedObject(other),
+      mesh_(std::move(other.mesh_)),
       types_(std::move(other.types_)),
       fields_(std::move(other.fields_)),
-      time_(std::move(other.time_))
+      time_(std::move(other.time_)),
+      field_tokens_(std::move(other.field_tokens_))
     {
     }
 
 State& State::operator=(const State& other)
     {
-    if (&other != this)
+    if (this != &other)
         {
+        TrackedObject::operator=(other);
         mesh_ = other.mesh_;
         types_ = other.types_;
         time_ = other.time_;
@@ -60,15 +67,16 @@ State& State::operator=(const State& other)
         TypeMap<int> buffers;
         for (const auto& t : types_)
             {
-            buffers[t] = other.fields_.at(t)->buffer_shape();
+            buffers[t] = other.fields_(t)->buffer_shape();
             }
         other.matchFields(fields_,buffers);
 
         // copy contents of other fields
         for (const auto& t : types_)
             {
-            auto other_field = other.fields_.at(t);
+            auto other_field = other.fields_(t);
             std::copy(other_field->const_full_view().begin(),other_field->const_full_view().end(),fields_[t]->full_view().begin());
+            field_tokens_[t] = fields_[t]->token();
             }
         }
     return *this;
@@ -76,10 +84,12 @@ State& State::operator=(const State& other)
 
 State& State::operator=(State&& other)
     {
+    TrackedObject::operator=(other);
     mesh_ = std::move(other.mesh_);
     types_ = std::move(other.types_);
     fields_ = std::move(other.fields_);
     time_ = std::move(other.time_);
+    field_tokens_ = std::move(other.field_tokens_);
     return *this;
     }
 
@@ -140,12 +150,12 @@ std::shared_ptr<Field> State::getField(const std::string& type)
 
 std::shared_ptr<const Field> State::getField(const std::string& type) const
     {
-    return fields_.at(type);
+    return fields_(type);
     }
 
 void State::requestFieldBuffer(const std::string& type, int buffer_request)
     {
-    fields_.at(type)->requestBuffer(buffer_request);
+    fields_(type)->requestBuffer(buffer_request);
     }
 
 void State::syncFields()
@@ -198,7 +208,7 @@ void State::matchFields(TypeMap<std::shared_ptr<Field>>& fields, const TypeMap<i
         // determine buffer request, preserving buffer if type already exists but no request is made
         int buffer_request;
         auto it = buffer_requests.find(t);
-        if (it != buffer_requests.end())
+        if (it != buffer_requests.cend())
             {
             buffer_request = it->second;
             }
@@ -236,6 +246,30 @@ void State::setTime(double time)
 void State::advanceTime(double timestep)
     {
     time_ += timestep;
+    }
+
+const State::Token& State::token()
+    {
+    // check field tokens match
+    for (const auto& t : types_)
+        {
+        const auto ftoken = fields_[t]->token();
+        if (ftoken != field_tokens_[t])
+            {
+            token_.stage();
+            field_tokens_[t] = ftoken;
+            }
+        }
+
+    // check times match
+    if (std::isnan(token_time_) || time_ != token_time_)
+        {
+        token_.stage();
+        token_time_ = time_;
+        }
+
+    token_.commit();
+    return token_;
     }
 
 }

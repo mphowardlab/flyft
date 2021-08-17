@@ -98,7 +98,7 @@ class Property:
         try:
             v = getattr(obj._self, self.name)
         except:
-            raise AttributeError('Mirror class does not have attribute {}'.format(self.name))
+            raise AttributeError('{}.{} does not have attribute {}'.format(obj._mirrorclass.__module__,obj._mirrorclass.__name__,self.name))
 
         # check for mirror class that *may* be cached
         has_cache = hasattr(obj, self.cache_name)
@@ -137,9 +137,9 @@ class Property:
             if not isinstance(attr,property):
                 raise AttributeError
         except AttributeError:
-            raise AttributeError('{} does not have property {}'.format(obj._mirrorclass.__name__,self.name))
+            raise AttributeError('{}.{} does not have property {}'.format(obj._mirrorclass.__module__,obj._mirrorclass.__name__,self.name))
         if attr.fset is None:
-            raise AttributeError('{} property {} is read only'.format(obj._mirrorclass.__name__,self.name))
+            raise AttributeError('{}.{}.{} is read only'.format(obj._mirrorclass.__module__,obj._mirrorclass.__name__,self.name))
 
         if isinstance(value, Mirror):
             # cache Mirror objects
@@ -169,9 +169,9 @@ class WrappedProperty:
         try:
             v = getattr(obj._self, self.name)
         except:
-            raise AttributeError('Mirror class does not have attribute {}'.format(self.name))
+            raise AttributeError('{}.{} does not have attribute {}'.format(obj._mirrorclass.__module__,obj._mirrorclass.__name__,self.name))
 
-        # check for mirror mapping that *may* be cached as obj._name
+        # check for mirror mapping that *may* be cached as obj.cache_name
         has_cache = hasattr(obj, self.cache_name)
         cache_v = getattr(obj, self.cache_name, None)
 
@@ -186,28 +186,14 @@ class WrappedProperty:
             if not isinstance(attr,property):
                 raise AttributeError
         except AttributeError:
-            raise AttributeError('{} does not have property {}'.format(obj._mirrorclass.__name__,self.name))
-        if attr.fset is None:
-            raise AttributeError('{} property {} is read only'.format(obj._mirrorclass.__name__,self.name))
+            raise AttributeError('{}.{} does not have property {}'.format(obj._mirrorclass.__module__,obj._mirrorclass.__name__,self.name))
 
-        if isinstance(value, self.wrapper):
-            # use value directly
-            setattr(obj, self.cache_name, value)
-            setattr(obj._self, self.name, value._self)
-        elif issubclass(self.wrapper, collections.abc.MutableMapping):
-            # create new mapping
-            container = type(getattr(obj._self, self.name))
-            mirror_v = container()
-            for t,v in value.items():
-                mirror_v[t] = v
-            setattr(obj._self, self.name, mirror_v)
+        container = getattr(obj,self.name)
+        container.clear()
+        if issubclass(self.wrapper, collections.abc.MutableMapping):
+            container.update(value)
         elif issubclass(self.wrapper, collections.abc.MutableSequence):
-            # create new sequence
-            container = type(getattr(obj._self, self.name))
-            mirror_v = container()
-            for v in value:
-                mirror_v.append(v)
-            setattr(obj._self, self.name, mirror_v)
+            container.extend(value)
         else:
             raise TypeError('Cannot convert value to appropriate wrapped type')
 

@@ -12,11 +12,11 @@ void IdealGasFunctional::compute(std::shared_ptr<State> state)
     value_ = 0.0;
     for (const auto& t : state->getTypes())
         {
-        const auto vol = volumes_.at(t);
+        const auto vol = volumes_(t);
 
         // compute the total potential by integration
         auto f = state->getField(t)->const_view();
-        auto d = derivatives_.at(t)->view();
+        auto d = derivatives_(t)->view();
         #ifdef FLYFT_OPENMP
         #pragma omp parallel for schedule(static) default(none) firstprivate(mesh,vol) shared(f,d) reduction(+:value_)
         #endif
@@ -42,31 +42,14 @@ void IdealGasFunctional::compute(std::shared_ptr<State> state)
     value_ = state->getCommunicator()->sum(value_);
     }
 
-const TypeMap<double>& IdealGasFunctional::getVolumes()
+TypeMap<double>& IdealGasFunctional::getVolumes()
     {
     return volumes_;
     }
 
-double IdealGasFunctional::getVolume(const std::string& type) const
+const TypeMap<double>& IdealGasFunctional::getVolumes() const
     {
-    return volumes_.at(type);
-    }
-
-void IdealGasFunctional::setVolumes(const TypeMap<double>& volumes)
-    {
-    volumes_ = TypeMap<double>(volumes);
-    }
-
-void IdealGasFunctional::setVolume(const std::string& type, double volume)
-    {
-    if (volume > 0.)
-        {
-        volumes_[type] = volume;
-        }
-    else
-        {
-        // error: invalid volume
-        }
+    return volumes_;
     }
 
 }

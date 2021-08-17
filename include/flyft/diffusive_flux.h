@@ -4,18 +4,14 @@
 #include "flyft/flux.h"
 #include "flyft/type_map.h"
 
-#include <string>
-
 namespace flyft
 {
 
 class DiffusiveFlux: public Flux
     {
     public:
-        const TypeMap<double>& getDiffusivities();
-        double getDiffusivity(const std::string& type) const;
-        void setDiffusivities(const TypeMap<double>& diffusivities);
-        void setDiffusivity(const std::string& type, double diffusivity);
+        TypeMap<double>& getDiffusivities();
+        const TypeMap<double>& getDiffusivities() const;
 
     protected:
         TypeMap<double> diffusivities_;

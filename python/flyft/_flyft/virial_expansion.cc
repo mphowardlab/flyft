@@ -8,6 +8,6 @@ void bindVirialExpansion(py::module_& m)
 
     py::class_<VirialExpansion,std::shared_ptr<VirialExpansion>,Functional>(m, "VirialExpansion")
         .def(py::init())
-        .def_property("coefficients", &VirialExpansion::getCoefficients, &VirialExpansion::setCoefficients, py::return_value_policy::reference_internal)
+        .def_property_readonly("coefficients", py::overload_cast<>(&VirialExpansion::getCoefficients), py::return_value_policy::reference_internal)
         ;
     }

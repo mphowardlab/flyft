@@ -36,7 +36,7 @@ void GrandPotential::compute(std::shared_ptr<State> state)
     double constraint_value = 0.0;
     for (const auto& t : state->getTypes())
         {
-        auto d = derivatives_.at(t)->view();
+        auto d = derivatives_(t)->view();
         auto did = (ideal_) ? ideal_->getDerivative(t)->const_view() : Field::ConstantView();
         auto dex = (excess_) ? excess_->getDerivative(t)->const_view() : Field::ConstantView();
         auto dext = (external_) ? external_->getDerivative(t)->const_view() : Field::ConstantView();
@@ -62,10 +62,10 @@ void GrandPotential::compute(std::shared_ptr<State> state)
             }
 
         // subtract chemical potential part when component is open
-        auto constraint_type = constraint_types_.at(t);
+        auto constraint_type = constraint_types_(t);
         if (constraint_type == Constraint::mu)
             {
-            const auto mu_bulk = constraints_.at(t);
+            const auto mu_bulk = constraints_(t);
             auto rho = state->getField(t)->const_view();
             #ifdef FLYFT_OPENMP
             #pragma omp parallel for schedule(static) default(none) firstprivate(mesh,mu_bulk) shared(rho,d) reduction(-:value_)
@@ -161,44 +161,24 @@ void GrandPotential::setExternalPotential(std::shared_ptr<ExternalPotential> ext
     external_ = external;
     }
 
-const TypeMap<double>& GrandPotential::getConstraints()
+TypeMap<double>& GrandPotential::getConstraints()
     {
     return constraints_;
     }
 
-double GrandPotential::getConstraint(const std::string& type) const
+const TypeMap<double>& GrandPotential::getConstraints() const
     {
-    return constraints_.at(type);
+    return constraints_;
     }
 
-void GrandPotential::setConstraints(const TypeMap<double>& constraints)
-    {
-    constraints_ = TypeMap<double>(constraints);
-    }
-
-void GrandPotential::setConstraint(const std::string& type, double constraint)
-    {
-    constraints_[type] = constraint;
-    }
-
-const TypeMap<GrandPotential::Constraint>& GrandPotential::getConstraintTypes()
+TypeMap<GrandPotential::Constraint>& GrandPotential::getConstraintTypes()
     {
     return constraint_types_;
     }
 
-GrandPotential::Constraint GrandPotential::getConstraintType(const std::string& type) const
+const TypeMap<GrandPotential::Constraint>& GrandPotential::getConstraintTypes() const
     {
-    return constraint_types_.at(type);
-    }
-
-void GrandPotential::setConstraintTypes(const TypeMap<GrandPotential::Constraint>& constraint_types)
-    {
-    constraint_types_ = TypeMap<GrandPotential::Constraint>(constraint_types);
-    }
-
-void GrandPotential::setConstraintType(const std::string& type, GrandPotential::Constraint constraint_type)
-    {
-    constraint_types_[type] = constraint_type;
+    return constraint_types_;
     }
 
 }

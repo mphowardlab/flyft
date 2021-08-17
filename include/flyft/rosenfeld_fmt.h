@@ -20,10 +20,8 @@ class RosenfeldFMT : public Functional
     public:
         void compute(std::shared_ptr<State> state) override;
 
-        const TypeMap<double>& getDiameters();
-        double getDiameter(const std::string& type) const;
-        void setDiameters(const TypeMap<double>& diameters);
-        void setDiameter(const std::string& type, double diameter);
+        TypeMap<double>& getDiameters();
+        const TypeMap<double>& getDiameters() const;
 
         int determineBufferShape(std::shared_ptr<State> state, const std::string& type) override;
 

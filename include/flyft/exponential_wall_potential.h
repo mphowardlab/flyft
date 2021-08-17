@@ -17,20 +17,14 @@ class ExponentialWallPotential : public WallPotential
     public:
         using WallPotential::WallPotential;
 
-        const TypeMap<double>& getEpsilons();
-        double getEpsilon(const std::string& type) const;
-        void setEpsilons(const TypeMap<double>& epsilons);
-        void setEpsilon(const std::string& type, double epsilon);
+        TypeMap<double>& getEpsilons();
+        const TypeMap<double>& getEpsilons() const;
 
-        const TypeMap<double>& getKappas();
-        double getKappa(const std::string& type) const;
-        void setKappas(const TypeMap<double>& kappas);
-        void setKappa(const std::string& type, double kappa);
+        TypeMap<double>& getKappas();
+        const TypeMap<double>& getKappas() const;
 
-        const TypeMap<double>& getShifts();
-        double getShift(const std::string& type) const;
-        void setShifts(const TypeMap<double>& shifts);
-        void setShift(const std::string& type, double shift);
+        TypeMap<double>& getShifts();
+        const TypeMap<double>& getShifts() const;
 
         void potential(std::shared_ptr<Field> V, const std::string& type, std::shared_ptr<State> state) override;
 

@@ -6,9 +6,9 @@ namespace flyft
 void ExponentialWallPotential::potential(std::shared_ptr<Field> V, const std::string& type, std::shared_ptr<State> state)
     {
     // get potential parameters for this type
-    const auto epsilon = epsilons_.at(type);
-    const auto kappa = kappas_.at(type);
-    const auto shift = shifts_.at(type);
+    const auto epsilon = epsilons_(type);
+    const auto kappa = kappas_(type);
+    const auto shift = shifts_(type);
     const double x0 = origin_->evaluate(state) + shift;
     const auto normal = normal_;
 
@@ -25,64 +25,34 @@ void ExponentialWallPotential::potential(std::shared_ptr<Field> V, const std::st
         }
     }
 
-const TypeMap<double>& ExponentialWallPotential::getEpsilons()
+TypeMap<double>& ExponentialWallPotential::getEpsilons()
     {
     return epsilons_;
     }
 
-double ExponentialWallPotential::getEpsilon(const std::string& type) const
+const TypeMap<double>& ExponentialWallPotential::getEpsilons() const
     {
-    return epsilons_.at(type);
+    return epsilons_;
     }
 
-void ExponentialWallPotential::setEpsilons(const TypeMap<double>& epsilons)
-    {
-    epsilons_ = TypeMap<double>(epsilons);
-    }
-
-void ExponentialWallPotential::setEpsilon(const std::string& type, double epsilon)
-    {
-    epsilons_[type] = epsilon;
-    }
-
-const TypeMap<double>& ExponentialWallPotential::getKappas()
+TypeMap<double>& ExponentialWallPotential::getKappas()
     {
     return kappas_;
     }
 
-double ExponentialWallPotential::getKappa(const std::string& type) const
+const TypeMap<double>& ExponentialWallPotential::getKappas() const
     {
-    return kappas_.at(type);
+    return kappas_;
     }
 
-void ExponentialWallPotential::setKappas(const TypeMap<double>& kappas)
-    {
-    kappas_ = TypeMap<double>(kappas);
-    }
-
-void ExponentialWallPotential::setKappa(const std::string& type, double kappa)
-    {
-    kappas_[type] = kappa;
-    }
-
-const TypeMap<double>& ExponentialWallPotential::getShifts()
+TypeMap<double>& ExponentialWallPotential::getShifts()
     {
     return shifts_;
     }
 
-double ExponentialWallPotential::getShift(const std::string& type) const
+const TypeMap<double>& ExponentialWallPotential::getShifts() const
     {
-    return shifts_.at(type);
-    }
-
-void ExponentialWallPotential::setShifts(const TypeMap<double>& shifts)
-    {
-    shifts_ = TypeMap<double>(shifts);
-    }
-
-void ExponentialWallPotential::setShift(const std::string& type, double shift)
-    {
-    shifts_[type] = shift;
+    return shifts_;
     }
 
 }

@@ -8,9 +8,8 @@ namespace flyft
 PicardIteration::PicardIteration(double mix_param,
                                  int max_iterations,
                                  double tolerance)
-    : IterativeAlgorithmMixin(max_iterations,tolerance)
+    : FixedPointAlgorithmMixin(mix_param,max_iterations,tolerance)
     {
-    setMixParameter(mix_param);
     }
 
 bool PicardIteration::solve(std::shared_ptr<GrandPotential> grand, std::shared_ptr<State> state)
@@ -44,10 +43,10 @@ bool PicardIteration::solve(std::shared_ptr<GrandPotential> grand, std::shared_p
             auto V = (external) ? external->getDerivative(t)->const_view() : Field::ConstantView();
 
             double norm = 1.0;
-            auto constraint_type = grand->getConstraintType(t);
+            auto constraint_type = grand->getConstraintTypes()(t);
             if (constraint_type == GrandPotential::Constraint::N)
                 {
-                auto N = grand->getConstraint(t);
+                auto N = grand->getConstraints()(t);
                 double sum = 0.0;
                 #ifdef FLYFT_OPENMP
                 #pragma omp parallel for schedule(static) default(none) firstprivate(mesh) shared(mu_ex,V,rho_tmp) reduction(+:sum)
@@ -72,7 +71,7 @@ bool PicardIteration::solve(std::shared_ptr<GrandPotential> grand, std::shared_p
                 }
             else if (constraint_type == GrandPotential::Constraint::mu)
                 {
-                const auto mu_bulk = grand->getConstraint(t);
+                const auto mu_bulk = grand->getConstraints()(t);
                 #ifdef FLYFT_OPENMP
                 #pragma omp parallel for schedule(static) default(none) firstprivate(mesh,mu_bulk) shared(mu_ex,V,rho_tmp)
                 #endif
@@ -89,7 +88,7 @@ bool PicardIteration::solve(std::shared_ptr<GrandPotential> grand, std::shared_p
                         }
                     rho_tmp(idx) = std::exp(-eff_energy+mu_bulk);
                     }
-                norm = 1.0/ideal->getVolume(t);
+                norm = 1.0/ideal->getVolumes()(t);
                 }
             else
                 {
@@ -119,20 +118,6 @@ bool PicardIteration::solve(std::shared_ptr<GrandPotential> grand, std::shared_p
         }
 
     return converged;
-    }
-
-double PicardIteration::getMixParameter() const
-    {
-    return mix_param_;
-    }
-
-void PicardIteration::setMixParameter(double mix_param)
-    {
-    if (mix_param <= 0 || mix_param > 1.0)
-        {
-        // error: mix parameter must be between 0 and 1
-        }
-    mix_param_ = mix_param;
     }
 
 }

@@ -2,7 +2,6 @@
 #define FLYFT_PARALLEL_MESH_H_
 
 #include "flyft/communicator.h"
-#include "flyft/data_token.h"
 #include "flyft/field.h"
 #include "flyft/mesh.h"
 
@@ -43,9 +42,7 @@ class ParallelMesh
         std::vector<int> starts_;
         std::vector<int> ends_;
 
-        std::unordered_map<Field::Identifier,DataToken> field_tokens_;
-
-        void setup(std::shared_ptr<Mesh> mesh, std::shared_ptr<Communicator> comm);
+        std::unordered_map<Field::Identifier,Field::Token> field_tokens_;
     };
 
 }

@@ -7,9 +7,9 @@ void LinearPotential::potential(std::shared_ptr<Field> V,
                                 const std::string& type,
                                 std::shared_ptr<State> state)
     {
-    const auto x0 = xs_.at(type);
-    const auto y0 = ys_.at(type);
-    const auto m = slopes_.at(type);
+    const auto x0 = xs_(type);
+    const auto y0 = ys_(type);
+    const auto m = slopes_(type);
 
     const auto mesh = *state->getMesh()->local();
     auto data = V->view();
@@ -23,64 +23,34 @@ void LinearPotential::potential(std::shared_ptr<Field> V,
         }
     }
 
-const TypeMap<double>& LinearPotential::getXs()
+TypeMap<double>& LinearPotential::getXs()
     {
     return xs_;
     }
 
-double LinearPotential::getX(const std::string& type) const
+const TypeMap<double>& LinearPotential::getXs() const
     {
-    return xs_.at(type);
+    return xs_;
     }
 
-void LinearPotential::setXs(const TypeMap<double>& xs)
-    {
-    xs_ = TypeMap<double>(xs);
-    }
-
-void LinearPotential::setX(const std::string& type, double x)
-    {
-    xs_[type] = x;
-    }
-
-const TypeMap<double>& LinearPotential::getYs()
+TypeMap<double>& LinearPotential::getYs()
     {
     return ys_;
     }
 
-double LinearPotential::getY(const std::string& type) const
+const TypeMap<double>& LinearPotential::getYs() const
     {
-    return ys_.at(type);
+    return ys_;
     }
 
-void LinearPotential::setYs(const TypeMap<double>& ys)
-    {
-    ys_ = TypeMap<double>(ys);
-    }
-
-void LinearPotential::setY(const std::string& type, double y)
-    {
-    ys_[type] = y;
-    }
-
-const TypeMap<double>& LinearPotential::getSlopes()
+TypeMap<double>& LinearPotential::getSlopes()
     {
     return slopes_;
     }
 
-double LinearPotential::getSlope(const std::string& type) const
+const TypeMap<double>& LinearPotential::getSlopes() const
     {
-    return slopes_.at(type);
-    }
-
-void LinearPotential::setSlopes(const TypeMap<double>& slopes)
-    {
-    slopes_ = TypeMap<double>(slopes);
-    }
-
-void LinearPotential::setSlope(const std::string& type, double slope)
-    {
-    slopes_[type] = slope;
+    return slopes_;
     }
 
 }

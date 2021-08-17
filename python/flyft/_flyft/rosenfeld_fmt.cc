@@ -8,6 +8,6 @@ void bindRosenfeldFMT(py::module_& m)
 
     py::class_<RosenfeldFMT,std::shared_ptr<RosenfeldFMT>,Functional>(m, "RosenfeldFMT")
         .def(py::init())
-        .def_property("diameters", &RosenfeldFMT::getDiameters, &RosenfeldFMT::setDiameters, py::return_value_policy::reference_internal)
+        .def_property_readonly("diameters", py::overload_cast<>(&RosenfeldFMT::getDiameters), py::return_value_policy::reference_internal)
         ;
     }

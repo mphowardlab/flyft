@@ -26,12 +26,12 @@ const TypeMap<std::shared_ptr<Field>>& Functional::getDerivatives()
 
 std::shared_ptr<Field> Functional::getDerivative(const std::string& type)
     {
-    return derivatives_.at(type);
+    return derivatives_(type);
     }
 
 std::shared_ptr<const Field> Functional::getDerivative(const std::string& type) const
     {
-    return derivatives_.at(type);
+    return derivatives_(type);
     }
 
 void Functional::requestDerivativeBuffer(const std::string& type, int buffer_request)
@@ -58,6 +58,20 @@ void Functional::setup(std::shared_ptr<State> state)
 
     // match derivatives to state types
     state->matchFields(derivatives_,buffer_requests_);
+    }
+
+bool Functional::needsCompute(std::shared_ptr<State> state)
+    {
+    const auto token = state->token();
+    if (token != state_token_)
+        {
+        state_token_ = token;
+        return true;
+        }
+    else
+        {
+        return false;
+        }
     }
 
 }

@@ -17,10 +17,8 @@ class HardWallPotential : public WallPotential
     public:
         using WallPotential::WallPotential;
 
-        const TypeMap<double>& getDiameters();
-        double getDiameter(const std::string& type) const;
-        void setDiameters(const TypeMap<double>& diameters);
-        void setDiameter(const std::string& type, double diameter);
+        TypeMap<double>& getDiameters();
+        const TypeMap<double>& getDiameters() const;
 
         void potential(std::shared_ptr<Field> V, const std::string& type, std::shared_ptr<State> state) override;
 

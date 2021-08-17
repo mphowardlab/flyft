@@ -3,6 +3,7 @@
 // function predeclaration in lieu of a bunch of headers
 void bindPairMap(py::module_&);
 void bindTypeMap(py::module_&);
+void bindVector(py::module_&);
 void bindDoubleParameters(py::module_&);
 
 void bindCommunicator(py::module_&);
@@ -59,6 +60,7 @@ PYBIND11_MODULE(_flyft, m)
 
     bindPairMap(m);
     bindTypeMap(m);
+    bindVector(m);
     bindDoubleParameters(m);
 
     bindCommunicator(m);

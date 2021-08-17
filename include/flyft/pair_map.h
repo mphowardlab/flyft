@@ -1,6 +1,8 @@
 #ifndef FLYFT_PAIR_MAP_H_
 #define FLYFT_PAIR_MAP_H_
 
+#include "flyft/tracked_object.h"
+
 #include <map>
 #include <string>
 #include <utility>
@@ -9,7 +11,7 @@ namespace flyft
 {
 
 template<typename T>
-class PairMap
+class PairMap : public TrackedObject
     {
     private:
         // use ordered map instead of unordered map because string pair cannot be hashed automatically
@@ -44,12 +46,8 @@ class PairMap
 
         mapped_type& operator[](const key_type& key)
             {
+            token_.stage();
             return data_[make_key(key)];
-            }
-
-        mapped_type& operator()(const std::string& i, const std::string& j)
-            {
-            return data_[make_key(i,j)];
             }
 
         const mapped_type& operator()(const std::string& i, const std::string& j) const
@@ -59,11 +57,13 @@ class PairMap
 
         iterator begin()
             {
+            token_.stage();
             return data_.begin();
             }
 
         iterator end()
             {
+            token_.stage();
             return data_.end();
             }
 
@@ -79,11 +79,13 @@ class PairMap
 
         iterator rbegin()
             {
+            token_.stage();
             return data_.rbegin();
             }
 
         iterator rend()
             {
+            token_.stage();
             return data_.rend();
             }
 
@@ -109,22 +111,36 @@ class PairMap
 
         void clear()
             {
+            token_.stage();
             data_.clear();
             }
 
         template<class... Args>
         std::pair<iterator,bool> emplace(Args&&... args)
             {
+            token_.stage();
             return data_.emplace(std::forward<Args>(args)...);
             }
 
         iterator find(const key_type& key)
             {
+            token_.stage();
             return data_.find(make_key(key));
+            }
+
+        const_iterator find(const key_type& key) const
+            {
+            return data_.find(make_key(key));
+            }
+
+        bool contains(const key_type& key) const
+            {
+            return (data_.find(make_key(key)) != data_.cend());
             }
 
         iterator erase(const_iterator pos)
             {
+            token_.stage();
             return data_.erase(pos);
             }
 
