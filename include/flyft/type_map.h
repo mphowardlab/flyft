@@ -44,6 +44,11 @@ class TypeMap : public TrackedObject
 
         const mapped_type& operator()(const std::string& i) const
             {
+            return get(i);
+            }
+
+        const mapped_type& get(const std::string& i) const
+            {
             return data_.at(make_key(i));
             }
 

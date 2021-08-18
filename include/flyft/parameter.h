@@ -2,14 +2,16 @@
 #define FLYFT_PARAMETER_H_
 
 #include "flyft/state.h"
+#include "flyft/tracked_object.h"
 
+#include <cmath>
 #include <memory>
 
 namespace flyft
 {
 
 template<typename T>
-class Parameter
+class Parameter : public TrackedObject
     {
     public:
         Parameter()
@@ -40,6 +42,10 @@ class ConstantParameter : public Parameter<T>
 
         T operator()(std::shared_ptr<State> /*state*/) override
             {
+            if (this->token_.dirty())
+                {
+                this->token_.commit();
+                }
             return value_;
             }
 
@@ -51,6 +57,7 @@ class ConstantParameter : public Parameter<T>
         void setValue(T value)
             {
             value_ = value;
+            this->token_.stage();
             }
 
     private:
@@ -62,13 +69,27 @@ class LinearParameter : public DoubleParameter
     {
     public:
         LinearParameter(double initial, double origin, double rate)
-            : initial_(initial), origin_(origin), rate_(rate)
+            : initial_(initial), origin_(origin), rate_(rate), time_(std::nan("")), value_(std::nan(""))
             {
             }
 
         double operator()(std::shared_ptr<State> state) override
             {
-            return initial_+rate_*(state->getTime()-origin_);
+            // record time for evaluation
+            const double time = state->getTime();
+            if (time != time_)
+                {
+                time_ = time;
+                this->token_.stage();
+                }
+
+            // if anything has changed, evaluate and store
+            if (this->token_.dirty())
+                {
+                value_ = initial_+rate_*(time_-origin_);
+                this->token_.commit();
+                }
+            return value_;
             }
 
         double getInitial() const
@@ -79,6 +100,7 @@ class LinearParameter : public DoubleParameter
         void setInitial(double initial)
             {
             initial_ = initial;
+            this->token_.stage();
             }
 
         double getOrigin() const
@@ -89,6 +111,7 @@ class LinearParameter : public DoubleParameter
         void setOrigin(double origin)
             {
             origin_ = origin;
+            this->token_.stage();
             }
 
         double getRate() const
@@ -99,12 +122,15 @@ class LinearParameter : public DoubleParameter
         void setRate(double rate)
             {
             rate_ = rate;
+            this->token_.stage();
             }
 
     private:
         double initial_;
         double origin_;
         double rate_;
+        double time_;
+        double value_;
     };
 
 }

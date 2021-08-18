@@ -17,7 +17,7 @@ TrackedObject::TrackedObject(const TrackedObject& /*other*/)
     {}
 
 TrackedObject::TrackedObject(TrackedObject&& other)
-    : id_(std::move(other.id_)), token_(std::move(other.token_))
+    : id_(std::move(other.id_)), token_(std::move(other.token_)), depends_(std::move(other.depends_))
     {}
 
 TrackedObject& TrackedObject::operator=(const TrackedObject& other)
@@ -29,8 +29,9 @@ TrackedObject& TrackedObject::operator=(const TrackedObject& other)
     return *this;
     }
 
-TrackedObject& TrackedObject::operator=(TrackedObject&& /*other*/)
+TrackedObject& TrackedObject::operator=(TrackedObject&& other)
     {
+    depends_ = std::move(other.depends_);
     token_.stage();
     return *this;
     }
@@ -45,6 +46,11 @@ TrackedObject::Identifier TrackedObject::id() const
 
 const TrackedObject::Token& TrackedObject::token()
     {
+    if (depends_.changed())
+        {
+        depends_.capture();
+        token_.stage();
+        }
     token_.commit();
     return token_;
     }
@@ -99,6 +105,74 @@ bool TrackedObject::Token::operator==(const TrackedObject::Token& other) const
 bool TrackedObject::Token::operator!=(const TrackedObject::Token& other) const
     {
     return !(*this == other);
+    }
+
+bool TrackedObject::Dependencies::changed()
+    {
+    bool result = false;
+    for (const auto& o : objects_)
+        {
+        if (auto p = o.second.lock())
+            {
+            const auto tok = tokens_.find(o.first);
+            if (tok == tokens_.end() || tok->second != p->token())
+                {
+                result = true;
+                break;
+                }
+            }
+        else
+            {
+            result = true;
+            break;
+            }
+        }
+    return result;
+    }
+
+TrackedObject::Dependencies::Dependencies(std::shared_ptr<TrackedObject> object)
+    : Dependencies(std::vector<std::shared_ptr<TrackedObject>>({object}))
+    {
+    }
+
+TrackedObject::Dependencies::Dependencies(const std::vector<std::shared_ptr<TrackedObject>>& objects)
+    {
+    add(objects);
+    }
+
+void TrackedObject::Dependencies::add(std::shared_ptr<TrackedObject> object)
+    {
+    auto it = objects_.find(object->id());
+    if (it == objects_.end())
+        {
+        objects_[object->id()] = std::weak_ptr<TrackedObject>(object);
+        }
+    }
+
+void TrackedObject::Dependencies::add(const std::vector<std::shared_ptr<TrackedObject>>& objects)
+    {
+    for (const auto& object : objects)
+        {
+        add(object);
+        }
+    }
+
+void TrackedObject::Dependencies::capture()
+    {
+    tokens_.clear();
+    for (const auto& o : objects_)
+        {
+        if (auto p = o.second.lock())
+            {
+            tokens_[o.first] = p->token();
+            }
+        }
+    }
+
+void TrackedObject::Dependencies::clear()
+    {
+    objects_.clear();
+    tokens_.clear();
     }
 
 }

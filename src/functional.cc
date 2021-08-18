@@ -62,16 +62,18 @@ void Functional::setup(std::shared_ptr<State> state)
 
 bool Functional::needsCompute(std::shared_ptr<State> state)
     {
-    const auto token = state->token();
-    if (token != state_token_)
-        {
-        state_token_ = token;
-        return true;
-        }
-    else
-        {
-        return false;
-        }
+    return (state->token() != state_token_ || depends_.changed());
+    }
+
+void Functional::finalize(std::shared_ptr<State> state)
+    {
+    // commit new values
+    token_.stage();
+    token_.commit();
+
+    // capture dependencies
+    depends_.capture();
+    state_token_ = state->token();
     }
 
 }

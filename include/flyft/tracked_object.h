@@ -2,6 +2,9 @@
 #define FLYFT_TRACKED_OBJECT_H_
 
 #include <cstdint>
+#include <memory>
+#include <unordered_map>
+#include <vector>
 
 namespace flyft
 {
@@ -37,6 +40,26 @@ class TrackedObject
                 bool dirty_;
             };
 
+        class Dependencies
+            {
+            public:
+                Dependencies() = default;
+                Dependencies(std::shared_ptr<TrackedObject> object);
+                Dependencies(const std::vector<std::shared_ptr<TrackedObject>>& objects);
+                ~Dependencies() = default;
+
+                bool changed();
+                void capture();
+
+                void add(std::shared_ptr<TrackedObject> object);
+                void add(const std::vector<std::shared_ptr<TrackedObject>>& objects);
+                void clear();
+
+            private:
+                std::unordered_map<Identifier,std::weak_ptr<TrackedObject>> objects_;
+                std::unordered_map<Identifier,Token> tokens_;
+            };
+
         TrackedObject();
         TrackedObject(const TrackedObject& other);
         TrackedObject(TrackedObject&& other);
@@ -50,6 +73,7 @@ class TrackedObject
     protected:
         Identifier id_;
         Token token_;
+        Dependencies depends_;
         static Identifier count;
     };
 

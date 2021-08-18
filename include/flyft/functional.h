@@ -39,10 +39,13 @@ class Functional : public TrackedObject
         double value_;
         TypeMap<std::shared_ptr<Field>> derivatives_;
         TypeMap<int> buffer_requests_;
-        State::Token state_token_;
 
         virtual void setup(std::shared_ptr<State> state);
         virtual bool needsCompute(std::shared_ptr<State> state);
+        virtual void finalize(std::shared_ptr<State> state);
+
+    private:
+        TrackedObject::Token state_token_;
     };
 
 }

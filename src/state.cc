@@ -19,13 +19,15 @@ State::State(double L, int shape, const std::string& type, std::shared_ptr<Commu
     {}
 
 State::State(double L, int shape, const std::vector<std::string>& types, std::shared_ptr<Communicator> comm)
-    : types_(types), time_(0), token_time_(std::nan(""))
+    : types_(types), time_(0)
     {
     mesh_ = std::make_shared<ParallelMesh>(std::make_shared<Mesh>(L,shape),comm);
+    depends_.add(mesh_);
+
     for (const auto& t : types_)
         {
         fields_[t] = std::make_shared<Field>(mesh_->local()->shape());
-        field_tokens_[t] = fields_[t]->token();
+        depends_.add(fields_[t]);
         }
     }
 
@@ -35,12 +37,14 @@ State::State(const State& other)
       types_(other.types_),
       time_(other.time_)
     {
+    depends_.add(mesh_);
+
     for (const auto& t : types_)
         {
         auto other_field = other.fields_(t);
         fields_[t] = std::make_shared<Field>(other_field->shape(),other_field->buffer_shape());
         std::copy(other_field->const_full_view().begin(),other_field->const_full_view().end(),fields_[t]->full_view().begin());
-        field_tokens_[t] = fields_[t]->token();
+        depends_.add(fields_[t]);
         }
     }
 
@@ -49,8 +53,7 @@ State::State(State&& other)
       mesh_(std::move(other.mesh_)),
       types_(std::move(other.types_)),
       fields_(std::move(other.fields_)),
-      time_(std::move(other.time_)),
-      field_tokens_(std::move(other.field_tokens_))
+      time_(std::move(other.time_))
     {
     }
 
@@ -60,6 +63,8 @@ State& State::operator=(const State& other)
         {
         TrackedObject::operator=(other);
         mesh_ = other.mesh_;
+        depends_.add(mesh_);
+
         types_ = other.types_;
         time_ = other.time_;
 
@@ -72,11 +77,12 @@ State& State::operator=(const State& other)
         other.matchFields(fields_,buffers);
 
         // copy contents of other fields
+        depends_.clear();
         for (const auto& t : types_)
             {
             auto other_field = other.fields_(t);
             std::copy(other_field->const_full_view().begin(),other_field->const_full_view().end(),fields_[t]->full_view().begin());
-            field_tokens_[t] = fields_[t]->token();
+            depends_.add(fields_[t]);
             }
         }
     return *this;
@@ -89,7 +95,6 @@ State& State::operator=(State&& other)
     types_ = std::move(other.types_);
     fields_ = std::move(other.fields_);
     time_ = std::move(other.time_);
-    field_tokens_ = std::move(other.field_tokens_);
     return *this;
     }
 
@@ -241,35 +246,13 @@ double State::getTime() const
 void State::setTime(double time)
     {
     time_ = time;
+    token_.stage();
     }
 
 void State::advanceTime(double timestep)
     {
     time_ += timestep;
-    }
-
-const State::Token& State::token()
-    {
-    // check field tokens match
-    for (const auto& t : types_)
-        {
-        const auto ftoken = fields_[t]->token();
-        if (ftoken != field_tokens_[t])
-            {
-            token_.stage();
-            field_tokens_[t] = ftoken;
-            }
-        }
-
-    // check times match
-    if (std::isnan(token_time_) || time_ != token_time_)
-        {
-        token_.stage();
-        token_time_ = time_;
-        }
-
-    token_.commit();
-    return token_;
+    token_.stage();
     }
 
 }

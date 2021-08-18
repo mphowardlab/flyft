@@ -4,6 +4,7 @@
 #include "flyft/communicator.h"
 #include "flyft/field.h"
 #include "flyft/mesh.h"
+#include "flyft/tracked_object.h"
 
 #include <memory>
 #include <unordered_map>
@@ -12,7 +13,7 @@
 namespace flyft
 {
 
-class ParallelMesh
+class ParallelMesh : public TrackedObject
     {
     public:
         ParallelMesh() = delete;

@@ -1,6 +1,8 @@
 #ifndef FLYFT_COMMUNICATOR_H_
 #define FLYFT_COMMUNICATOR_H_
 
+#include "flyft/tracked_object.h"
+
 #ifdef FLYFT_MPI
 #include <mpi.h>
 #endif // FLYFT_MPI
@@ -12,7 +14,7 @@
 namespace flyft
 {
 
-class Communicator
+class Communicator : public TrackedObject
     {
     public:
         Communicator();

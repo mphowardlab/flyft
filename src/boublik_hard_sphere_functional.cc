@@ -5,6 +5,12 @@
 namespace flyft
 {
 
+BoublikHardSphereFunctional::BoublikHardSphereFunctional()
+    : diameters_(std::make_shared<TypeMap<double>>())
+    {
+    depends_.add(diameters_);
+    }
+
 void BoublikHardSphereFunctional::compute(std::shared_ptr<State> state)
     {
     setup(state);
@@ -26,7 +32,7 @@ void BoublikHardSphereFunctional::compute(std::shared_ptr<State> state)
         const auto type_i = types[i];
         fields[i] = state->getField(type_i)->const_view();
         derivs[i] = derivatives_(type_i)->view();
-        diams[i] = diameters_(type_i);
+        diams[i] = diameters_->get(type_i);
         }
 
     // reset energy to zero before accumulating
@@ -141,27 +147,18 @@ void BoublikHardSphereFunctional::compute(std::shared_ptr<State> state)
         }
 
     value_ = state->getCommunicator()->sum(value_);
+
+    finalize(state);
     }
 
-TypeMap<double>& BoublikHardSphereFunctional::getDiameters()
+std::shared_ptr<TypeMap<double>> BoublikHardSphereFunctional::diameters()
     {
     return diameters_;
     }
 
-const TypeMap<double>& BoublikHardSphereFunctional::getDiameters() const
+std::shared_ptr<const TypeMap<double>> BoublikHardSphereFunctional::diameters() const
     {
     return diameters_;
-    }
-
-bool BoublikHardSphereFunctional::needsCompute(std::shared_ptr<State> state)
-    {
-    bool needs_compute = Functional::needsCompute(state);
-    if (diameters_.token() != diameters_token_)
-        {
-        diameters_token_ = diameters_.token();
-        needs_compute = true;
-        }
-    return needs_compute;
     }
 
 }
