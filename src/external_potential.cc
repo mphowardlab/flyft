@@ -15,11 +15,11 @@ void ExternalPotential::compute(std::shared_ptr<State> state)
     for (const auto& t : state->getTypes())
         {
         // evaluate the external potential on the mesh, and store directly in derivative
-        potential(derivatives_.at(t),t,state);
+        potential(derivatives_(t),t,state);
 
         // compute the total potential by integration
         auto f = state->getField(t)->const_view();
-        auto d = derivatives_.at(t)->view();
+        auto d = derivatives_(t)->view();
         for (int idx=0; idx < mesh.shape(); ++idx)
             {
             const double V = d(idx);

@@ -19,20 +19,14 @@ class LinearPotential : public ExternalPotential
                        const std::string& type,
                        std::shared_ptr<State> state) override;
 
-        const TypeMap<double>& getXs();
-        double getX(const std::string& type) const;
-        void setXs(const TypeMap<double>& xs);
-        void setX(const std::string& type, double x);
+        TypeMap<double>& getXs();
+        const TypeMap<double>& getXs() const;
 
-        const TypeMap<double>& getYs();
-        double getY(const std::string& type) const;
-        void setYs(const TypeMap<double>& ys);
-        void setY(const std::string& type, double y);
+        TypeMap<double>& getYs();
+        const TypeMap<double>& getYs() const;
 
-        const TypeMap<double>& getSlopes();
-        double getSlope(const std::string& type) const;
-        void setSlopes(const TypeMap<double>& slopes);
-        void setSlope(const std::string& type, double slope);
+        TypeMap<double>& getSlopes();
+        const TypeMap<double>& getSlopes() const;
 
     protected:
         TypeMap<double> xs_;

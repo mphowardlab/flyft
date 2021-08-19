@@ -32,7 +32,7 @@ void RosenfeldFMT::compute(std::shared_ptr<State> state)
         for (const auto& t : state->getTypes())
             {
             // hard-sphere radius
-            const double R = 0.5*diameters_.at(t);
+            const double R = 0.5*diameters_(t);
             if (R == 0.)
                 {
                 // no radius, no weights contribute (skip)
@@ -161,7 +161,7 @@ void RosenfeldFMT::compute(std::shared_ptr<State> state)
 
     // sync buffers for second fourier transform
         {
-        auto comm = state->getCommunicator();
+        auto comm = state->getMesh();
         comm->sync(dphi_dn0_);
         comm->sync(dphi_dn1_);
         comm->sync(dphi_dn2_);
@@ -211,12 +211,12 @@ void RosenfeldFMT::compute(std::shared_ptr<State> state)
         for (const auto& t : state->getTypes())
             {
             // hard-sphere radius
-            const double R = 0.5*diameters_.at(t);
+            const double R = 0.5*diameters_(t);
             if (R == 0.)
                 {
                 // no radius, no contribution to energy
                 // need to set here as we are not prefilling the array with zeros
-                auto derivative = derivatives_.at(t)->view();
+                auto derivative = derivatives_(t)->view();
                 std::fill(derivative.begin(), derivative.end(),0.0);
                 continue;
                 }
@@ -243,7 +243,7 @@ void RosenfeldFMT::compute(std::shared_ptr<State> state)
 
             // copy the valid values
             Field::ConstantView din(ft_->getRealData(),layout_,buffer_shape_,buffer_shape_+mesh.shape());
-            auto dout = derivatives_.at(t)->view();
+            auto dout = derivatives_(t)->view();
             #ifdef FLYFT_OPENMP
             #pragma omp parallel for schedule(static) default(none) firstprivate(mesh) shared(din,dout)
             #endif
@@ -278,9 +278,9 @@ int RosenfeldFMT::determineBufferShape(std::shared_ptr<State> state, const std::
     return buffer_shape_;
     }
 
-void RosenfeldFMT::setup(std::shared_ptr<State> state)
+bool RosenfeldFMT::setup(std::shared_ptr<State> state)
     {
-    Functional::setup(state);
+    bool compute = Functional::setup(state);
 
     // update Fourier transform to mesh shape + buffer
     const auto mesh = *state->getMesh()->local();
@@ -302,6 +302,8 @@ void RosenfeldFMT::setup(std::shared_ptr<State> state)
     // these two fields only exist in one space
     setupField(phi_);
     setupComplexField(derivativek_);
+
+    return compute;
     }
 
 void RosenfeldFMT::setupField(std::shared_ptr<Field>& field)
@@ -363,31 +365,14 @@ void RosenfeldFMT::computeWeights(std::complex<double>& w0,
         }
     }
 
-const TypeMap<double>& RosenfeldFMT::getDiameters()
+TypeMap<double>& RosenfeldFMT::getDiameters()
     {
     return diameters_;
     }
 
-double RosenfeldFMT::getDiameter(const std::string& type) const
+const TypeMap<double>& RosenfeldFMT::getDiameters() const
     {
-    return diameters_.at(type);
-    }
-
-void RosenfeldFMT::setDiameters(const TypeMap<double>& diameters)
-    {
-    diameters_ = TypeMap<double>(diameters);
-    }
-
-void RosenfeldFMT::setDiameter(const std::string& type, double diameter)
-    {
-    if (diameter >= 0.)
-        {
-        diameters_[type] = diameter;
-        }
-    else
-        {
-        // error: invalid diameter
-        }
+    return diameters_;
     }
 
 }

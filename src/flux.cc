@@ -20,12 +20,12 @@ const TypeMap<std::shared_ptr<Field>>& Flux::getFluxes()
 
 std::shared_ptr<Field> Flux::getFlux(const std::string& type)
     {
-    return fluxes_.at(type);
+    return fluxes_(type);
     }
 
 std::shared_ptr<const Field> Flux::getFlux(const std::string& type) const
     {
-    return fluxes_.at(type);
+    return fluxes_(type);
     }
 
 int Flux::determineBufferShape(std::shared_ptr<State> /*state*/, const std::string& /*type*/)
@@ -66,7 +66,7 @@ bool Flux::validateConstraints(std::shared_ptr<GrandPotential> grand, std::share
     bool valid = true;
     for (const auto& t : state->getTypes())
         {
-        if (grand->getConstraintType(t) != GrandPotential::Constraint::N)
+        if (grand->getConstraintTypes()(t) != GrandPotential::Constraint::N)
             {
             valid = false;
             break;

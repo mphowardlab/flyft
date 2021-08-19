@@ -3,6 +3,7 @@
 
 #include "flyft/field.h"
 #include "flyft/state.h"
+#include "flyft/tracked_object.h"
 #include "flyft/type_map.h"
 
 #include <memory>
@@ -11,7 +12,7 @@
 namespace flyft
 {
 
-class Functional
+class Functional : public TrackedObject
     {
     public:
         Functional();
@@ -39,7 +40,11 @@ class Functional
         TypeMap<std::shared_ptr<Field>> derivatives_;
         TypeMap<int> buffer_requests_;
 
-        virtual void setup(std::shared_ptr<State> state);
+        virtual bool setup(std::shared_ptr<State> state);
+        virtual void finalize(std::shared_ptr<State> state);
+
+    private:
+        TrackedObject::Token state_token_;
     };
 
 }

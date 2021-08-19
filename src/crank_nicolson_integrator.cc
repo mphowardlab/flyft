@@ -37,8 +37,8 @@ void CrankNicolsonIntegrator::step(std::shared_ptr<Flux> flux,
         {
         auto rho = state->getField(t)->const_view();
         auto j = flux->getFlux(t)->const_view();
-        auto last_rho = last_fields_.at(t)->view();
-        auto last_rate = last_rates_.at(t)->view();
+        auto last_rho = last_fields_(t)->view();
+        auto last_rate = last_rates_(t)->view();
 
         #ifdef FLYFT_OPENMP
         #pragma omp parallel for schedule(static) default(none) firstprivate(mesh) \
@@ -71,8 +71,8 @@ void CrankNicolsonIntegrator::step(std::shared_ptr<Flux> flux,
         // check for convergence new state
         for (const auto& t : state->getTypes())
             {
-            auto last_rho = last_fields_.at(t)->const_view();
-            auto last_rate = last_rates_.at(t)->const_view();
+            auto last_rho = last_fields_(t)->const_view();
+            auto last_rate = last_rates_(t)->const_view();
             auto next_rho = state->getField(t)->view();
             auto next_j = flux->getFlux(t)->const_view();
 

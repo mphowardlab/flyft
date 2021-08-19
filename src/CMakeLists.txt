@@ -7,7 +7,6 @@ add_library(flyft SHARED
     communicator.cc
     crank_nicolson_integrator.cc
     data_layout.cc
-    data_token.cc
     diffusive_flux.cc
     explicit_euler_integrator.cc
     exponential_wall_potential.cc
@@ -30,6 +29,7 @@ add_library(flyft SHARED
     rosenfeld_fmt.cc
     solver.cc
     state.cc
+    tracked_object.cc
     virial_expansion.cc
     wall_potential.cc
     )

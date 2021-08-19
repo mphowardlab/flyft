@@ -13,7 +13,7 @@ void CompositeFlux::compute(std::shared_ptr<GrandPotential> grand, std::shared_p
     const auto mesh = *state->getMesh()->local();
     for (const auto& t : state->getTypes())
         {
-        auto j = fluxes_.at(t)->view();
+        auto j = fluxes_(t)->view();
         std::fill(j.begin(),j.end(),0.);
         }
 
@@ -23,7 +23,7 @@ void CompositeFlux::compute(std::shared_ptr<GrandPotential> grand, std::shared_p
         o->compute(grand, state);
         for (const auto& t : state->getTypes())
             {
-            auto j = fluxes_.at(t)->view();
+            auto j = fluxes_(t)->view();
             auto jo = o->getFlux(t)->const_view();
             #ifdef FLYFT_OPENMP
             #pragma omp parallel for schedule(static) default(none) firstprivate(mesh) shared(j,jo)

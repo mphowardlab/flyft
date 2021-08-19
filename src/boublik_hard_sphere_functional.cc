@@ -5,6 +5,11 @@
 namespace flyft
 {
 
+BoublikHardSphereFunctional::BoublikHardSphereFunctional()
+    {
+    depends_.add(&diameters_);
+    }
+
 void BoublikHardSphereFunctional::compute(std::shared_ptr<State> state)
     {
     setup(state);
@@ -21,8 +26,8 @@ void BoublikHardSphereFunctional::compute(std::shared_ptr<State> state)
         {
         const auto type_i = types[i];
         fields[i] = state->getField(type_i)->const_view();
-        derivs[i] = derivatives_.at(type_i)->view();
-        diams[i] = diameters_.at(type_i);
+        derivs[i] = derivatives_(type_i)->view();
+        diams[i] = diameters_(type_i);
         }
 
     // reset energy to zero before accumulating
@@ -137,33 +142,18 @@ void BoublikHardSphereFunctional::compute(std::shared_ptr<State> state)
         }
 
     value_ = state->getCommunicator()->sum(value_);
+
+    finalize(state);
     }
 
-const TypeMap<double>& BoublikHardSphereFunctional::getDiameters()
+TypeMap<double>& BoublikHardSphereFunctional::getDiameters()
     {
     return diameters_;
     }
 
-double BoublikHardSphereFunctional::getDiameter(const std::string& type) const
+const TypeMap<double>& BoublikHardSphereFunctional::getDiameters() const
     {
-    return diameters_.at(type);
-    }
-
-void BoublikHardSphereFunctional::setDiameters(const TypeMap<double>& diameters)
-    {
-    diameters_ = TypeMap<double>(diameters);
-    }
-
-void BoublikHardSphereFunctional::setDiameter(const std::string& type, double diameter)
-    {
-    if (diameter >= 0.)
-        {
-        diameters_[type] = diameter;
-        }
-    else
-        {
-        // error: invalid diameter
-        }
+    return diameters_;
     }
 
 }

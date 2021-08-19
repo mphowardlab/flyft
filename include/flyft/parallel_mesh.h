@@ -2,17 +2,18 @@
 #define FLYFT_PARALLEL_MESH_H_
 
 #include "flyft/communicator.h"
-#include "flyft/data_token.h"
 #include "flyft/field.h"
 #include "flyft/mesh.h"
+#include "flyft/tracked_object.h"
 
 #include <memory>
+#include <unordered_map>
 #include <vector>
 
 namespace flyft
 {
 
-class ParallelMesh
+class ParallelMesh : public TrackedObject
     {
     public:
         ParallelMesh() = delete;
@@ -27,7 +28,10 @@ class ParallelMesh
 
         int getProcessorShape() const;
         int getProcessorCoordinates() const;
+        int getProcessorCoordinatesByOffset(int offset) const;
         int findProcessor(int idx) const;
+
+        void sync(std::shared_ptr<Field> field);
 
     private:
         std::shared_ptr<Communicator> comm_;
@@ -39,7 +43,7 @@ class ParallelMesh
         std::vector<int> starts_;
         std::vector<int> ends_;
 
-        void setup(std::shared_ptr<Mesh> mesh, std::shared_ptr<Communicator> comm);
+        std::unordered_map<Field::Identifier,Field::Token> field_tokens_;
     };
 
 }

@@ -8,6 +8,6 @@ void bindBoublikHardSphereFunctional(py::module_& m)
 
     py::class_<BoublikHardSphereFunctional,std::shared_ptr<BoublikHardSphereFunctional>,Functional>(m, "BoublikHardSphereFunctional")
         .def(py::init())
-        .def_property("diameters", &BoublikHardSphereFunctional::getDiameters, &BoublikHardSphereFunctional::setDiameters, py::return_value_policy::reference_internal)
+        .def_property_readonly("diameters", py::overload_cast<>(&BoublikHardSphereFunctional::getDiameters), py::return_value_policy::reference_internal)
         ;
     }

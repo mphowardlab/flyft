@@ -17,15 +17,11 @@ class HarmonicWallPotential : public WallPotential
     public:
         using WallPotential::WallPotential;
 
-        const TypeMap<double>& getSpringConstants();
-        double getSpringConstant(const std::string& type) const;
-        void setSpringConstants(const TypeMap<double>& spring_constants);
-        void setSpringConstant(const std::string& type, double spring_constant);
+        TypeMap<double>& getSpringConstants();
+        const TypeMap<double>& getSpringConstants() const;
 
-        const TypeMap<double>& getShifts();
-        double getShift(const std::string& type) const;
-        void setShifts(const TypeMap<double>& shifts);
-        void setShift(const std::string& type, double shift);
+        TypeMap<double>& getShifts();
+        const TypeMap<double>& getShifts() const;
 
         void potential(std::shared_ptr<Field> V, const std::string& type, std::shared_ptr<State> state) override;
 

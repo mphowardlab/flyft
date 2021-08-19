@@ -1,7 +1,7 @@
 #ifndef FLYFT_COMMUNICATOR_H_
 #define FLYFT_COMMUNICATOR_H_
 
-#include "flyft/field.h"
+#include "flyft/tracked_object.h"
 
 #ifdef FLYFT_MPI
 #include <mpi.h>
@@ -9,14 +9,12 @@
 
 #include <complex>
 #include <cstdint>
-#include <memory>
 #include <type_traits>
-#include <unordered_map>
 
 namespace flyft
 {
 
-class Communicator
+class Communicator : public TrackedObject
     {
     public:
         Communicator();
@@ -31,8 +29,6 @@ class Communicator
         #endif
         int size() const;
         int rank() const;
-
-        void sync(std::shared_ptr<Field> field);
 
         bool any(bool flag) const;
         bool all(bool flag) const;
@@ -82,8 +78,6 @@ class Communicator
         #endif
         int size_;
         int rank_;
-
-        std::unordered_map<Field::Identifier,DataToken> field_tokens_;
 
         #ifdef FLYFT_MPI
         // https://gist.github.com/2b-t/50d85115db8b12ed263f8231abf07fa2

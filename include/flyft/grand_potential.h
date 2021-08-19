@@ -39,15 +39,11 @@ class GrandPotential : public Functional
             N,
             mu
             };
-        const TypeMap<double>& getConstraints();
-        double getConstraint(const std::string& type) const;
-        void setConstraints(const TypeMap<double>& constraints);
-        void setConstraint(const std::string& type, double constraint);
+        TypeMap<double>& getConstraints();
+        const TypeMap<double>& getConstraints() const;
 
-        const TypeMap<Constraint>& getConstraintTypes();
-        Constraint getConstraintType(const std::string& type) const;
-        void setConstraintTypes(const TypeMap<Constraint>& constraint_types);
-        void setConstraintType(const std::string& type, Constraint constraint_type);
+        TypeMap<Constraint>& getConstraintTypes();
+        const TypeMap<Constraint>& getConstraintTypes() const;
 
     private:
         std::shared_ptr<IdealGasFunctional> ideal_;

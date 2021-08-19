@@ -32,7 +32,7 @@ void ImplicitEulerIntegrator::step(std::shared_ptr<Flux> flux,
     for (const auto& t : state->getTypes())
         {
         auto f = state->getField(t)->const_view();
-        std::copy(f.begin(),f.end(),last_fields_.at(t)->view().begin());
+        std::copy(f.begin(),f.end(),last_fields_(t)->view().begin());
         }
 
     // advance time of state to *next* point
@@ -55,7 +55,7 @@ void ImplicitEulerIntegrator::step(std::shared_ptr<Flux> flux,
         // check for convergence new state
         for (const auto& t : state->getTypes())
             {
-            auto last_rho = last_fields_.at(t)->const_view();
+            auto last_rho = last_fields_(t)->const_view();
             auto next_rho = state->getField(t)->view();
             auto next_j = flux->getFlux(t)->view();
 

@@ -5,6 +5,7 @@
 #include "flyft/field.h"
 #include "flyft/mesh.h"
 #include "flyft/parallel_mesh.h"
+#include "flyft/tracked_object.h"
 #include "flyft/type_map.h"
 
 #include <memory>
@@ -14,7 +15,7 @@
 namespace flyft
 {
 
-class State
+class State : public TrackedObject
     {
     public:
         State() = delete;

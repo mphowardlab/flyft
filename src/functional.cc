@@ -26,12 +26,12 @@ const TypeMap<std::shared_ptr<Field>>& Functional::getDerivatives()
 
 std::shared_ptr<Field> Functional::getDerivative(const std::string& type)
     {
-    return derivatives_.at(type);
+    return derivatives_(type);
     }
 
 std::shared_ptr<const Field> Functional::getDerivative(const std::string& type) const
     {
-    return derivatives_.at(type);
+    return derivatives_(type);
     }
 
 void Functional::requestDerivativeBuffer(const std::string& type, int buffer_request)
@@ -48,7 +48,7 @@ int Functional::determineBufferShape(std::shared_ptr<State> /*state*/, const std
     return 0;
     }
 
-void Functional::setup(std::shared_ptr<State> state)
+bool Functional::setup(std::shared_ptr<State> state)
     {
     // sync required fields
     for (const auto& t : state->getTypes())
@@ -58,6 +58,20 @@ void Functional::setup(std::shared_ptr<State> state)
 
     // match derivatives to state types
     state->matchFields(derivatives_,buffer_requests_);
+
+    // return whether evaluation is required
+    return (state->token() != state_token_ || depends_.changed());
+    }
+
+void Functional::finalize(std::shared_ptr<State> state)
+    {
+    // commit new values
+    token_.stage();
+    token_.commit();
+
+    // capture dependencies
+    depends_.capture();
+    state_token_ = state->token();
     }
 
 }

@@ -1,6 +1,7 @@
 #include "flyft/state.h"
 
 #include <algorithm>
+#include <cmath>
 
 namespace flyft
 {
@@ -21,27 +22,35 @@ State::State(double L, int shape, const std::vector<std::string>& types, std::sh
     : types_(types), time_(0)
     {
     mesh_ = std::make_shared<ParallelMesh>(std::make_shared<Mesh>(L,shape),comm);
+    depends_.add(mesh_.get());
+
     for (const auto& t : types_)
         {
         fields_[t] = std::make_shared<Field>(mesh_->local()->shape());
+        depends_.add(fields_[t].get());
         }
     }
 
 State::State(const State& other)
-    : mesh_(other.mesh_),
+    : TrackedObject(other),
+      mesh_(other.mesh_),
       types_(other.types_),
       time_(other.time_)
     {
+    depends_.add(mesh_.get());
+
     for (const auto& t : types_)
         {
-        auto other_field = other.fields_.at(t);
+        auto other_field = other.fields_(t);
         fields_[t] = std::make_shared<Field>(other_field->shape(),other_field->buffer_shape());
-        std::copy(other_field->const_full_view().begin(),other_field->const_full_view().end(),fields_.at(t)->full_view().begin());
+        std::copy(other_field->const_full_view().begin(),other_field->const_full_view().end(),fields_[t]->full_view().begin());
+        depends_.add(fields_[t].get());
         }
     }
 
 State::State(State&& other)
-    : mesh_(std::move(other.mesh_)),
+    : TrackedObject(other),
+      mesh_(std::move(other.mesh_)),
       types_(std::move(other.types_)),
       fields_(std::move(other.fields_)),
       time_(std::move(other.time_))
@@ -50,9 +59,12 @@ State::State(State&& other)
 
 State& State::operator=(const State& other)
     {
-    if (&other != this)
+    if (this != &other)
         {
+        TrackedObject::operator=(other);
         mesh_ = other.mesh_;
+        depends_.add(mesh_.get());
+
         types_ = other.types_;
         time_ = other.time_;
 
@@ -60,15 +72,17 @@ State& State::operator=(const State& other)
         TypeMap<int> buffers;
         for (const auto& t : types_)
             {
-            buffers[t] = other.fields_.at(t)->buffer_shape();
+            buffers[t] = other.fields_(t)->buffer_shape();
             }
         other.matchFields(fields_,buffers);
 
         // copy contents of other fields
+        depends_.clear();
         for (const auto& t : types_)
             {
-            auto other_field = other.fields_.at(t);
+            auto other_field = other.fields_(t);
             std::copy(other_field->const_full_view().begin(),other_field->const_full_view().end(),fields_[t]->full_view().begin());
+            depends_.add(fields_[t].get());
             }
         }
     return *this;
@@ -76,6 +90,7 @@ State& State::operator=(const State& other)
 
 State& State::operator=(State&& other)
     {
+    TrackedObject::operator=(other);
     mesh_ = std::move(other.mesh_);
     types_ = std::move(other.types_);
     fields_ = std::move(other.fields_);
@@ -140,12 +155,12 @@ std::shared_ptr<Field> State::getField(const std::string& type)
 
 std::shared_ptr<const Field> State::getField(const std::string& type) const
     {
-    return fields_.at(type);
+    return fields_(type);
     }
 
 void State::requestFieldBuffer(const std::string& type, int buffer_request)
     {
-    fields_.at(type)->requestBuffer(buffer_request);
+    fields_(type)->requestBuffer(buffer_request);
     }
 
 void State::syncFields()
@@ -163,7 +178,7 @@ void State::syncFields(const TypeMap<std::shared_ptr<Field>>& fields) const
             }
         else
             {
-            mesh_->getCommunicator()->sync(it->second);
+            mesh_->sync(it->second);
             }
         }
     }
@@ -198,7 +213,7 @@ void State::matchFields(TypeMap<std::shared_ptr<Field>>& fields, const TypeMap<i
         // determine buffer request, preserving buffer if type already exists but no request is made
         int buffer_request;
         auto it = buffer_requests.find(t);
-        if (it != buffer_requests.end())
+        if (it != buffer_requests.cend())
             {
             buffer_request = it->second;
             }
@@ -231,11 +246,13 @@ double State::getTime() const
 void State::setTime(double time)
     {
     time_ = time;
+    token_.stage();
     }
 
 void State::advanceTime(double timestep)
     {
     time_ += timestep;
+    token_.stage();
     }
 
 }
