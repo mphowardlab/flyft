@@ -48,7 +48,7 @@ int Functional::determineBufferShape(std::shared_ptr<State> /*state*/, const std
     return 0;
     }
 
-void Functional::setup(std::shared_ptr<State> state)
+bool Functional::setup(std::shared_ptr<State> state)
     {
     // sync required fields
     for (const auto& t : state->getTypes())
@@ -58,10 +58,8 @@ void Functional::setup(std::shared_ptr<State> state)
 
     // match derivatives to state types
     state->matchFields(derivatives_,buffer_requests_);
-    }
 
-bool Functional::needsCompute(std::shared_ptr<State> state)
-    {
+    // return whether evaluation is required
     return (state->token() != state_token_ || depends_.changed());
     }
 

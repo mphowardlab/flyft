@@ -44,19 +44,17 @@ class TrackedObject
             {
             public:
                 Dependencies() = default;
-                Dependencies(std::shared_ptr<TrackedObject> object);
-                Dependencies(const std::vector<std::shared_ptr<TrackedObject>>& objects);
                 ~Dependencies() = default;
+
+                void add(TrackedObject* object);
+                void remove(Identifier id);
+                void clear();
 
                 bool changed();
                 void capture();
 
-                void add(std::shared_ptr<TrackedObject> object);
-                void add(const std::vector<std::shared_ptr<TrackedObject>>& objects);
-                void clear();
-
             private:
-                std::unordered_map<Identifier,std::weak_ptr<TrackedObject>> objects_;
+                std::unordered_map<Identifier,TrackedObject*> objects_;
                 std::unordered_map<Identifier,Token> tokens_;
             };
 

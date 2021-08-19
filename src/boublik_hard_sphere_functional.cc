@@ -6,18 +6,13 @@ namespace flyft
 {
 
 BoublikHardSphereFunctional::BoublikHardSphereFunctional()
-    : diameters_(std::make_shared<TypeMap<double>>())
     {
-    depends_.add(diameters_);
+    depends_.add(&diameters_);
     }
 
 void BoublikHardSphereFunctional::compute(std::shared_ptr<State> state)
     {
     setup(state);
-    if (!needsCompute(state))
-        {
-        return;
-        }
 
     auto types = state->getTypes();
     const auto mesh = *state->getMesh()->local();
@@ -32,7 +27,7 @@ void BoublikHardSphereFunctional::compute(std::shared_ptr<State> state)
         const auto type_i = types[i];
         fields[i] = state->getField(type_i)->const_view();
         derivs[i] = derivatives_(type_i)->view();
-        diams[i] = diameters_->get(type_i);
+        diams[i] = diameters_(type_i);
         }
 
     // reset energy to zero before accumulating
@@ -151,12 +146,12 @@ void BoublikHardSphereFunctional::compute(std::shared_ptr<State> state)
     finalize(state);
     }
 
-std::shared_ptr<TypeMap<double>> BoublikHardSphereFunctional::diameters()
+TypeMap<double>& BoublikHardSphereFunctional::getDiameters()
     {
     return diameters_;
     }
 
-std::shared_ptr<const TypeMap<double>> BoublikHardSphereFunctional::diameters() const
+const TypeMap<double>& BoublikHardSphereFunctional::getDiameters() const
     {
     return diameters_;
     }

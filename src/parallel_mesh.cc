@@ -45,7 +45,7 @@ ParallelMesh::ParallelMesh(std::shared_ptr<Mesh> mesh, std::shared_ptr<Communica
     local_mesh_ = std::make_shared<Mesh>(end-start,full_mesh_->step(),full_mesh_->asLength(start));
 
     // configure dependencies
-    depends_.add(comm_);
+    depends_.add(comm_.get());
     }
 
 ParallelMesh::~ParallelMesh()

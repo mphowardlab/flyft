@@ -7,7 +7,7 @@ template<class T>
 void bind_type_map(py::module& m, const std::string& name)
     {
     using Map = flyft::TypeMap<T>;
-    py::bind_map<Map,std::shared_ptr<Map>>(m,name.c_str());
+    py::bind_map<Map>(m,name.c_str());
     }
 
 void bindTypeMap(py::module& m)

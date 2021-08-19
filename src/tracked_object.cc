@@ -107,54 +107,25 @@ bool TrackedObject::Token::operator!=(const TrackedObject::Token& other) const
     return !(*this == other);
     }
 
-bool TrackedObject::Dependencies::changed()
-    {
-    bool result = false;
-    for (const auto& o : objects_)
-        {
-        if (auto p = o.second.lock())
-            {
-            const auto tok = tokens_.find(o.first);
-            if (tok == tokens_.end() || tok->second != p->token())
-                {
-                result = true;
-                break;
-                }
-            }
-        else
-            {
-            result = true;
-            break;
-            }
-        }
-    return result;
-    }
-
-TrackedObject::Dependencies::Dependencies(std::shared_ptr<TrackedObject> object)
-    : Dependencies(std::vector<std::shared_ptr<TrackedObject>>({object}))
-    {
-    }
-
-TrackedObject::Dependencies::Dependencies(const std::vector<std::shared_ptr<TrackedObject>>& objects)
-    {
-    add(objects);
-    }
-
-void TrackedObject::Dependencies::add(std::shared_ptr<TrackedObject> object)
+void TrackedObject::Dependencies::add(TrackedObject* object)
     {
     auto it = objects_.find(object->id());
     if (it == objects_.end())
         {
-        objects_[object->id()] = std::weak_ptr<TrackedObject>(object);
+        objects_[object->id()] = object;
         }
     }
 
-void TrackedObject::Dependencies::add(const std::vector<std::shared_ptr<TrackedObject>>& objects)
+void TrackedObject::Dependencies::remove(Identifier id)
     {
-    for (const auto& object : objects)
-        {
-        add(object);
-        }
+    objects_.erase(id);
+    tokens_.erase(id);
+    }
+
+void TrackedObject::Dependencies::clear()
+    {
+    objects_.clear();
+    tokens_.clear();
     }
 
 void TrackedObject::Dependencies::capture()
@@ -162,17 +133,23 @@ void TrackedObject::Dependencies::capture()
     tokens_.clear();
     for (const auto& o : objects_)
         {
-        if (auto p = o.second.lock())
-            {
-            tokens_[o.first] = p->token();
-            }
+        tokens_[o.first] = o.second->token();
         }
     }
 
-void TrackedObject::Dependencies::clear()
+bool TrackedObject::Dependencies::changed()
     {
-    objects_.clear();
-    tokens_.clear();
+    bool result = false;
+    for (const auto& o : objects_)
+        {
+        const auto tok = tokens_.find(o.first);
+        if (tok == tokens_.end() || tok->second != o.second->token())
+            {
+            result = true;
+            break;
+            }
+        }
+    return result;
     }
 
 }

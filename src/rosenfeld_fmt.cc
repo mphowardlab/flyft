@@ -278,9 +278,9 @@ int RosenfeldFMT::determineBufferShape(std::shared_ptr<State> state, const std::
     return buffer_shape_;
     }
 
-void RosenfeldFMT::setup(std::shared_ptr<State> state)
+bool RosenfeldFMT::setup(std::shared_ptr<State> state)
     {
-    Functional::setup(state);
+    bool compute = Functional::setup(state);
 
     // update Fourier transform to mesh shape + buffer
     const auto mesh = *state->getMesh()->local();
@@ -302,6 +302,8 @@ void RosenfeldFMT::setup(std::shared_ptr<State> state)
     // these two fields only exist in one space
     setupField(phi_);
     setupComplexField(derivativek_);
+
+    return compute;
     }
 
 void RosenfeldFMT::setupField(std::shared_ptr<Field>& field)
