@@ -31,6 +31,7 @@ class TrackedObject
                 bool dirty() const;
                 void stage();
 
+                operator bool() const;
                 bool operator==(const Token& other) const;
                 bool operator!=(const Token& other) const;
 
@@ -38,6 +39,8 @@ class TrackedObject
                 Identifier id_;
                 uint64_t code_;
                 bool dirty_;
+
+                static const Identifier invalid_id = 0xffffffffffffffffu;
             };
 
         class Dependencies

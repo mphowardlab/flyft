@@ -60,7 +60,7 @@ bool Functional::setup(std::shared_ptr<State> state)
     state->matchFields(derivatives_,buffer_requests_);
 
     // return whether evaluation is required
-    return (state->token() != state_token_ || depends_.changed());
+    return (!state_token_ || state->token() != state_token_ || depends_.changed());
     }
 
 void Functional::finalize(std::shared_ptr<State> state)

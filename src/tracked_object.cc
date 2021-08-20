@@ -1,6 +1,5 @@
 #include "flyft/tracked_object.h"
 
-#include <cmath>
 #include <stdexcept>
 #include <utility>
 
@@ -56,7 +55,7 @@ const TrackedObject::Token& TrackedObject::token()
     }
 
 TrackedObject::Token::Token()
-    : Token(std::nan(""))
+    : Token(invalid_id)
     {}
 
 TrackedObject::Token::Token(TrackedObject::Identifier id)
@@ -89,9 +88,14 @@ void TrackedObject::Token::stage()
     dirty_ = true;
     }
 
+TrackedObject::Token::operator bool() const
+    {
+    return (id_ != invalid_id);
+    }
+
 bool TrackedObject::Token::operator==(const TrackedObject::Token& other) const
     {
-    if (std::isnan(id_) || std::isnan(other.id_))
+    if (id_ == invalid_id || other.id_ == invalid_id)
         {
         throw std::runtime_error("Cannot compare DataTokens with invalid ids");
         }
