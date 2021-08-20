@@ -1,6 +1,8 @@
 #ifndef FLYFT_FOURIER_TRANSFORM_H_
 #define FLYFT_FOURIER_TRANSFORM_H_
 
+#include "flyft/mesh.h"
+
 // need to include <complex> before <fftw3.h>
 #include <complex>
 #include <fftw3.h>
@@ -13,8 +15,21 @@ namespace flyft
 class FourierTransform
     {
     public:
+        class Wavevectors
+            {
+            public:
+                Wavevectors() = delete;
+                Wavevectors(double L, int N);
+                double operator()(int i) const;
+                int shape() const;
+
+            private:
+                double step_;   //!< Spacing between mesh points
+                int shape_;     //!< Shape of underlying mesh
+            };
+
         FourierTransform() = delete;
-        FourierTransform(int N);
+        FourierTransform(double L, int shape);
         ~FourierTransform();
 
         // noncopyable / nonmovable
@@ -31,18 +46,20 @@ class FourierTransform
 
         void transform();
 
-        int getRealSize() const;
         const double* getRealData() const;
         void setRealData(const double* data);
 
-        int getReciprocalSize() const;
         const std::complex<double>* getReciprocalData() const;
         void setReciprocalData(const std::complex<double>* data);
 
         Space getActiveSpace() const;
 
+        const Mesh& getMesh() const;
+        const Wavevectors& getWavevectors() const;
+
     private:
-        int N_;
+        Mesh mesh_;
+        Wavevectors kmesh_;
         Space space_;
         double* data_;
         fftw_plan r2c_plan_;
