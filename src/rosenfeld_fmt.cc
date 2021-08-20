@@ -237,7 +237,10 @@ void RosenfeldFMT::compute(std::shared_ptr<State> state)
             ft_->transform();
 
             // copy the valid values
-            Field::ConstantView din(ft_->getRealData(),layout_,buffer_shape_,buffer_shape_+mesh.shape());
+            Field::ConstantView din(ft_->getRealData(),
+                                    DataLayout(ft_->getMesh().shape()),
+                                    buffer_shape_,
+                                    buffer_shape_+mesh.shape());
             auto dout = derivatives_(t)->view();
             #ifdef FLYFT_OPENMP
             #pragma omp parallel for schedule(static) default(none) firstprivate(mesh) shared(din,dout)
@@ -284,9 +287,8 @@ bool RosenfeldFMT::setup(std::shared_ptr<State> state)
 
     // update Fourier transform to mesh shape + buffer
     const auto mesh = *state->getMesh()->local();
-
-    layout_ = DataLayout(mesh.shape()+2*buffer_shape_);
-    Mesh ft_mesh(mesh.asLength(layout_.shape()),layout_.shape(),-0.5*mesh.step());
+    const int buffered_shape = mesh.shape()+2*buffer_shape_;
+    Mesh ft_mesh(mesh.asLength(buffered_shape),buffered_shape,-0.5*mesh.step());
     if (!ft_ || ft_mesh != ft_->getMesh())
         {
         ft_ = std::make_unique<FourierTransform>(ft_mesh.L(),ft_mesh.shape());
