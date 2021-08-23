@@ -9,8 +9,10 @@ namespace flyft
 {
 
 RosenfeldFMT::RosenfeldFMT()
+    : weight_mesh_(0.,1)
     {
     compute_depends_.add(&diameters_);
+    weight_depends_.add(&diameters_);
     }
 
 void RosenfeldFMT::compute(std::shared_ptr<State> state)
@@ -320,42 +322,48 @@ bool RosenfeldFMT::setup(std::shared_ptr<State> state)
     setupComplexField(derivativek_);
 
     // precompute w0 and w3
-    for (const auto& t : state->getTypes())
+    if (mesh != weight_mesh_ || weight_depends_.changed())
         {
-        setupComplexField(w0k_[t]);
-        setupComplexField(w3k_[t]);
-
-        const double R = 0.5*diameters_(t);
-        if (R == 0.)
+        for (const auto& it : diameters_)
             {
-            // no radius, no contribution to energy
-            // need to set here as we are not prefilling the array with zeros
-            std::fill(w0k_(t)->view().begin(), w0k_(t)->view().end(),0.0);
-            std::fill(w3k_(t)->view().begin(), w3k_(t)->view().end(),0.0);
-            continue;
-            }
+            const auto t = it.first;
+            setupComplexField(w0k_[t]);
+            setupComplexField(w3k_[t]);
 
-        auto w0k = w0k_(t)->view();
-        auto w3k = w3k_(t)->view();
-        const auto kmesh = ft_->getWavevectors();
-        for (int idx=0; idx < kmesh.shape(); ++idx)
-            {
-            const double k = kmesh(idx);
-            if (k != 0.)
+            const double R = 0.5*it.second;
+            if (R == 0.)
                 {
-                const double kR = k*R;
-                const double sinkR = std::sin(kR);
-                const double coskR = std::cos(kR);
-
-                w0k(idx) = sinkR/kR;
-                w3k(idx) = (4.*M_PI)*(sinkR-kR*coskR)/(k*k*k);
+                // no radius, no contribution to energy
+                // need to set here as we are not prefilling the array with zeros
+                std::fill(w0k_(t)->view().begin(), w0k_(t)->view().end(),0.0);
+                std::fill(w3k_(t)->view().begin(), w3k_(t)->view().end(),0.0);
+                continue;
                 }
-            else
+
+            auto w0k = w0k_(t)->view();
+            auto w3k = w3k_(t)->view();
+            const auto kmesh = ft_->getWavevectors();
+            for (int idx=0; idx < kmesh.shape(); ++idx)
                 {
-                w0k(idx) = 1.0;
-                w3k(idx) = (4.*M_PI/3.)*R*R*R;
+                const double k = kmesh(idx);
+                if (k != 0.)
+                    {
+                    const double kR = k*R;
+                    const double sinkR = std::sin(kR);
+                    const double coskR = std::cos(kR);
+
+                    w0k(idx) = sinkR/kR;
+                    w3k(idx) = (4.*M_PI)*(sinkR-kR*coskR)/(k*k*k);
+                    }
+                else
+                    {
+                    w0k(idx) = 1.0;
+                    w3k(idx) = (4.*M_PI/3.)*R*R*R;
+                    }
                 }
             }
+        weight_mesh_ = mesh;
+        weight_depends_.capture();
         }
 
     return compute;

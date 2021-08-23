@@ -63,6 +63,8 @@ class RosenfeldFMT : public Functional
 
         std::unique_ptr<ComplexField> derivativek_;
 
+        Dependencies weight_depends_;
+        Mesh weight_mesh_;
         TypeMap<std::unique_ptr<ComplexField>> w0k_;
         TypeMap<std::unique_ptr<ComplexField>> w3k_;
 
