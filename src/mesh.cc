@@ -65,4 +65,14 @@ double Mesh::asLength(int shape) const
     return shape*step_;
     }
 
+bool Mesh::operator==(const Mesh& other) const
+    {
+    return (L_ == other.L_ && shape_ == other.shape_ && origin_ == other.origin_);
+    }
+
+bool Mesh::operator!=(const Mesh& other) const
+    {
+    return !(*this == other);
+    }
+
 }

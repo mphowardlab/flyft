@@ -22,8 +22,6 @@ State::State(double L, int shape, const std::vector<std::string>& types, std::sh
     : types_(types), time_(0)
     {
     mesh_ = std::make_shared<ParallelMesh>(std::make_shared<Mesh>(L,shape),comm);
-    depends_.add(mesh_.get());
-
     for (const auto& t : types_)
         {
         fields_[t] = std::make_shared<Field>(mesh_->local()->shape());
@@ -37,8 +35,6 @@ State::State(const State& other)
       types_(other.types_),
       time_(other.time_)
     {
-    depends_.add(mesh_.get());
-
     for (const auto& t : types_)
         {
         auto other_field = other.fields_(t);
@@ -63,8 +59,6 @@ State& State::operator=(const State& other)
         {
         TrackedObject::operator=(other);
         mesh_ = other.mesh_;
-        depends_.add(mesh_.get());
-
         types_ = other.types_;
         time_ = other.time_;
 

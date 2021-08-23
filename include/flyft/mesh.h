@@ -35,6 +35,9 @@ class Mesh
 
         double asLength(int shape) const;
 
+        bool operator==(const Mesh& other) const;
+        bool operator!=(const Mesh& other) const;
+
     private:
         double L_;      //!< Length of the domain
         int shape_;     //!< Shape of the mesh

@@ -74,7 +74,6 @@ class TrackedObject
     protected:
         Identifier id_;
         Token token_;
-        Dependencies depends_;
         static Identifier count;
     };
 

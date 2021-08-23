@@ -35,16 +35,18 @@ class Functional : public TrackedObject
 
         virtual int determineBufferShape(std::shared_ptr<State> state, const std::string& type);
 
+        const Token& token() override;
+
     protected:
         double value_;
         TypeMap<std::shared_ptr<Field>> derivatives_;
         TypeMap<int> buffer_requests_;
+        Dependencies compute_depends_;
+        Token compute_state_;
 
         virtual bool setup(std::shared_ptr<State> state);
         virtual void finalize(std::shared_ptr<State> state);
 
-    private:
-        TrackedObject::Token state_token_;
     };
 
 }

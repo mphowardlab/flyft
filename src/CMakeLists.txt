@@ -25,7 +25,6 @@ add_library(flyft SHARED
     mesh.cc
     parallel_mesh.cc
     picard_iteration.cc
-    reciprocal_mesh.cc
     rosenfeld_fmt.cc
     solver.cc
     state.cc
@@ -40,6 +39,7 @@ target_include_directories(
         $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:flyft/include>
     )
+target_compile_definitions(flyft PUBLIC _USE_MATH_DEFINES)
 if(FLYFT_MPI)
     target_link_libraries(flyft PUBLIC MPI::MPI_CXX)
     target_compile_definitions(flyft PUBLIC FLYFT_MPI)

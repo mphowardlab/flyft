@@ -18,6 +18,8 @@ namespace flyft
 class RosenfeldFMT : public Functional
     {
     public:
+        RosenfeldFMT();
+
         void compute(std::shared_ptr<State> state) override;
 
         TypeMap<double>& getDiameters();
@@ -29,7 +31,6 @@ class RosenfeldFMT : public Functional
         TypeMap<double> diameters_;
         std::unique_ptr<FourierTransform> ft_;
         int buffer_shape_;
-        DataLayout layout_;
 
         std::shared_ptr<Field> n0_;
         std::shared_ptr<Field> n1_;
