@@ -34,6 +34,7 @@ class ParallelMesh : public TrackedObject
         void sync(std::shared_ptr<Field> field);
         void startSync(std::shared_ptr<Field> field);
         void endSync(std::shared_ptr<Field> field);
+        void endSyncAll();
 
         std::shared_ptr<Field> gather(std::shared_ptr<Field> field, int root) const;
 

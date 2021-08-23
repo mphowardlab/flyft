@@ -198,6 +198,18 @@ void ParallelMesh::endSync(std::shared_ptr<Field> field)
     #endif // FLYFT_MPI
     }
 
+void ParallelMesh::endSyncAll()
+    {
+    #ifdef FLYFT_MPI
+    for (auto it = field_requests_.begin(); it != field_requests_.end(); /* no increment here */)
+        {
+        auto requests = it->second;
+        MPI_Waitall(requests.size(),&requests[0],MPI_STATUSES_IGNORE);
+        field_requests_.erase(it++);
+        }
+    #endif // FLYFT_MPI
+    }
+
 std::shared_ptr<Field> ParallelMesh::gather(std::shared_ptr<Field> field, int root) const
     {
     std::shared_ptr<Field> new_field;
