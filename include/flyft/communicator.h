@@ -185,7 +185,7 @@ class Communicator : public TrackedObject
                 }
             else if (std::is_same<T,std::complex<float>>::value)
                 {
-                type = MPI_CXX_COMPLEX;
+                type = MPI_CXX_FLOAT_COMPLEX;
                 }
             else if (std::is_same<T,std::complex<double>>::value)
                 {
