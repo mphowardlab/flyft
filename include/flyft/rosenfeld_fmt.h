@@ -20,7 +20,7 @@ class RosenfeldFMT : public Functional
     public:
         RosenfeldFMT();
 
-        void compute(std::shared_ptr<State> state) override;
+        void compute(std::shared_ptr<State> state, bool compute_value) override;
 
         TypeMap<double>& getDiameters();
         const TypeMap<double>& getDiameters() const;
@@ -63,7 +63,7 @@ class RosenfeldFMT : public Functional
 
         std::unique_ptr<ComplexField> derivativek_;
 
-        bool setup(std::shared_ptr<State> state) override;
+        bool setup(std::shared_ptr<State> state, bool compute_value) override;
 
         void setupField(std::shared_ptr<Field>& field);
         void setupComplexField(std::unique_ptr<ComplexField>& kfield);

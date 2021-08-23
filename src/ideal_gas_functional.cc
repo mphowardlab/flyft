@@ -3,9 +3,9 @@
 namespace flyft
 {
 
-void IdealGasFunctional::compute(std::shared_ptr<State> state)
+void IdealGasFunctional::compute(std::shared_ptr<State> state, bool compute_value)
     {
-    setup(state);
+    setup(state,compute_value);
 
     // compute derivatives and accumulate energy
     const auto mesh = *state->getMesh()->local();
@@ -27,19 +27,31 @@ void IdealGasFunctional::compute(std::shared_ptr<State> state)
             if (rho > 0)
                 {
                 d(idx) = std::log(vol*rho);
-                energy = mesh.step()*rho*(d(idx)-1.);
+                if (compute_value)
+                    {
+                    energy = mesh.step()*rho*(d(idx)-1.);
+                    }
+                else
+                    {
+                    energy = 0.;
+                    }
                 }
             else
                 {
                 d(idx) = -std::numeric_limits<double>::infinity();
                 // no contribution to total in limit rho -> 0
-                energy = 0.0;
+                energy = 0.;
                 }
             value_ += energy;
             }
         }
 
-    value_ = state->getCommunicator()->sum(value_);
+    if (compute_value)
+        {
+        value_ = state->getCommunicator()->sum(value_);
+        }
+
+    finalize(state,compute_value);
     }
 
 TypeMap<double>& IdealGasFunctional::getVolumes()

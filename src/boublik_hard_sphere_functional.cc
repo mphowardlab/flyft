@@ -10,9 +10,9 @@ BoublikHardSphereFunctional::BoublikHardSphereFunctional()
     compute_depends_.add(&diameters_);
     }
 
-void BoublikHardSphereFunctional::compute(std::shared_ptr<State> state)
+void BoublikHardSphereFunctional::compute(std::shared_ptr<State> state, bool compute_value)
     {
-    setup(state);
+    setup(state,compute_value);
 
     auto types = state->getTypes();
     const auto mesh = *state->getMesh()->local();
@@ -92,7 +92,14 @@ void BoublikHardSphereFunctional::compute(std::shared_ptr<State> state)
                     }
 
                 // compute free energy
-                energy = mesh.step()*(6./M_PI)*((xi2_3/xi3_2-xi[0])*logvf + 3.*xi[1]*xi[2]/vf + xi2_3/(xi[3]*vf_2));
+                if (compute_value)
+                    {
+                    energy = mesh.step()*(6./M_PI)*((xi2_3/xi3_2-xi[0])*logvf + 3.*xi[1]*xi[2]/vf + xi2_3/(xi[3]*vf_2));
+                    }
+                else
+                    {
+                    energy = 0.;
+                    }
                 }
             else
                 {
@@ -130,7 +137,14 @@ void BoublikHardSphereFunctional::compute(std::shared_ptr<State> state)
                 derivs[0](idx) = eta*(8.+eta*(-9.+eta*3.))/vf_3;
 
                 // compute free energy
-                energy = mesh.step()*rho*eta*(4.-3.*eta)/vf_2;
+                if (compute_value)
+                    {
+                    energy = mesh.step()*rho*eta*(4.-3.*eta)/vf_2;
+                    }
+                else
+                    {
+                    energy = 0.;
+                    }
                 }
             else
                 {
@@ -141,9 +155,12 @@ void BoublikHardSphereFunctional::compute(std::shared_ptr<State> state)
             }
         }
 
-    value_ = state->getCommunicator()->sum(value_);
+    if (compute_value)
+        {
+        value_ = state->getCommunicator()->sum(value_);
+        }
 
-    finalize(state);
+    finalize(state,compute_value);
     }
 
 TypeMap<double>& BoublikHardSphereFunctional::getDiameters()

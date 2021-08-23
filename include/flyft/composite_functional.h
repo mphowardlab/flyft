@@ -14,7 +14,7 @@ class CompositeFunctional : public Functional, public CompositeMixin<Functional>
     {
     public:
         using CompositeMixin<Functional>::CompositeMixin;
-        void compute(std::shared_ptr<State> state) override;
+        void compute(std::shared_ptr<State> state, bool compute_value) override;
         void requestDerivativeBuffer(const std::string& type, int buffer_request) override;
         int determineBufferShape(std::shared_ptr<State> state, const std::string& type) override;
     };

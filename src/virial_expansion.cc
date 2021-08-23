@@ -5,9 +5,9 @@
 namespace flyft
 {
 
-void VirialExpansion::compute(std::shared_ptr<State> state)
+void VirialExpansion::compute(std::shared_ptr<State> state, bool compute_value)
     {
-    setup(state);
+    setup(state,compute_value);
 
     auto types = state->getTypes();
     const auto mesh = *state->getMesh()->local();
@@ -47,12 +47,20 @@ void VirialExpansion::compute(std::shared_ptr<State> state)
                     dj(idx) += 2*Bij*rhoi;
                     factor = 2.0;
                     }
-                value_ += mesh.step()*(factor*Bij*rhoi*rhoj);
+                if (compute_value)
+                    {
+                    value_ += mesh.step()*(factor*Bij*rhoi*rhoj);
+                    }
                 }
             }
         }
 
-    value_ = state->getCommunicator()->sum(value_);
+    if (compute_value)
+        {
+        value_ = state->getCommunicator()->sum(value_);
+        }
+
+    finalize(state,compute_value);
     }
 
 const PairMap<double>& VirialExpansion::getCoefficients()

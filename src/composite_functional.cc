@@ -5,9 +5,9 @@
 namespace flyft
 {
 
-void CompositeFunctional::compute(std::shared_ptr<State> state)
+void CompositeFunctional::compute(std::shared_ptr<State> state, bool compute_value)
     {
-    setup(state);
+    setup(state,compute_value);
 
     // initialize to zeros
     value_ = 0.0;
@@ -21,11 +21,14 @@ void CompositeFunctional::compute(std::shared_ptr<State> state)
     // combine
     for (const auto& f : objects_)
         {
-        f->compute(state);
+        f->compute(state,compute_value);
 
         // acumulate values
-        const auto v = f->getValue();
-        value_ += v;
+        if (compute_value)
+            {
+            const auto v = f->getValue();
+            value_ += v;
+            }
 
         // accumulate derivatives
         for (const auto& t : state->getTypes())
@@ -41,6 +44,8 @@ void CompositeFunctional::compute(std::shared_ptr<State> state)
                 }
             }
         }
+
+    finalize(state,compute_value);
     }
 
 void CompositeFunctional::requestDerivativeBuffer(const std::string& type, int buffer_request)

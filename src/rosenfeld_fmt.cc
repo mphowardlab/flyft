@@ -13,10 +13,10 @@ RosenfeldFMT::RosenfeldFMT()
     compute_depends_.add(&diameters_);
     }
 
-void RosenfeldFMT::compute(std::shared_ptr<State> state)
+void RosenfeldFMT::compute(std::shared_ptr<State> state, bool compute_value)
     {
     // (re-)allocate the memory needed to work with this state
-    setup(state);
+    setup(state,compute_value);
     state->syncFields();
     const auto mesh = *state->getMesh()->local();
     const auto kmesh = ft_->getWavevectors();
@@ -142,9 +142,16 @@ void RosenfeldFMT::compute(std::shared_ptr<State> state)
             const double f4 = vfinv*vfinv/(24.*M_PI);
             const double df4 = 2.*f4*vfinv;
 
-            phi(idx) = (f1*n0(idx)
-                        +f2*(n1(idx)*n2(idx)-nv1(idx)*nv2(idx))
-                        +f4*(n2(idx)*n2(idx)*n2(idx)-3.*n2(idx)*nv2(idx)*nv2(idx)));
+            if (compute_value)
+                {
+                phi(idx) = (f1*n0(idx)
+                            +f2*(n1(idx)*n2(idx)-nv1(idx)*nv2(idx))
+                            +f4*(n2(idx)*n2(idx)*n2(idx)-3.*n2(idx)*nv2(idx)*nv2(idx)));
+                }
+            else
+                {
+                phi(idx) = 0.;
+                }
 
             dphi_dn0(idx) = f1;
             dphi_dn1(idx) = f2*n2(idx);
@@ -255,6 +262,7 @@ void RosenfeldFMT::compute(std::shared_ptr<State> state)
         }
 
     // accumulate value
+    if (compute_value)
         {
         auto phi = phi_->const_view();
         value_ = 0.0;
@@ -265,9 +273,10 @@ void RosenfeldFMT::compute(std::shared_ptr<State> state)
             {
             value_ += mesh.step()*phi(idx);
             }
+        value_ = state->getCommunicator()->sum(value_);
         }
 
-    value_ = state->getCommunicator()->sum(value_);
+    finalize(state,compute_value);
     }
 
 int RosenfeldFMT::determineBufferShape(std::shared_ptr<State> state, const std::string& /*type*/)
@@ -282,10 +291,10 @@ int RosenfeldFMT::determineBufferShape(std::shared_ptr<State> state, const std::
     return buffer_shape_;
     }
 
-bool RosenfeldFMT::setup(std::shared_ptr<State> state)
+bool RosenfeldFMT::setup(std::shared_ptr<State> state, bool compute_value)
     {
     // this will setup buffer_shape_ indirectly
-    bool compute = Functional::setup(state);
+    bool compute = Functional::setup(state,compute_value);
 
     // update Fourier transform to mesh shape + buffer
     const auto mesh = *state->getMesh()->local();

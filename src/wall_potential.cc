@@ -15,14 +15,14 @@ WallPotential::WallPotential(std::shared_ptr<DoubleParameter> origin, double nor
     setNormal(normal);
     }
 
-void WallPotential::compute(std::shared_ptr<State> state)
+void WallPotential::compute(std::shared_ptr<State> state, bool compute_value)
     {
     const auto x0 = origin_->evaluate(state);
     if (x0 < 0 || x0 > state->getMesh()->full()->L())
         {
         // origin out of bounds
         }
-    ExternalPotential::compute(state);
+    ExternalPotential::compute(state,compute_value);
     }
 
 std::shared_ptr<DoubleParameter> WallPotential::getOrigin()

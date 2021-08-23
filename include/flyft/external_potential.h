@@ -14,7 +14,7 @@ namespace flyft
 class ExternalPotential : public Functional
     {
     public:
-        void compute(std::shared_ptr<State> state) override;
+        void compute(std::shared_ptr<State> state, bool compute_value) override;
 
         virtual void potential(std::shared_ptr<Field> V,
                                const std::string& type,

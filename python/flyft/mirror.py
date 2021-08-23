@@ -48,20 +48,23 @@ class Mirror(metaclass=MirrorMeta):
         return obj
 
 class Method:
-    def __init__(self, doc=None):
+    def __init__(self, doc=None, mirrorname=None):
         self.__doc__ = doc
+        self.mirrorname = mirrorname
 
     def __set_name__(self, owner, name):
         self.name = name
+        if self.mirrorname is None:
+            self.mirrorname = self.name
 
     def __get__(self, obj, objtype=None):
         if obj is None:
             return self
 
         try:
-            meth = getattr(obj._mirrorclass, self.name)
+            meth = getattr(obj._mirrorclass, self.mirrorname)
         except:
-            raise AttributeError('{} does not have method {}'.format(obj._mirrorclass.__name__,self.name))
+            raise AttributeError('{} does not have method {}'.format(obj._mirrorclass.__name__,self.mirrorname))
 
         def mmeth(*args, **kwargs):
             args_ = []
@@ -83,11 +86,14 @@ class Method:
         return mmeth
 
 class Property:
-    def __init__(self, doc=None):
+    def __init__(self, doc=None, mirrorname=None):
         self.__doc__ = doc
+        self.mirrorname = mirrorname
 
     def __set_name__(self, owner, name):
         self.name = name
+        if self.mirrorname is None:
+            self.mirrorname = self.name
         self.cache_name = '_' + name
 
     def __get__(self, obj, objtype=None):
@@ -96,9 +102,9 @@ class Property:
 
         # get value from the mirror class
         try:
-            v = getattr(obj._self, self.name)
+            v = getattr(obj._self, self.mirrorname)
         except:
-            raise AttributeError('{}.{} does not have attribute {}'.format(obj._mirrorclass.__module__,obj._mirrorclass.__name__,self.name))
+            raise AttributeError('{}.{} does not have attribute {}'.format(obj._mirrorclass.__module__,obj._mirrorclass.__name__,self.mirrorname))
 
         # check for mirror class that *may* be cached
         has_cache = hasattr(obj, self.cache_name)
@@ -133,32 +139,35 @@ class Property:
 
     def __set__(self, obj, value):
         try:
-            attr = getattr(obj._mirrorclass, self.name)
+            attr = getattr(obj._mirrorclass, self.mirrorname)
             if not isinstance(attr,property):
                 raise AttributeError
         except AttributeError:
-            raise AttributeError('{}.{} does not have property {}'.format(obj._mirrorclass.__module__,obj._mirrorclass.__name__,self.name))
+            raise AttributeError('{}.{} does not have property {}'.format(obj._mirrorclass.__module__,obj._mirrorclass.__name__,self.mirrorname))
         if attr.fset is None:
-            raise AttributeError('{}.{}.{} is read only'.format(obj._mirrorclass.__module__,obj._mirrorclass.__name__,self.name))
+            raise AttributeError('{}.{}.{} is read only'.format(obj._mirrorclass.__module__,obj._mirrorclass.__name__,self.mirrorname))
 
         if isinstance(value, Mirror):
             # cache Mirror objects
             setattr(obj, self.cache_name, value)
-            setattr(obj._self, self.name, value._self)
+            setattr(obj._self, self.mirrorname, value._self)
         else:
             # don't cache non-Mirror objects
             if hasattr(obj, self.cache_name):
                 delattr(obj, self.cache_name)
-            setattr(obj._self, self.name, value)
+            setattr(obj._self, self.mirrorname, value)
 
 
 class WrappedProperty:
-    def __init__(self, wrapper, doc=None):
+    def __init__(self, wrapper, doc=None, mirrorname=None):
         self.wrapper = wrapper
         self.__doc__ = doc
+        self.mirrorname = mirrorname
 
     def __set_name__(self, owner, name):
         self.name = name
+        if self.mirrorname is None:
+            self.mirrorname = self.name
         self.cache_name = '_' + name
 
     def __get__(self, obj, objtype=None):
@@ -167,9 +176,9 @@ class WrappedProperty:
 
         # get value from the mirror class
         try:
-            v = getattr(obj._self, self.name)
+            v = getattr(obj._self, self.mirrorname)
         except:
-            raise AttributeError('{}.{} does not have attribute {}'.format(obj._mirrorclass.__module__,obj._mirrorclass.__name__,self.name))
+            raise AttributeError('{}.{} does not have attribute {}'.format(obj._mirrorclass.__module__,obj._mirrorclass.__name__,self.mirrorname))
 
         # check for mirror mapping that *may* be cached as obj.cache_name
         has_cache = hasattr(obj, self.cache_name)
@@ -182,11 +191,11 @@ class WrappedProperty:
 
     def __set__(self, obj, value):
         try:
-            attr = getattr(obj._mirrorclass, self.name)
+            attr = getattr(obj._mirrorclass, self.mirrorname)
             if not isinstance(attr,property):
                 raise AttributeError
         except AttributeError:
-            raise AttributeError('{}.{} does not have property {}'.format(obj._mirrorclass.__module__,obj._mirrorclass.__name__,self.name))
+            raise AttributeError('{}.{} does not have property {}'.format(obj._mirrorclass.__module__,obj._mirrorclass.__name__,self.mirrorname))
 
         container = getattr(obj,self.name)
         container.clear()

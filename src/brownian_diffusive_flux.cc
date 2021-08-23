@@ -66,12 +66,12 @@ void BrownianDiffusiveFlux::compute(std::shared_ptr<GrandPotential> grand, std::
     auto external = grand->getExternalPotential();
     if (excess)
         {
-        excess->compute(state);
+        excess->compute(state,false);
         state->startSyncFields(excess->getDerivatives());
         }
     if (external)
         {
-        external->compute(state);
+        external->compute(state,false);
         state->startSyncFields(external->getDerivatives());
         }
     state->startSyncFields();
