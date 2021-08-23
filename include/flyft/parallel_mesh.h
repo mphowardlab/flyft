@@ -32,6 +32,9 @@ class ParallelMesh : public TrackedObject
         int findProcessor(int idx) const;
 
         void sync(std::shared_ptr<Field> field);
+        void startSync(std::shared_ptr<Field> field);
+        void endSync(std::shared_ptr<Field> field);
+
         std::shared_ptr<Field> gather(std::shared_ptr<Field> field, int root) const;
 
     private:
@@ -45,6 +48,9 @@ class ParallelMesh : public TrackedObject
         std::vector<int> ends_;
 
         std::unordered_map<Field::Identifier,Field::Token> field_tokens_;
+        #ifdef FLYFT_MPI
+        std::unordered_map<Field::Identifier,std::vector<MPI_Request>> field_requests_;
+        #endif // FLYFT_MPI
     };
 
 }
