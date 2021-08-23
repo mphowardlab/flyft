@@ -43,6 +43,9 @@ class State : public TrackedObject
         std::shared_ptr<const Field> getField(const std::string& type) const;
         void requestFieldBuffer(const std::string& type, int buffer_request);
 
+        TypeMap<std::shared_ptr<Field>> gatherFields(int rank) const;
+        std::shared_ptr<Field> gatherField(const std::string& type, int rank) const;
+
         void syncFields();
         void syncFields(const TypeMap<std::shared_ptr<Field>>& fields) const;
         void matchFields(TypeMap<std::shared_ptr<Field>>& fields) const;

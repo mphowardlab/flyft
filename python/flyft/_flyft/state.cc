@@ -17,5 +17,6 @@ void bindState(py::module_& m)
         .def_property_readonly("num_fields", &State::getNumFields)
         .def_property_readonly("fields", &State::getFields, py::return_value_policy::reference_internal)
         .def_property("time", &State::getTime, &State::setTime)
+        .def("gather_field",&State::gatherField)
         ;
     }

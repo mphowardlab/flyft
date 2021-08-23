@@ -6,6 +6,7 @@ from . import mirror
 class Communicator(mirror.Mirror,mirrorclass=_flyft.Communicator):
     size = mirror.Property()
     rank = mirror.Property()
+    root = mirror.Property()
 
 class Field(mirror.Mirror,mirrorclass=_flyft.Field):
     def __init__(self, shape):
@@ -85,3 +86,15 @@ class State(mirror.Mirror,mirrorclass=_flyft.State):
     fields = mirror.WrappedProperty(Fields)
     mesh = mirror.Property()
     time = mirror.Property()
+
+    def gather_field(self, type_, rank=None):
+        if rank is None:
+            rank = self.communicator.root
+        f = self._self.gather_field(type_,rank)
+
+        if self.communicator.rank == rank:
+            f = Field.wrap(f)
+        else:
+            f = None
+
+        return f

@@ -24,3 +24,13 @@ def test_time(state):
     state.time += 0.5
     assert state.time == pytest.approx(1.5)
     assert state._self.time == pytest.approx(1.5)
+
+def test_gather_field(state):
+    state.fields['A'][:] = 1.0
+    assert state.fields['A'].shape == state.mesh.local.shape
+
+    a = state.gather_field('A')
+    if state.communicator.rank == state.communicator.root:
+        assert a.shape == state.mesh.full.shape
+    else:
+        assert a is None

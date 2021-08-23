@@ -5,16 +5,16 @@ namespace flyft
 
 Communicator::Communicator()
 #ifdef FLYFT_MPI
-    : Communicator(MPI_COMM_WORLD)
+    : Communicator(MPI_COMM_WORLD,0)
 #else
-    : size_(1), rank_(0)
+    : size_(1), rank_(0), root_(0)
 #endif // FLYFT_MPI
     {
     }
 
 #ifdef FLYFT_MPI
-Communicator::Communicator(MPI_Comm comm)
-    : comm_(comm)
+Communicator::Communicator(MPI_Comm comm, int root)
+    : comm_(comm), root_(root)
     {
     MPI_Comm_size(comm_,&size_);
     MPI_Comm_rank(comm_,&rank_);
@@ -40,6 +40,11 @@ int Communicator::size() const
 int Communicator::rank() const
     {
     return rank_;
+    }
+
+int Communicator::root() const
+    {
+    return root_;
     }
 
 bool Communicator::any(bool flag) const
