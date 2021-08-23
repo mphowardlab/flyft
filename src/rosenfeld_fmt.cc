@@ -9,10 +9,8 @@ namespace flyft
 {
 
 RosenfeldFMT::RosenfeldFMT()
-    : weight_mesh_(0.,1)
     {
     compute_depends_.add(&diameters_);
-    weight_depends_.add(&diameters_);
     }
 
 void RosenfeldFMT::compute(std::shared_ptr<State> state)
@@ -55,10 +53,8 @@ void RosenfeldFMT::compute(std::shared_ptr<State> state)
             auto n3k = n3k_->view();
             auto nv1k = nv1k_->view();
             auto nv2k = nv2k_->view();
-            auto w0k = w0k_(t)->view();
-            auto w3k = w3k_(t)->view();
             #ifdef FLYFT_OPENMP
-            #pragma omp parallel for schedule(static) default(none) firstprivate(R,kmesh) shared(rhok,n0k,n1k,n2k,n3k,nv1k,nv2k,w0k,w3k)
+            #pragma omp parallel for schedule(static) default(none) firstprivate(R,kmesh) shared(rhok,n0k,n1k,n2k,n3k,nv1k,nv2k)
             #endif
             for (int idx=0; idx < kmesh.shape(); ++idx)
                 {
@@ -66,8 +62,6 @@ void RosenfeldFMT::compute(std::shared_ptr<State> state)
 
                 // compute weights at this k, using limiting values for k = 0
                 std::complex<double> w0,w1,w2,w3,wv1,wv2;
-                w0 = w0k(idx);
-                w3 = w3k(idx);
                 computeWeights(w0,w1,w2,w3,wv1,wv2,k,R);
 
                 n0k(idx) += w0*rhok[idx];
@@ -125,9 +119,9 @@ void RosenfeldFMT::compute(std::shared_ptr<State> state)
         auto dphi_dnv1 = dphi_dnv1_->view();
         auto dphi_dnv2 = dphi_dnv2_->view();
 
-        //////////////// The functions in here could be templated out too
         #ifdef FLYFT_OPENMP
-        #pragma omp parallel for schedule(static) default(none) firstprivate(mesh) shared(n0,n1,n2,n3,nv1,nv2,phi,dphi_dn0,dphi_dn1,dphi_dn2,dphi_dn3,dphi_dnv1,dphi_dnv2)
+        #pragma omp parallel for schedule(static) default(none) firstprivate(mesh) \
+        shared(n0,n1,n2,n3,nv1,nv2,phi,dphi_dn0,dphi_dn1,dphi_dn2,dphi_dn3,dphi_dnv1,dphi_dnv2)
         #endif
         for (int idx=0; idx < mesh.shape(); ++idx)
             {
@@ -154,16 +148,13 @@ void RosenfeldFMT::compute(std::shared_ptr<State> state)
 
             dphi_dn0(idx) = f1;
             dphi_dn1(idx) = f2*n2(idx);
-            //////// these can be optimized to reuse quantities from above
             dphi_dn2(idx) = f2*n1(idx) + 3.*f4*(n2(idx)*n2(idx)-nv2(idx)*nv2(idx));
             dphi_dn3(idx) = (df1*n0(idx)
                              +df2*(n1(idx)*n2(idx)-nv1(idx)*nv2(idx))
                              +df4*(n2(idx)*n2(idx)*n2(idx)-3.*n2(idx)*nv2(idx)*nv2(idx)));
-            ////////
             dphi_dnv1(idx) = -f2*nv2(idx);
             dphi_dnv2(idx) = -f2*nv1(idx)-6.*f4*n2(idx)*nv2(idx);
             }
-        ////////////////
         }
 
     // sync buffers for second fourier transform
@@ -228,11 +219,9 @@ void RosenfeldFMT::compute(std::shared_ptr<State> state)
                 continue;
                 }
 
-            auto w0k = w0k_(t)->view();
-            auto w3k = w3k_(t)->view();
             #ifdef FLYFT_OPENMP
             #pragma omp parallel for schedule(static) default(none) firstprivate(kmesh,R) \
-            shared(derivativek,dphi_dn0k,dphi_dn1k,dphi_dn2k,dphi_dn3k,dphi_dnv1k,dphi_dnv2k,w0k,w3k)
+            shared(derivativek,dphi_dn0k,dphi_dn1k,dphi_dn2k,dphi_dn3k,dphi_dnv1k,dphi_dnv2k)
             #endif
             for (int idx=0; idx < kmesh.shape(); ++idx)
                 {
@@ -240,8 +229,6 @@ void RosenfeldFMT::compute(std::shared_ptr<State> state)
 
                 // get weights
                 std::complex<double> w0,w1,w2,w3,wv1,wv2;
-                w0 = w0k(idx);
-                w3 = w3k(idx);
                 computeWeights(w0,w1,w2,w3,wv1,wv2,k,R);
 
                 // convolution (note opposite sign for vector weights due to change of order in convolution)
@@ -321,51 +308,6 @@ bool RosenfeldFMT::setup(std::shared_ptr<State> state)
     setupField(phi_);
     setupComplexField(derivativek_);
 
-    // precompute w0 and w3
-    if (mesh != weight_mesh_ || weight_depends_.changed())
-        {
-        for (const auto& it : diameters_)
-            {
-            const auto t = it.first;
-            setupComplexField(w0k_[t]);
-            setupComplexField(w3k_[t]);
-
-            const double R = 0.5*it.second;
-            if (R == 0.)
-                {
-                // no radius, no contribution to energy
-                // need to set here as we are not prefilling the array with zeros
-                std::fill(w0k_(t)->view().begin(), w0k_(t)->view().end(),0.0);
-                std::fill(w3k_(t)->view().begin(), w3k_(t)->view().end(),0.0);
-                continue;
-                }
-
-            auto w0k = w0k_(t)->view();
-            auto w3k = w3k_(t)->view();
-            const auto kmesh = ft_->getWavevectors();
-            for (int idx=0; idx < kmesh.shape(); ++idx)
-                {
-                const double k = kmesh(idx);
-                if (k != 0.)
-                    {
-                    const double kR = k*R;
-                    const double sinkR = std::sin(kR);
-                    const double coskR = std::cos(kR);
-
-                    w0k(idx) = sinkR/kR;
-                    w3k(idx) = (4.*M_PI)*(sinkR-kR*coskR)/(k*k*k);
-                    }
-                else
-                    {
-                    w0k(idx) = 1.0;
-                    w3k(idx) = (4.*M_PI/3.)*R*R*R;
-                    }
-                }
-            }
-        weight_mesh_ = mesh;
-        weight_depends_.capture();
-        }
-
     return compute;
     }
 
@@ -393,20 +335,39 @@ void RosenfeldFMT::setupComplexField(std::unique_ptr<ComplexField>& kfield)
         }
     }
 
-void RosenfeldFMT::computeWeights(const std::complex<double>& w0,
+void RosenfeldFMT::computeWeights(std::complex<double>& w0,
                                   std::complex<double>& w1,
                                   std::complex<double>& w2,
-                                  const std::complex<double>& w3,
+                                  std::complex<double>& w3,
                                   std::complex<double>& wv1,
                                   std::complex<double>& wv2,
                                   double k,
                                   double R) const
 
     {
-    w1 = R*w0;
-    w2 = (4.*M_PI)*R*w1;
-    wv2 = std::complex<double>(0.,-k)*w3;
-    wv1 = wv2/(4.*M_PI*R);
+    if (k != 0.)
+        {
+        const double kR = k*R;
+        const double sinkR = std::sin(kR);
+        const double coskR = std::cos(kR);
+
+        w0 = sinkR/kR;
+        w1 = R*w0;
+        w2 = (4.*M_PI)*R*w1;
+        w3 = (4.*M_PI)*(sinkR-kR*coskR)/(k*k*k);
+        // do these in opposite order because wv2 follows easily from w3
+        wv2 = std::complex<double>(0.,-k)*w3;
+        wv1 = wv2/(4.*M_PI*R);
+        }
+    else
+        {
+        w0 = 1.0;
+        w1 = R;
+        w2 = (4.*M_PI)*R*w1;
+        w3 = w2*(R/3.);
+        wv1 = 0.0;
+        wv2 = 0.0;
+        }
     }
 
 TypeMap<double>& RosenfeldFMT::getDiameters()

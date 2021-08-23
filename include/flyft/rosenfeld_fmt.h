@@ -63,21 +63,16 @@ class RosenfeldFMT : public Functional
 
         std::unique_ptr<ComplexField> derivativek_;
 
-        Dependencies weight_depends_;
-        Mesh weight_mesh_;
-        TypeMap<std::unique_ptr<ComplexField>> w0k_;
-        TypeMap<std::unique_ptr<ComplexField>> w3k_;
-
         bool setup(std::shared_ptr<State> state) override;
 
         void setupField(std::shared_ptr<Field>& field);
         void setupComplexField(std::unique_ptr<ComplexField>& kfield);
 
         // replace this by a template evaluator for flexibility (requires templating whole class though)
-        void computeWeights(const std::complex<double>& w0,
+        void computeWeights(std::complex<double>& w0,
                             std::complex<double>& w1,
                             std::complex<double>& w2,
-                            const std::complex<double>& w3,
+                            std::complex<double>& w3,
                             std::complex<double>& wv1,
                             std::complex<double>& wv2,
                             double k,
