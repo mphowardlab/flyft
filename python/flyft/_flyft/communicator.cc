@@ -10,5 +10,6 @@ void bindCommunicator(py::module_& m)
         .def(py::init<>())
         .def_property_readonly("size", &Communicator::size)
         .def_property_readonly("rank", &Communicator::rank)
+        .def_property_readonly("root", &Communicator::root)
         ;
     }

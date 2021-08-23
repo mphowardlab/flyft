@@ -32,6 +32,7 @@ class ParallelMesh : public TrackedObject
         int findProcessor(int idx) const;
 
         void sync(std::shared_ptr<Field> field);
+        std::shared_ptr<Field> gather(std::shared_ptr<Field> field, int root) const;
 
     private:
         std::shared_ptr<Communicator> comm_;

@@ -157,6 +157,21 @@ void State::requestFieldBuffer(const std::string& type, int buffer_request)
     fields_(type)->requestBuffer(buffer_request);
     }
 
+TypeMap<std::shared_ptr<Field>> State::gatherFields(int rank) const
+    {
+    TypeMap<std::shared_ptr<Field>> fields;
+    for (const auto& t : types_)
+        {
+        fields[t] = gatherField(t,rank);
+        }
+    return fields;
+    }
+
+std::shared_ptr<Field> State::gatherField(const std::string& type, int rank) const
+    {
+    return mesh_->gather(fields_(type),rank);
+    }
+
 void State::syncFields()
     {
     syncFields(fields_);

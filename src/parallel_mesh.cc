@@ -10,7 +10,7 @@ ParallelMesh::ParallelMesh(std::shared_ptr<Mesh> mesh, std::shared_ptr<Communica
     // set the *full* mesh passed to the communicator
     full_mesh_ = mesh;
 
-    // set the communicator
+    // set the communicator (coordinates are assumed to be the same as rank for now)
     comm_ = comm;
     layout_ = DataLayout(comm_->size());
     coords_ = comm_->rank();
@@ -137,7 +137,7 @@ void ParallelMesh::sync(std::shared_ptr<Field> field)
         }
 
     // sync field
-    const auto f = field->view();
+    auto f = field->view();
     #ifdef FLYFT_MPI
     if (comm_->size() > 1)
         {
@@ -167,6 +167,46 @@ void ParallelMesh::sync(std::shared_ptr<Field> field)
 
     // cache token
     field_tokens_[field->id()] = field->token();
+    }
+
+std::shared_ptr<Field> ParallelMesh::gather(std::shared_ptr<Field> field, int root) const
+    {
+    std::shared_ptr<Field> new_field;
+
+    #ifdef FLYFT_MPI
+    if (comm_->size() > 1)
+        {
+        // determine number of elements sent by each rank
+        std::vector<int> counts(comm_->size());
+        for (int idx=0; idx < layout_.shape(); ++idx)
+            {
+            const auto coord_idx = layout_(idx);
+            counts[coord_idx] = ends_[coord_idx]-starts_[coord_idx];
+            }
+
+        // send buffer is valid on all ranks
+        const auto f = field->const_view();
+
+        // new field will only be alloc'd on the root rank and invalid on others
+        // receive buffer is only valid on the root rank
+        void* recv(nullptr);
+        if (comm_->rank() == root)
+            {
+            new_field = std::make_shared<Field>(full_mesh_->shape());
+            auto new_f = new_field->view();
+            recv = static_cast<void*>(&new_f(0));
+            }
+
+        // gather to the root rank
+        MPI_Gatherv(&f(0),f.size(),MPI_DOUBLE,recv,&counts[0],&starts_[0],MPI_DOUBLE,root,comm_->get());
+        }
+    else
+    #endif
+        {
+        new_field = field;
+        }
+
+    return new_field;
     }
 
 }

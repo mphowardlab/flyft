@@ -19,7 +19,7 @@ class Communicator : public TrackedObject
     public:
         Communicator();
         #ifdef FLYFT_MPI
-        Communicator(MPI_Comm comm);
+        Communicator(MPI_Comm comm, int root);
         #endif
 
         ~Communicator();
@@ -29,6 +29,7 @@ class Communicator : public TrackedObject
         #endif
         int size() const;
         int rank() const;
+        int root() const;
 
         bool any(bool flag) const;
         bool all(bool flag) const;
@@ -78,6 +79,7 @@ class Communicator : public TrackedObject
         #endif
         int size_;
         int rank_;
+        int root_;
 
         #ifdef FLYFT_MPI
         // https://gist.github.com/2b-t/50d85115db8b12ed263f8231abf07fa2
