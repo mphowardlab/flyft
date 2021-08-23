@@ -48,6 +48,16 @@ int Functional::determineBufferShape(std::shared_ptr<State> /*state*/, const std
     return 0;
     }
 
+const Functional::Token& Functional::token()
+    {
+    if (compute_depends_.changed())
+        {
+        compute_depends_.capture();
+        token_.stage();
+        }
+    return TrackedObject::token();
+    }
+
 bool Functional::setup(std::shared_ptr<State> state)
     {
     // sync required fields
@@ -60,7 +70,7 @@ bool Functional::setup(std::shared_ptr<State> state)
     state->matchFields(derivatives_,buffer_requests_);
 
     // return whether evaluation is required
-    return (!state_token_ || state->token() != state_token_ || depends_.changed());
+    return (!compute_state_ || state->token() != compute_state_ || compute_depends_.changed());
     }
 
 void Functional::finalize(std::shared_ptr<State> state)
@@ -70,8 +80,8 @@ void Functional::finalize(std::shared_ptr<State> state)
     token_.commit();
 
     // capture dependencies
-    depends_.capture();
-    state_token_ = state->token();
+    compute_depends_.capture();
+    compute_state_ = state->token();
     }
 
 }

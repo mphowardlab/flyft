@@ -16,7 +16,7 @@ TrackedObject::TrackedObject(const TrackedObject& /*other*/)
     {}
 
 TrackedObject::TrackedObject(TrackedObject&& other)
-    : id_(std::move(other.id_)), token_(std::move(other.token_)), depends_(std::move(other.depends_))
+    : id_(std::move(other.id_)), token_(std::move(other.token_))
     {}
 
 TrackedObject& TrackedObject::operator=(const TrackedObject& other)
@@ -28,9 +28,8 @@ TrackedObject& TrackedObject::operator=(const TrackedObject& other)
     return *this;
     }
 
-TrackedObject& TrackedObject::operator=(TrackedObject&& other)
+TrackedObject& TrackedObject::operator=(TrackedObject&& /*other*/)
     {
-    depends_ = std::move(other.depends_);
     token_.stage();
     return *this;
     }
@@ -45,11 +44,6 @@ TrackedObject::Identifier TrackedObject::id() const
 
 const TrackedObject::Token& TrackedObject::token()
     {
-    if (depends_.changed())
-        {
-        depends_.capture();
-        token_.stage();
-        }
     token_.commit();
     return token_;
     }

@@ -7,7 +7,7 @@ namespace flyft
 
 BoublikHardSphereFunctional::BoublikHardSphereFunctional()
     {
-    depends_.add(&diameters_);
+    compute_depends_.add(&diameters_);
     }
 
 void BoublikHardSphereFunctional::compute(std::shared_ptr<State> state)

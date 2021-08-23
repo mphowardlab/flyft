@@ -10,7 +10,7 @@ namespace flyft
 
 RosenfeldFMT::RosenfeldFMT()
     {
-    depends_.add(&diameters_);
+    compute_depends_.add(&diameters_);
     }
 
 void RosenfeldFMT::compute(std::shared_ptr<State> state)

@@ -57,6 +57,8 @@ class State : public TrackedObject
         std::vector<std::string> types_;
         TypeMap<std::shared_ptr<Field>> fields_;
         double time_;
+
+        Dependencies depends_;
     };
 
 }
