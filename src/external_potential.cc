@@ -18,28 +18,31 @@ void ExternalPotential::compute(std::shared_ptr<State> state, bool compute_value
         potential(derivatives_(t),t,state);
 
         // compute the total potential by integration
-        auto f = state->getField(t)->const_view();
-        auto d = derivatives_(t)->view();
-        for (int idx=0; idx < mesh.shape(); ++idx)
+        if (compute_value)
             {
-            const double V = d(idx);
-            const double rho = f(idx);
-            if (std::isinf(V))
+            auto f = state->getField(t)->const_view();
+            auto d = derivatives_(t)->view();
+            for (int idx=0; idx < mesh.shape(); ++idx)
                 {
-                if (rho > 0)
+                const double V = d(idx);
+                const double rho = f(idx);
+                if (std::isinf(V))
                     {
-                    // density present and infinite potential, stop summing
-                    value_ = V;
-                    break;
+                    if (rho > 0)
+                        {
+                        // density present and infinite potential, stop summing
+                        value_ = V;
+                        break;
+                        }
+                    else
+                        {
+                        // no contribution, ignore
+                        }
                     }
-                else
+                else if (compute_value)
                     {
-                    // no contribution, ignore
+                    value_ += mesh.step()*rho*V;
                     }
-                }
-            else if (compute_value)
-                {
-                value_ += mesh.step()*rho*V;
                 }
             }
         }
