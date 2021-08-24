@@ -3,6 +3,13 @@
 namespace flyft
 {
 
+LinearPotential::LinearPotential()
+    {
+    compute_depends_.add(&xs_);
+    compute_depends_.add(&ys_);
+    compute_depends_.add(&slopes_);
+    }
+
 void LinearPotential::potential(std::shared_ptr<Field> V,
                                 const std::string& type,
                                 std::shared_ptr<State> state)

@@ -15,6 +15,8 @@ namespace flyft
 class LinearPotential : public ExternalPotential
     {
     public:
+        LinearPotential();
+
         void potential(std::shared_ptr<Field> V,
                        const std::string& type,
                        std::shared_ptr<State> state) override;

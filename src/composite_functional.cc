@@ -5,9 +5,17 @@
 namespace flyft
 {
 
+CompositeFunctional::CompositeFunctional()
+    {
+    }
+
 void CompositeFunctional::compute(std::shared_ptr<State> state, bool compute_value)
     {
-    setup(state,compute_value);
+    bool needs_compute = setup(state,compute_value);
+    if (!needs_compute)
+        {
+        return;
+        }
 
     // initialize to zeros
     value_ = 0.0;
@@ -21,8 +29,6 @@ void CompositeFunctional::compute(std::shared_ptr<State> state, bool compute_val
     // combine
     for (const auto& f : objects_)
         {
-        f->compute(state,compute_value);
-
         // acumulate values
         if (compute_value)
             {
@@ -65,6 +71,52 @@ int CompositeFunctional::determineBufferShape(std::shared_ptr<State> state, cons
         max_buffer_shape = std::max(buffer_shape,max_buffer_shape);
         }
     return max_buffer_shape;
+    }
+
+bool CompositeFunctional::addObject(std::shared_ptr<Functional> object)
+    {
+    bool added = CompositeMixin<Functional>::addObject(object);
+    if (added)
+        {
+        compute_depends_.add(object.get());
+        token_.stage();
+        }
+    return added;
+    }
+
+bool CompositeFunctional::removeObject(std::shared_ptr<Functional> object)
+    {
+    bool removed = CompositeMixin<Functional>::removeObject(object);
+    if (removed)
+        {
+        compute_depends_.remove(object->id());
+        token_.stage();
+        }
+    return removed;
+    }
+
+void CompositeFunctional::clearObjects()
+    {
+    if (objects_.size() > 0)
+        {
+        CompositeMixin<Functional>::clearObjects();
+        token_.stage();
+        }
+    }
+
+bool CompositeFunctional::setup(std::shared_ptr<State> state, bool compute_value)
+    {
+    bool compute = Functional::setup(state,compute_value);
+
+    // compute on member objects and check if anything changed
+    compute_depends_.capture();
+    for (const auto& f : objects_)
+        {
+        f->compute(state,compute_value);
+        }
+    compute |= compute_depends_.changed();
+
+    return compute;
     }
 
 }

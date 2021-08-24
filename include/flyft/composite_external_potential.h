@@ -15,15 +15,16 @@ namespace flyft
 class CompositeExternalPotential : public ExternalPotential, public CompositeMixin<ExternalPotential>
     {
     public:
-        using CompositeMixin<ExternalPotential>::CompositeMixin;
+        CompositeExternalPotential();
 
         void potential(std::shared_ptr<Field> V, const std::string& type, std::shared_ptr<State> state) override;
 
+        bool addObject(std::shared_ptr<ExternalPotential> object);
+        bool removeObject(std::shared_ptr<ExternalPotential> object);
+        void clearObjects();
+
     protected:
         bool setup(std::shared_ptr<State> state, bool compute_value) override;
-
-    private:
-        std::shared_ptr<Field> Vtmp_;
     };
 
 }

@@ -1,6 +1,7 @@
 #include "flyft/functional.h"
 
 #include <algorithm>
+#include <iostream>
 
 namespace flyft
 {
@@ -68,11 +69,12 @@ bool Functional::setup(std::shared_ptr<State> state, bool compute_value)
 
     // match derivatives to state types
     state->matchFields(derivatives_,buffer_requests_);
-
+    
     // return whether evaluation is required
-    bool compute = (!compute_state_ ||
-                    state->token() != compute_state_ ||
-                    compute_depends_.changed() ||
+    bool compute = (!compute_token_ ||
+                    !compute_state_token_ ||
+                    token() != compute_token_ ||
+                    state->token() != compute_state_token_ ||
                     (compute_value && std::isnan(value_)));
 
     return compute;
@@ -80,19 +82,18 @@ bool Functional::setup(std::shared_ptr<State> state, bool compute_value)
 
 void Functional::finalize(std::shared_ptr<State> state, bool compute_value)
     {
-    // commit new values
-    token_.stage();
-    token_.commit();
-
-    // capture dependencies
-    compute_depends_.capture();
-    compute_state_ = state->token();
-
     // make sure value has NaN if not computed
     if (!compute_value)
         {
         value_ = std::nan("");
         }
+
+    // stage changes after a compute
+    token_.stage();
+
+    // capture dependencies
+    compute_token_ = token();
+    compute_state_token_ = state->token();
     }
 
 }

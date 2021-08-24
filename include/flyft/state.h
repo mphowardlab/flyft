@@ -61,6 +61,8 @@ class State : public TrackedObject
         void setTime(double time);
         void advanceTime(double timestep);
 
+        const Token& token() override;
+
     private:
         std::shared_ptr<ParallelMesh> mesh_;
         std::vector<std::string> types_;

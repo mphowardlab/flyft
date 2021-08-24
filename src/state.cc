@@ -300,4 +300,14 @@ void State::advanceTime(double timestep)
     token_.stage();
     }
 
+const State::Token& State::token()
+    {
+    if (depends_.changed())
+        {
+        depends_.capture();
+        token_.stage();
+        }
+    return TrackedObject::token();
+    }
+
 }

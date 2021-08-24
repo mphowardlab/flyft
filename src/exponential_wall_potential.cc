@@ -3,6 +3,19 @@
 namespace flyft
 {
 
+ExponentialWallPotential::ExponentialWallPotential(double origin, double normal)
+    : ExponentialWallPotential(std::make_shared<ConstantDoubleParameter>(origin),normal)
+    {
+    }
+
+ExponentialWallPotential::ExponentialWallPotential(std::shared_ptr<DoubleParameter> origin, double normal)
+    : WallPotential(origin,normal)
+    {
+    compute_depends_.add(&epsilons_);
+    compute_depends_.add(&kappas_);
+    compute_depends_.add(&shifts_);
+    }
+
 void ExponentialWallPotential::potential(std::shared_ptr<Field> V, const std::string& type, std::shared_ptr<State> state)
     {
     // get potential parameters for this type

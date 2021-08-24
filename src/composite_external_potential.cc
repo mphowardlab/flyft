@@ -5,9 +5,17 @@
 namespace flyft
 {
 
+CompositeExternalPotential::CompositeExternalPotential()
+    {
+    }
+
 void CompositeExternalPotential::potential(std::shared_ptr<Field> V, const std::string& type, std::shared_ptr<State> state)
     {
-    // TODO: move compute() calls on objects here, or if someone calls potential() directly this will fail
+    // ensure objects are up-to-date, this will do nothing if nothing has changed
+    for (const auto& o : objects_)
+        {
+        o->compute(state,false);
+        }
 
     // fill total potential with zeros and accumulate
     const auto mesh = *state->getMesh()->local();
@@ -26,16 +34,48 @@ void CompositeExternalPotential::potential(std::shared_ptr<Field> V, const std::
         }
     }
 
+bool CompositeExternalPotential::addObject(std::shared_ptr<ExternalPotential> object)
+    {
+    bool added = CompositeMixin<ExternalPotential>::addObject(object);
+    if (added)
+        {
+        compute_depends_.add(object.get());
+        token_.stage();
+        }
+    return added;
+    }
+
+bool CompositeExternalPotential::removeObject(std::shared_ptr<ExternalPotential> object)
+    {
+    bool removed = CompositeMixin<ExternalPotential>::removeObject(object);
+    if (removed)
+        {
+        compute_depends_.remove(object->id());
+        token_.stage();
+        }
+    return removed;
+    }
+
+void CompositeExternalPotential::clearObjects()
+    {
+   if (objects_.size() > 0)
+        {
+        CompositeMixin<ExternalPotential>::clearObjects();
+        token_.stage();
+        }
+    }
+
 bool CompositeExternalPotential::setup(std::shared_ptr<State> state, bool compute_value)
     {
     bool compute = ExternalPotential::setup(state,compute_value);
 
-    // evaluate the potentials during the setup
-    // TODO: move this to potential() once caching is in place to guard against multiple compute() calls
+    // compute on member objects and check if anything changed
+    compute_depends_.capture();
     for (const auto& o : objects_)
         {
         o->compute(state,compute_value);
         }
+    compute |= compute_depends_.changed();
 
     return compute;
     }

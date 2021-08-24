@@ -3,6 +3,18 @@
 namespace flyft
 {
 
+HarmonicWallPotential::HarmonicWallPotential(double origin, double normal)
+    : HarmonicWallPotential(std::make_shared<ConstantDoubleParameter>(origin),normal)
+    {
+    }
+
+HarmonicWallPotential::HarmonicWallPotential(std::shared_ptr<DoubleParameter> origin, double normal)
+    : WallPotential(origin,normal)
+    {
+    compute_depends_.add(&spring_constants_);
+    compute_depends_.add(&shifts_);
+    }
+
 void HarmonicWallPotential::potential(std::shared_ptr<Field> V, const std::string& type, std::shared_ptr<State> state)
     {
     // get potential parameters for this type

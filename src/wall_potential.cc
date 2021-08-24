@@ -4,9 +4,8 @@ namespace flyft
 {
 
 WallPotential::WallPotential(double origin, double normal)
+    : WallPotential(std::make_shared<ConstantDoubleParameter>(origin),normal)
     {
-    setOrigin(origin);
-    setNormal(normal);
     }
 
 WallPotential::WallPotential(std::shared_ptr<DoubleParameter> origin, double normal)
@@ -37,12 +36,22 @@ std::shared_ptr<const DoubleParameter> WallPotential::getOrigin() const
 
 void WallPotential::setOrigin(double origin)
     {
+    if (origin_)
+        {
+        compute_depends_.remove(origin_->id());
+        }
     origin_ = std::make_shared<ConstantDoubleParameter>(origin);
+    compute_depends_.add(origin_.get());
     }
 
 void WallPotential::setOrigin(std::shared_ptr<DoubleParameter> origin)
     {
+    if (origin_)
+        {
+        compute_depends_.remove(origin_->id());
+        }
     origin_ = origin;
+    compute_depends_.add(origin_.get());
     }
 
 double WallPotential::getNormal() const
@@ -64,6 +73,7 @@ void WallPotential::setNormal(double normal)
         {
         // error: normal must be nonzero
         }
+    token_.stage();
     }
 
 }

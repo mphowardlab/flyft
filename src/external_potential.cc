@@ -7,7 +7,11 @@ namespace flyft
 
 void ExternalPotential::compute(std::shared_ptr<State> state, bool compute_value)
     {
-    setup(state,compute_value);
+    bool needs_compute = setup(state,compute_value);
+    if (!needs_compute)
+        {
+        return;
+        }
 
     // compute derivatives and accumulate energy
     const auto mesh = *state->getMesh()->local();
