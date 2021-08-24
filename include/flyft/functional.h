@@ -47,7 +47,6 @@ class Functional : public TrackedObject
 
         virtual bool setup(std::shared_ptr<State> state, bool compute_value);
         virtual void finalize(std::shared_ptr<State> state, bool compute_value);
-
     };
 
 }

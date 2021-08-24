@@ -1,7 +1,6 @@
 #include "flyft/functional.h"
 
 #include <algorithm>
-#include <iostream>
 
 namespace flyft
 {
@@ -67,14 +66,30 @@ bool Functional::setup(std::shared_ptr<State> state, bool compute_value)
         state->requestFieldBuffer(t,determineBufferShape(state,t));
         }
 
-    // match derivatives to state types
+    // match derivatives to state types, and attach as dependencies
+    TypeMap<Identifier> deriv_ids;
+    for (const auto& it : derivatives_)
+        {
+        deriv_ids[it.first] = it.second->id();
+        }
     state->matchFields(derivatives_,buffer_requests_);
+    for (const auto& it : deriv_ids)
+        {
+        // type removed or field is a new object
+        if (!derivatives_.contains(it.first) || derivatives_[it.first]->id() != it.second)
+            {
+            compute_depends_.remove(it.second);
+            }
+        }
+    for (const auto& it : derivatives_)
+        {
+        // attach the active objects (will do nothing if object is already a dependency)
+        compute_depends_.add(it.second.get());
+        }
     
     // return whether evaluation is required
-    bool compute = (!compute_token_ ||
-                    !compute_state_token_ ||
-                    token() != compute_token_ ||
-                    state->token() != compute_state_token_ ||
+    bool compute = ((!compute_token_ || token() != compute_token_) ||
+                    (!compute_state_token_ || state->token() != compute_state_token_) ||
                     (compute_value && std::isnan(value_)));
 
     return compute;
