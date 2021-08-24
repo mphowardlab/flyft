@@ -16,7 +16,11 @@ class CompositeExternalPotential : public ExternalPotential, public CompositeMix
     {
     public:
         using CompositeMixin<ExternalPotential>::CompositeMixin;
+
         void potential(std::shared_ptr<Field> V, const std::string& type, std::shared_ptr<State> state) override;
+
+    protected:
+        bool setup(std::shared_ptr<State> state, bool compute_value) override;
 
     private:
         std::shared_ptr<Field> Vtmp_;
