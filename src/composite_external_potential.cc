@@ -9,6 +9,22 @@ CompositeExternalPotential::CompositeExternalPotential()
     {
     }
 
+void CompositeExternalPotential::compute(std::shared_ptr<State> state, bool compute_value)
+    {
+    bool needs_compute = setup(state,compute_value);
+    for (const auto& o : objects_)
+        {
+        o->compute(state,compute_value);
+        }
+    needs_compute |= (!compute_token_ || token() != compute_token_);
+    if (!needs_compute)
+        {
+        return;
+        }
+
+    ExternalPotential::compute(state,compute_value);
+    }
+
 void CompositeExternalPotential::potential(std::shared_ptr<Field> V, const std::string& type, std::shared_ptr<State> state)
     {
     // ensure objects are up-to-date, this will do nothing if nothing has changed
@@ -63,21 +79,6 @@ void CompositeExternalPotential::clearObjects()
         CompositeMixin<ExternalPotential>::clearObjects();
         token_.stage();
         }
-    }
-
-bool CompositeExternalPotential::setup(std::shared_ptr<State> state, bool compute_value)
-    {
-    bool compute = ExternalPotential::setup(state,compute_value);
-
-    // compute on member objects and check if anything changed
-    compute_depends_.capture();
-    for (const auto& o : objects_)
-        {
-        o->compute(state,compute_value);
-        }
-    compute |= compute_depends_.changed();
-
-    return compute;
     }
 
 }

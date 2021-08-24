@@ -12,6 +12,11 @@ CompositeFunctional::CompositeFunctional()
 void CompositeFunctional::compute(std::shared_ptr<State> state, bool compute_value)
     {
     bool needs_compute = setup(state,compute_value);
+    for (const auto& o : objects_)
+        {
+        o->compute(state,compute_value);
+        }
+    needs_compute |= (!compute_token_ || token() != compute_token_);
     if (!needs_compute)
         {
         return;
@@ -102,21 +107,6 @@ void CompositeFunctional::clearObjects()
         CompositeMixin<Functional>::clearObjects();
         token_.stage();
         }
-    }
-
-bool CompositeFunctional::setup(std::shared_ptr<State> state, bool compute_value)
-    {
-    bool compute = Functional::setup(state,compute_value);
-
-    // compute on member objects and check if anything changed
-    compute_depends_.capture();
-    for (const auto& f : objects_)
-        {
-        f->compute(state,compute_value);
-        }
-    compute |= compute_depends_.changed();
-
-    return compute;
     }
 
 }

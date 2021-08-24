@@ -12,7 +12,11 @@ BoublikHardSphereFunctional::BoublikHardSphereFunctional()
 
 void BoublikHardSphereFunctional::compute(std::shared_ptr<State> state, bool compute_value)
     {
-    setup(state,compute_value);
+    bool needs_compute = setup(state,compute_value);
+    if (!needs_compute)
+        {
+        return;
+        }
 
     auto types = state->getTypes();
     const auto mesh = *state->getMesh()->local();

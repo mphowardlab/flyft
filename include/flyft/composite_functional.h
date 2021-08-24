@@ -22,9 +22,6 @@ class CompositeFunctional : public Functional, public CompositeMixin<Functional>
         bool addObject(std::shared_ptr<Functional> object);
         bool removeObject(std::shared_ptr<Functional> object);
         void clearObjects();
-
-    protected:
-        bool setup(std::shared_ptr<State> state, bool compute_value) override;
     };
 
 }

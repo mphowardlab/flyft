@@ -104,13 +104,16 @@ static void computeWeights(std::complex<double>& w0,
 
 void RosenfeldFMT::compute(std::shared_ptr<State> state, bool compute_value)
     {
-    // (re-)allocate the memory needed to work with this state
-    setup(state,compute_value);
+    bool needs_compute = setup(state,compute_value);
+    if (!needs_compute)
+        {
+        return;
+        }
+
+    // compute n weights in fourier space (requires communication before fourier transform)
     state->syncFields();
     const auto mesh = *state->getMesh()->local();
     const auto kmesh = ft_->getWavevectors();
-
-    // compute n weights in fourier space
         {
         // zero the weights before accumulating by type
         std::fill(n0k_->view().begin(), n0k_->view().end(), 0.);
