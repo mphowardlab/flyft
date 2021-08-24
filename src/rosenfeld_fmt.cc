@@ -13,6 +13,95 @@ RosenfeldFMT::RosenfeldFMT()
     compute_depends_.add(&diameters_);
     }
 
+static void computePhiAndDerivatives(int idx,
+                                     Field::View& phi,
+                                     Field::View& dphi_dn0,
+                                     Field::View& dphi_dn1,
+                                     Field::View& dphi_dn2,
+                                     Field::View& dphi_dn3,
+                                     Field::View& dphi_dnv1,
+                                     Field::View& dphi_dnv2,
+                                     const Field::ConstantView& n0,
+                                     const Field::ConstantView& n1,
+                                     const Field::ConstantView& n2,
+                                     const Field::ConstantView& n3,
+                                     const Field::ConstantView& nv1,
+                                     const Field::ConstantView& nv2,
+                                     bool compute_value)
+    {
+    // precompute the "void fraction" vf, which is only a function of n3
+    const double vf = 1.-n3(idx);
+    if (vf < 0)
+        {
+        // local void fraction unphysical
+        }
+    const double logvf = std::log(vf);
+    const double vfinv = 1./vf;
+
+    // these are all functions of n3 (via vf)
+    const double f1 = -logvf;
+    const double df1 = vfinv;
+    const double f2 = vfinv;
+    const double df2 = vfinv*vfinv;
+    const double f4 = vfinv*vfinv/(24.*M_PI);
+    const double df4 = 2.*f4*vfinv;
+
+    if (compute_value)
+        {
+        phi(idx) = (f1*n0(idx)
+                    +f2*(n1(idx)*n2(idx)-nv1(idx)*nv2(idx))
+                    +f4*(n2(idx)*n2(idx)*n2(idx)-3.*n2(idx)*nv2(idx)*nv2(idx)));
+        }
+    else
+        {
+        phi(idx) = 0.;
+        }
+
+    dphi_dn0(idx) = f1;
+    dphi_dn1(idx) = f2*n2(idx);
+    dphi_dn2(idx) = f2*n1(idx) + 3.*f4*(n2(idx)*n2(idx)-nv2(idx)*nv2(idx));
+    dphi_dn3(idx) = (df1*n0(idx)
+                        +df2*(n1(idx)*n2(idx)-nv1(idx)*nv2(idx))
+                        +df4*(n2(idx)*n2(idx)*n2(idx)-3.*n2(idx)*nv2(idx)*nv2(idx)));
+    dphi_dnv1(idx) = -f2*nv2(idx);
+    dphi_dnv2(idx) = -f2*nv1(idx)-6.*f4*n2(idx)*nv2(idx);
+    }
+
+static void computeWeights(std::complex<double>& w0,
+                           std::complex<double>& w1,
+                           std::complex<double>& w2,
+                           std::complex<double>& w3,
+                           std::complex<double>& wv1,
+                           std::complex<double>& wv2,
+                           double k,
+                           double R)
+
+    {
+    if (k != 0.)
+        {
+        const double kR = k*R;
+        const double sinkR = std::sin(kR);
+        const double coskR = std::cos(kR);
+
+        w0 = sinkR/kR;
+        w1 = R*w0;
+        w2 = (4.*M_PI)*R*w1;
+        w3 = (4.*M_PI)*(sinkR-kR*coskR)/(k*k*k);
+        // do these in opposite order because wv2 follows easily from w3
+        wv2 = std::complex<double>(0.,-k)*w3;
+        wv1 = wv2/(4.*M_PI*R);
+        }
+    else
+        {
+        w0 = 1.0;
+        w1 = R;
+        w2 = (4.*M_PI)*R*w1;
+        w3 = w2*(R/3.);
+        wv1 = 0.0;
+        wv2 = 0.0;
+        }
+    }
+
 void RosenfeldFMT::compute(std::shared_ptr<State> state, bool compute_value)
     {
     // (re-)allocate the memory needed to work with this state
@@ -119,60 +208,56 @@ void RosenfeldFMT::compute(std::shared_ptr<State> state, bool compute_value)
         auto dphi_dnv1 = dphi_dnv1_->view();
         auto dphi_dnv2 = dphi_dnv2_->view();
 
+        // do points near edges first and start sending them
+            {
+            #ifdef FLYFT_OPENMP
+            #pragma omp parallel for schedule(static) default(none) firstprivate(mesh) \
+            shared(n0,n1,n2,n3,nv1,nv2,phi,dphi_dn0,dphi_dn1,dphi_dn2,dphi_dn3,dphi_dnv1,dphi_dnv2)
+            #endif
+            for (int idx=0; idx < buffer_shape_; ++idx)
+                {
+                computePhiAndDerivatives(idx,
+                                         phi,dphi_dn0,dphi_dn1,dphi_dn2,dphi_dn3,dphi_dnv1,dphi_dnv2,
+                                         n0,n1,n2,n3,nv1,nv2,
+                                         compute_value);
+                computePhiAndDerivatives(mesh.shape()-buffer_shape_+idx,
+                                         phi,dphi_dn0,dphi_dn1,dphi_dn2,dphi_dn3,dphi_dnv1,dphi_dnv2,
+                                         n0,n1,n2,n3,nv1,nv2,
+                                         compute_value);
+                }
+
+            auto comm = state->getMesh();
+            comm->startSync(dphi_dn0_);
+            comm->startSync(dphi_dn1_);
+            comm->startSync(dphi_dn2_);
+            comm->startSync(dphi_dn3_);
+            comm->startSync(dphi_dnv1_);
+            comm->startSync(dphi_dnv2_);
+            }
+
+        // do all the inside points
         #ifdef FLYFT_OPENMP
         #pragma omp parallel for schedule(static) default(none) firstprivate(mesh) \
         shared(n0,n1,n2,n3,nv1,nv2,phi,dphi_dn0,dphi_dn1,dphi_dn2,dphi_dn3,dphi_dnv1,dphi_dnv2)
         #endif
-        for (int idx=0; idx < mesh.shape(); ++idx)
+        for (int idx=buffer_shape_; idx < mesh.shape()-buffer_shape_; ++idx)
             {
-            // precompute the "void fraction" vf, which is only a function of n3
-            const double vf = 1.-n3(idx);
-            if (vf < 0)
-                {
-                // local void fraction unphysical
-                }
-            const double logvf = std::log(vf);
-            const double vfinv = 1./vf;
-
-            // these are all functions of n3 (via vf)
-            const double f1 = -logvf;
-            const double df1 = vfinv;
-            const double f2 = vfinv;
-            const double df2 = vfinv*vfinv;
-            const double f4 = vfinv*vfinv/(24.*M_PI);
-            const double df4 = 2.*f4*vfinv;
-
-            if (compute_value)
-                {
-                phi(idx) = (f1*n0(idx)
-                            +f2*(n1(idx)*n2(idx)-nv1(idx)*nv2(idx))
-                            +f4*(n2(idx)*n2(idx)*n2(idx)-3.*n2(idx)*nv2(idx)*nv2(idx)));
-                }
-            else
-                {
-                phi(idx) = 0.;
-                }
-
-            dphi_dn0(idx) = f1;
-            dphi_dn1(idx) = f2*n2(idx);
-            dphi_dn2(idx) = f2*n1(idx) + 3.*f4*(n2(idx)*n2(idx)-nv2(idx)*nv2(idx));
-            dphi_dn3(idx) = (df1*n0(idx)
-                             +df2*(n1(idx)*n2(idx)-nv1(idx)*nv2(idx))
-                             +df4*(n2(idx)*n2(idx)*n2(idx)-3.*n2(idx)*nv2(idx)*nv2(idx)));
-            dphi_dnv1(idx) = -f2*nv2(idx);
-            dphi_dnv2(idx) = -f2*nv1(idx)-6.*f4*n2(idx)*nv2(idx);
+            computePhiAndDerivatives(idx,
+                                     phi,dphi_dn0,dphi_dn1,dphi_dn2,dphi_dn3,dphi_dnv1,dphi_dnv2,
+                                     n0,n1,n2,n3,nv1,nv2,
+                                     compute_value);
             }
-        }
 
-    // sync buffers for second fourier transform
-        {
-        auto comm = state->getMesh();
-        comm->sync(dphi_dn0_);
-        comm->sync(dphi_dn1_);
-        comm->sync(dphi_dn2_);
-        comm->sync(dphi_dn3_);
-        comm->sync(dphi_dnv1_);
-        comm->sync(dphi_dnv2_);
+        // finish sending the data
+            {
+            auto comm = state->getMesh();
+            comm->endSync(dphi_dn0_);
+            comm->endSync(dphi_dn1_);
+            comm->endSync(dphi_dn2_);
+            comm->endSync(dphi_dn3_);
+            comm->endSync(dphi_dnv1_);
+            comm->endSync(dphi_dnv2_);
+            }
         }
 
     // convert phi derivatives to Fourier space
@@ -341,41 +426,6 @@ void RosenfeldFMT::setupComplexField(std::unique_ptr<ComplexField>& kfield)
     else
         {
         kfield->reshape(ft_->getWavevectors().shape(),0);
-        }
-    }
-
-void RosenfeldFMT::computeWeights(std::complex<double>& w0,
-                                  std::complex<double>& w1,
-                                  std::complex<double>& w2,
-                                  std::complex<double>& w3,
-                                  std::complex<double>& wv1,
-                                  std::complex<double>& wv2,
-                                  double k,
-                                  double R) const
-
-    {
-    if (k != 0.)
-        {
-        const double kR = k*R;
-        const double sinkR = std::sin(kR);
-        const double coskR = std::cos(kR);
-
-        w0 = sinkR/kR;
-        w1 = R*w0;
-        w2 = (4.*M_PI)*R*w1;
-        w3 = (4.*M_PI)*(sinkR-kR*coskR)/(k*k*k);
-        // do these in opposite order because wv2 follows easily from w3
-        wv2 = std::complex<double>(0.,-k)*w3;
-        wv1 = wv2/(4.*M_PI*R);
-        }
-    else
-        {
-        w0 = 1.0;
-        w1 = R;
-        w2 = (4.*M_PI)*R*w1;
-        w3 = w2*(R/3.);
-        wv1 = 0.0;
-        wv2 = 0.0;
         }
     }
 
