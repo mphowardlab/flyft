@@ -39,7 +39,7 @@ void BoublikHardSphereFunctional::compute(std::shared_ptr<State> state, bool com
         double xi[4];
         #ifdef FLYFT_OPENMP
         #pragma omp parallel for schedule(static) default(none) private(xi) firstprivate(num_types,mesh) \
-        shared(fields,derivs,diams) reduction(+:value_)
+        shared(fields,derivs,diams,compute_value) reduction(+:value_)
         #endif
         for (int idx=0; idx < mesh.shape(); ++idx)
             {
@@ -116,7 +116,8 @@ void BoublikHardSphereFunctional::compute(std::shared_ptr<State> state, bool com
         {
         // Carnahan-Starling simplification for 1 type
         #ifdef FLYFT_OPENMP
-        #pragma omp parallel for schedule(static) default(none) firstprivate(mesh) shared(fields,derivs,diams) reduction(+:value_)
+        #pragma omp parallel for schedule(static) default(none) firstprivate(mesh) \
+        shared(fields,derivs,diams,compute_value) reduction(+:value_)
         #endif
         for (int idx=0; idx < mesh.shape(); ++idx)
             {

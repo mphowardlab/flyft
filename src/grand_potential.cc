@@ -77,7 +77,8 @@ void GrandPotential::compute(std::shared_ptr<State> state, bool compute_value)
             const auto mu_bulk = constraints_(t);
             auto rho = state->getField(t)->const_view();
             #ifdef FLYFT_OPENMP
-            #pragma omp parallel for schedule(static) default(none) firstprivate(mesh,mu_bulk) shared(rho,d) reduction(-:constraint_value)
+            #pragma omp parallel for schedule(static) default(none) firstprivate(mesh,mu_bulk) \
+            shared(rho,d,compute_value) reduction(-:constraint_value)
             #endif
             for (int idx=0; idx < mesh.shape(); ++idx)
                 {

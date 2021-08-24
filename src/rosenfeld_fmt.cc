@@ -212,7 +212,7 @@ void RosenfeldFMT::compute(std::shared_ptr<State> state, bool compute_value)
             {
             #ifdef FLYFT_OPENMP
             #pragma omp parallel for schedule(static) default(none) firstprivate(mesh) \
-            shared(n0,n1,n2,n3,nv1,nv2,phi,dphi_dn0,dphi_dn1,dphi_dn2,dphi_dn3,dphi_dnv1,dphi_dnv2)
+            shared(n0,n1,n2,n3,nv1,nv2,phi,dphi_dn0,dphi_dn1,dphi_dn2,dphi_dn3,dphi_dnv1,dphi_dnv2,compute_value)
             #endif
             for (int idx=0; idx < buffer_shape_; ++idx)
                 {
@@ -238,7 +238,7 @@ void RosenfeldFMT::compute(std::shared_ptr<State> state, bool compute_value)
         // do all the inside points
         #ifdef FLYFT_OPENMP
         #pragma omp parallel for schedule(static) default(none) firstprivate(mesh) \
-        shared(n0,n1,n2,n3,nv1,nv2,phi,dphi_dn0,dphi_dn1,dphi_dn2,dphi_dn3,dphi_dnv1,dphi_dnv2)
+        shared(n0,n1,n2,n3,nv1,nv2,phi,dphi_dn0,dphi_dn1,dphi_dn2,dphi_dn3,dphi_dnv1,dphi_dnv2,compute_value)
         #endif
         for (int idx=buffer_shape_; idx < mesh.shape()-buffer_shape_; ++idx)
             {

@@ -33,7 +33,8 @@ void VirialExpansion::compute(std::shared_ptr<State> state, bool compute_value)
 
             const double Bij = coeffs_(i,j);
             #ifdef FLYFT_OPENMP
-            #pragma omp parallel for schedule(static) default(none) firstprivate(Bij,mesh) shared(fi,di,fj,dj) reduction(+:value_)
+            #pragma omp parallel for schedule(static) default(none) firstprivate(Bij,mesh) \
+            shared(fi,di,fj,dj,compute_value) reduction(+:value_)
             #endif
             for (int idx=0; idx < mesh.shape(); ++idx)
                 {

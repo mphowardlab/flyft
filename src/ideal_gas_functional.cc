@@ -18,7 +18,8 @@ void IdealGasFunctional::compute(std::shared_ptr<State> state, bool compute_valu
         auto f = state->getField(t)->const_view();
         auto d = derivatives_(t)->view();
         #ifdef FLYFT_OPENMP
-        #pragma omp parallel for schedule(static) default(none) firstprivate(mesh,vol) shared(f,d) reduction(+:value_)
+        #pragma omp parallel for schedule(static) default(none) firstprivate(mesh,vol) \
+        shared(f,d,compute_value) reduction(+:value_)
         #endif
         for (int idx=0; idx < mesh.shape(); ++idx)
             {
