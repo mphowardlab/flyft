@@ -14,6 +14,8 @@ namespace flyft
 class IdealGasFunctional : public Functional
     {
     public:
+        IdealGasFunctional();
+
         void compute(std::shared_ptr<State> state, bool compute_value) override;
 
         TypeMap<double>& getVolumes();

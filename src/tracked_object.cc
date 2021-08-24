@@ -126,6 +126,11 @@ void TrackedObject::Dependencies::clear()
     tokens_.clear();
     }
 
+bool TrackedObject::Dependencies::contains(Identifier id) const
+    {
+    return (objects_.find(id) != objects_.end());
+    }
+
 void TrackedObject::Dependencies::capture()
     {
     tokens_.clear();

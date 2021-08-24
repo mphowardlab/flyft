@@ -5,6 +5,17 @@
 namespace flyft
 {
 
+HardWallPotential::HardWallPotential(double origin, double normal)
+    : HardWallPotential(std::make_shared<ConstantDoubleParameter>(origin),normal)
+    {
+    }
+
+HardWallPotential::HardWallPotential(std::shared_ptr<DoubleParameter> origin, double normal)
+    : WallPotential(origin,normal)
+    {
+    compute_depends_.add(&diameters_);
+    }
+
 void HardWallPotential::potential(std::shared_ptr<Field> V, const std::string& type, std::shared_ptr<State> state)
     {
     // edge where sphere contacts the wall

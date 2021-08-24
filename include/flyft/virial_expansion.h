@@ -13,6 +13,8 @@ namespace flyft
 class VirialExpansion : public Functional
     {
     public:
+        VirialExpansion();
+
         void compute(std::shared_ptr<State> state, bool compute_value) override;
 
         const PairMap<double>& getCoefficients();

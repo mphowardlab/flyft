@@ -7,39 +7,32 @@ namespace flyft
 
 GrandPotential::GrandPotential()
     {
+    compute_depends_.add(&constraints_);
+    compute_depends_.add(&constraint_types_);
     }
 
 void GrandPotential::compute(std::shared_ptr<State> state, bool compute_value)
     {
-    setup(state,compute_value);
-    const auto mesh = *state->getMesh()->local();
-
-    // evaluate functionals
-    value_ = 0.0;
+    bool needs_compute = setup(state,compute_value);
     if (ideal_)
         {
         ideal_->compute(state,compute_value);
-        if (compute_value)
-            {
-            value_ += ideal_->getValue();
-            }
         }
     if (excess_)
         {
         excess_->compute(state,compute_value);
-        if (compute_value)
-            {
-            value_ += excess_->getValue();
-            }
         }
     if (external_)
         {
         external_->compute(state,compute_value);
-        if (compute_value)
-            {
-            value_ += external_->getValue();
-            }
         }
+    needs_compute |= (!compute_token_ || token() != compute_token_);
+    if (!needs_compute)
+        {
+        return;
+        }
+
+    const auto mesh = *state->getMesh()->local();
 
     // sum up contributions to derivatives for each type
     double constraint_value = 0.0;
@@ -94,6 +87,19 @@ void GrandPotential::compute(std::shared_ptr<State> state, bool compute_value)
     // reduce and add constraint contribution to value
     if (compute_value)
         {
+        value_ = 0.0;
+        if (ideal_)
+            {
+            value_ += ideal_->getValue();
+            }
+        if (excess_)
+            {
+            value_ += excess_->getValue();
+            }
+        if (external_)
+            {
+            value_ += external_->getValue();
+            }
         value_ += state->getCommunicator()->sum(constraint_value);
         }
 
@@ -146,7 +152,15 @@ std::shared_ptr<const IdealGasFunctional> GrandPotential::getIdealGasFunctional(
 
 void GrandPotential::setIdealGasFunctional(std::shared_ptr<IdealGasFunctional> ideal)
     {
+    if (ideal_)
+        {
+        compute_depends_.remove(ideal_->id());
+        }
     ideal_ = ideal;
+    if (ideal_)
+        {
+        compute_depends_.add(ideal_.get());
+        }
     }
 
 std::shared_ptr<Functional> GrandPotential::getExcessFunctional()
@@ -161,7 +175,15 @@ std::shared_ptr<const Functional> GrandPotential::getExcessFunctional() const
 
 void GrandPotential::setExcessFunctional(std::shared_ptr<Functional> excess)
     {
+    if (excess_)
+        {
+        compute_depends_.remove(excess_->id());
+        }
     excess_ = excess;
+    if (excess_)
+        {
+        compute_depends_.add(excess_.get());
+        }
     }
 
 std::shared_ptr<ExternalPotential> GrandPotential::getExternalPotential()
@@ -176,7 +198,15 @@ std::shared_ptr<const ExternalPotential> GrandPotential::getExternalPotential() 
 
 void GrandPotential::setExternalPotential(std::shared_ptr<ExternalPotential> external)
     {
+    if (external_)
+        {
+        compute_depends_.remove(external_->id());
+        }
     external_ = external;
+    if (external_)
+        {
+        compute_depends_.add(external_.get());
+        }
     }
 
 TypeMap<double>& GrandPotential::getConstraints()

@@ -15,7 +15,9 @@ namespace flyft
 class LennardJones93WallPotential : public WallPotential
     {
     public:
-        using WallPotential::WallPotential;
+        LennardJones93WallPotential() = delete;
+        LennardJones93WallPotential(double origin, double normal);
+        LennardJones93WallPotential(std::shared_ptr<DoubleParameter> origin, double normal);
 
         void potential(std::shared_ptr<Field> V, const std::string& type, std::shared_ptr<State> state) override;
 

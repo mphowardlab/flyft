@@ -42,11 +42,11 @@ class Functional : public TrackedObject
         TypeMap<std::shared_ptr<Field>> derivatives_;
         TypeMap<int> buffer_requests_;
         Dependencies compute_depends_;
-        Token compute_state_;
+        Token compute_token_;
+        Token compute_state_token_;
 
         virtual bool setup(std::shared_ptr<State> state, bool compute_value);
         virtual void finalize(std::shared_ptr<State> state, bool compute_value);
-
     };
 
 }

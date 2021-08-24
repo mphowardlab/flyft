@@ -15,7 +15,9 @@ namespace flyft
 class ExponentialWallPotential : public WallPotential
     {
     public:
-        using WallPotential::WallPotential;
+        ExponentialWallPotential() = delete;
+        ExponentialWallPotential(double origin, double normal);
+        ExponentialWallPotential(std::shared_ptr<DoubleParameter> origin, double normal);
 
         TypeMap<double>& getEpsilons();
         const TypeMap<double>& getEpsilons() const;

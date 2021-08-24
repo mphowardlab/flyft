@@ -5,6 +5,20 @@
 namespace flyft
 {
 
+LennardJones93WallPotential::LennardJones93WallPotential(double origin, double normal)
+    : LennardJones93WallPotential(std::make_shared<ConstantDoubleParameter>(origin),normal)
+    {
+    }
+
+LennardJones93WallPotential::LennardJones93WallPotential(std::shared_ptr<DoubleParameter> origin, double normal)
+    : WallPotential(origin,normal)
+    {
+    compute_depends_.add(&epsilons_);
+    compute_depends_.add(&sigmas_);
+    compute_depends_.add(&cutoffs_);
+    compute_depends_.add(&shifts_);
+    }
+
 void LennardJones93WallPotential::potential(std::shared_ptr<Field> V, const std::string& type, std::shared_ptr<State> state)
     {
     // get potential parameters for this type

@@ -52,6 +52,7 @@ class TrackedObject
                 void add(TrackedObject* object);
                 void remove(Identifier id);
                 void clear();
+                bool contains(Identifier id) const;
 
                 bool changed();
                 void capture();

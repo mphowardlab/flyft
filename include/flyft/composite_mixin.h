@@ -13,33 +13,30 @@ class CompositeMixin
             {
             }
 
-        CompositeMixin(std::shared_ptr<T> object)
-            {
-            addObject(object);
-            }
-
-        CompositeMixin(const std::vector<std::shared_ptr<T>>& objects)
-            {
-            for (const auto& o : objects)
-                {
-                addObject(o);
-                }
-            }
-
-        void addObject(std::shared_ptr<T> object)
+        bool addObject(std::shared_ptr<T> object)
             {
             if(std::find(objects_.begin(), objects_.end(), object) == objects_.end())
                 {
                 objects_.push_back(object);
+                return true;
+                }
+            else
+                {
+                return false;
                 }
             }
 
-        void removeObject(std::shared_ptr<T> object)
+        bool removeObject(std::shared_ptr<T> object)
             {
             auto it = std::find(objects_.begin(), objects_.end(), object);
             if (it != objects_.end())
                 {
                 objects_.erase(it);
+                return true;
+                }
+            else
+                {
+                return false;
                 }
             }
 

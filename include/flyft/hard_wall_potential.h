@@ -15,7 +15,9 @@ namespace flyft
 class HardWallPotential : public WallPotential
     {
     public:
-        using WallPotential::WallPotential;
+        HardWallPotential() = delete;
+        HardWallPotential(double origin, double normal);
+        HardWallPotential(std::shared_ptr<DoubleParameter> origin, double normal);
 
         TypeMap<double>& getDiameters();
         const TypeMap<double>& getDiameters() const;
