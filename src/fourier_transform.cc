@@ -39,36 +39,67 @@ FourierTransform::~FourierTransform()
     fftw_destroy_plan(c2r_plan_);
     }
 
-const double* FourierTransform::getRealData() const
+FourierTransform::RealView FourierTransform::view_real() const
     {
     if (space_ != RealSpace)
         {
         // raise error, buffer not valid
         }
-    return static_cast<const double*>(data_);
+    return RealView(data_,DataLayout(mesh_.shape()));
     }
 
-void FourierTransform::setRealData(const double* data)
+FourierTransform::ConstantRealView FourierTransform::const_view_real() const
     {
-    const auto size = mesh_.shape();
-    std::copy(data,data+size,data_);
+    if (space_ != RealSpace)
+        {
+        // raise error, buffer not valid
+        }
+    return ConstantRealView(data_,DataLayout(mesh_.shape()));
+    }
+
+void FourierTransform::setRealData(const RealView& data)
+    {
+    RealView view(data_,DataLayout(mesh_.shape()));
+    std::copy(data.begin(),data.end(),view.begin());
     space_ = RealSpace;
     }
 
-const std::complex<double>* FourierTransform::getReciprocalData() const
+void FourierTransform::setRealData(const ConstantRealView& data)
+    {
+    RealView view(data_,DataLayout(mesh_.shape()));
+    std::copy(data.begin(),data.end(),view.begin());
+    space_ = RealSpace;
+    }
+
+FourierTransform::ReciprocalView FourierTransform::view_reciprocal() const
     {
     if (space_ != ReciprocalSpace)
         {
         // raise error, buffer not valid
         }
-    return reinterpret_cast<const std::complex<double>*>(data_);
+    return ReciprocalView(reinterpret_cast<std::complex<double>*>(data_),DataLayout(kmesh_.shape()));
     }
 
-void FourierTransform::setReciprocalData(const std::complex<double>* data)
+FourierTransform::ConstantReciprocalView FourierTransform::const_view_reciprocal() const
     {
-    auto p = reinterpret_cast<const double*>(data);
-    const auto size = 2*kmesh_.shape();
-    std::copy(p,p+size,data_);
+    if (space_ != ReciprocalSpace)
+        {
+        // raise error, buffer not valid
+        }
+    return ConstantReciprocalView(reinterpret_cast<const std::complex<double>*>(data_),DataLayout(kmesh_.shape()));
+    }
+
+void FourierTransform::setReciprocalData(const ReciprocalView& data)
+    {
+    ReciprocalView view(reinterpret_cast<std::complex<double>*>(data_),DataLayout(kmesh_.shape()));
+    std::copy(data.begin(),data.end(),view.begin());
+    space_ = ReciprocalSpace;
+    }
+
+void FourierTransform::setReciprocalData(const ConstantReciprocalView& data)
+    {
+    ReciprocalView view(reinterpret_cast<std::complex<double>*>(data_),DataLayout(kmesh_.shape()));
+    std::copy(data.begin(),data.end(),view.begin());
     space_ = ReciprocalSpace;
     }
 

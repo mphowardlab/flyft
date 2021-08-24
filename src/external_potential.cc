@@ -5,9 +5,9 @@
 namespace flyft
 {
 
-void ExternalPotential::compute(std::shared_ptr<State> state)
+void ExternalPotential::compute(std::shared_ptr<State> state, bool compute_value)
     {
-    setup(state);
+    setup(state,compute_value);
 
     // compute derivatives and accumulate energy
     const auto mesh = *state->getMesh()->local();
@@ -37,13 +37,18 @@ void ExternalPotential::compute(std::shared_ptr<State> state)
                     // no contribution, ignore
                     }
                 }
-            else
+            else if (compute_value)
                 {
                 value_ += mesh.step()*rho*V;
                 }
             }
         }
 
-    value_ = state->getCommunicator()->sum(value_);
+    if (compute_value)
+        {
+        value_ = state->getCommunicator()->sum(value_);
+        }
+
+    finalize(state,compute_value);
     }
 }

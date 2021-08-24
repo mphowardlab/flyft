@@ -4,9 +4,12 @@ from .mixins import CompositeMixin
 from .state import Fields
 
 class Functional(mirror.Mirror,mirrorclass=_flyft.Functional):
-    compute = mirror.Method()
     derivatives = mirror.WrappedProperty(Fields)
     value = mirror.Property()
+
+    _compute = mirror.Method(mirrorname="compute")
+    def compute(self, state, value=True):
+        self._compute(state,value)
 
 class BoublikHardSphere(Functional,mirrorclass=_flyft.BoublikHardSphereFunctional):
     diameters = mirror.WrappedProperty(mirror.MutableMapping)

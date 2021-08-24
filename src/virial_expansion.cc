@@ -5,9 +5,9 @@
 namespace flyft
 {
 
-void VirialExpansion::compute(std::shared_ptr<State> state)
+void VirialExpansion::compute(std::shared_ptr<State> state, bool compute_value)
     {
-    setup(state);
+    setup(state,compute_value);
 
     auto types = state->getTypes();
     const auto mesh = *state->getMesh()->local();
@@ -33,7 +33,8 @@ void VirialExpansion::compute(std::shared_ptr<State> state)
 
             const double Bij = coeffs_(i,j);
             #ifdef FLYFT_OPENMP
-            #pragma omp parallel for schedule(static) default(none) firstprivate(Bij,mesh) shared(fi,di,fj,dj) reduction(+:value_)
+            #pragma omp parallel for schedule(static) default(none) firstprivate(Bij,mesh) \
+            shared(fi,di,fj,dj,compute_value) reduction(+:value_)
             #endif
             for (int idx=0; idx < mesh.shape(); ++idx)
                 {
@@ -47,12 +48,20 @@ void VirialExpansion::compute(std::shared_ptr<State> state)
                     dj(idx) += 2*Bij*rhoi;
                     factor = 2.0;
                     }
-                value_ += mesh.step()*(factor*Bij*rhoi*rhoj);
+                if (compute_value)
+                    {
+                    value_ += mesh.step()*(factor*Bij*rhoi*rhoj);
+                    }
                 }
             }
         }
 
-    value_ = state->getCommunicator()->sum(value_);
+    if (compute_value)
+        {
+        value_ = state->getCommunicator()->sum(value_);
+        }
+
+    finalize(state,compute_value);
     }
 
 const PairMap<double>& VirialExpansion::getCoefficients()

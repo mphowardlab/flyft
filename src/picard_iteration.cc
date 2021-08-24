@@ -29,9 +29,9 @@ bool PicardIteration::solve(std::shared_ptr<GrandPotential> grand, std::shared_p
         auto excess = grand->getExcessFunctional();
         auto external = grand->getExternalPotential();
         if (excess)
-            excess->compute(state);
+            excess->compute(state,false);
         if (external)
-            external->compute(state);
+            external->compute(state,false);
 
         // apply picard mixing scheme
         for (const auto& t : state->getTypes())

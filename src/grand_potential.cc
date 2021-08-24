@@ -9,27 +9,36 @@ GrandPotential::GrandPotential()
     {
     }
 
-void GrandPotential::compute(std::shared_ptr<State> state)
+void GrandPotential::compute(std::shared_ptr<State> state, bool compute_value)
     {
-    setup(state);
+    setup(state,compute_value);
     const auto mesh = *state->getMesh()->local();
 
     // evaluate functionals
     value_ = 0.0;
     if (ideal_)
         {
-        ideal_->compute(state);
-        value_ += ideal_->getValue();
+        ideal_->compute(state,compute_value);
+        if (compute_value)
+            {
+            value_ += ideal_->getValue();
+            }
         }
     if (excess_)
         {
-        excess_->compute(state);
-        value_ += excess_->getValue();
+        excess_->compute(state,compute_value);
+        if (compute_value)
+            {
+            value_ += excess_->getValue();
+            }
         }
     if (external_)
         {
-        external_->compute(state);
-        value_ += external_->getValue();
+        external_->compute(state,compute_value);
+        if (compute_value)
+            {
+            value_ += external_->getValue();
+            }
         }
 
     // sum up contributions to derivatives for each type
@@ -68,18 +77,27 @@ void GrandPotential::compute(std::shared_ptr<State> state)
             const auto mu_bulk = constraints_(t);
             auto rho = state->getField(t)->const_view();
             #ifdef FLYFT_OPENMP
-            #pragma omp parallel for schedule(static) default(none) firstprivate(mesh,mu_bulk) shared(rho,d) reduction(-:constraint_value)
+            #pragma omp parallel for schedule(static) default(none) firstprivate(mesh,mu_bulk) \
+            shared(rho,d,compute_value) reduction(-:constraint_value)
             #endif
             for (int idx=0; idx < mesh.shape(); ++idx)
                 {
                 d(idx) -= mu_bulk;
-                constraint_value -= mesh.step()*mu_bulk*rho(idx);
+                if (compute_value)
+                    {
+                    constraint_value -= mesh.step()*mu_bulk*rho(idx);
+                    }
                 }
             }
         }
 
     // reduce and add constraint contribution to value
-    value_ += state->getCommunicator()->sum(constraint_value);
+    if (compute_value)
+        {
+        value_ += state->getCommunicator()->sum(constraint_value);
+        }
+
+    finalize(state,compute_value);
     }
 
 void GrandPotential::requestDerivativeBuffer(const std::string& type, int buffer_request)

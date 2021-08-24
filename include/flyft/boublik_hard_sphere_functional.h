@@ -14,7 +14,7 @@ class BoublikHardSphereFunctional : public Functional
     {
     public:
         BoublikHardSphereFunctional();
-        void compute(std::shared_ptr<State> state) override;
+        void compute(std::shared_ptr<State> state, bool compute_value) override;
 
         TypeMap<double>& getDiameters();
         const TypeMap<double>& getDiameters() const;

@@ -1,6 +1,8 @@
 #ifndef FLYFT_FOURIER_TRANSFORM_H_
 #define FLYFT_FOURIER_TRANSFORM_H_
 
+#include "flyft/data_layout.h"
+#include "flyft/data_view.h"
 #include "flyft/mesh.h"
 
 // need to include <complex> before <fftw3.h>
@@ -28,6 +30,11 @@ class FourierTransform
                 int shape_;     //!< Shape of underlying mesh
             };
 
+        using RealView = DataView<double>;
+        using ConstantRealView = DataView<const double>;
+        using ReciprocalView = DataView<std::complex<double>>;
+        using ConstantReciprocalView = DataView<const std::complex<double>>;
+
         FourierTransform() = delete;
         FourierTransform(double L, int shape);
         ~FourierTransform();
@@ -46,11 +53,15 @@ class FourierTransform
 
         void transform();
 
-        const double* getRealData() const;
-        void setRealData(const double* data);
+        RealView view_real() const;
+        ConstantRealView const_view_real() const;
+        void setRealData(const RealView& data);
+        void setRealData(const ConstantRealView& data);
 
-        const std::complex<double>* getReciprocalData() const;
-        void setReciprocalData(const std::complex<double>* data);
+        ReciprocalView view_reciprocal() const;
+        ConstantReciprocalView const_view_reciprocal() const;
+        void setReciprocalData(const ReciprocalView& data);
+        void setReciprocalData(const ConstantReciprocalView& data);
 
         Space getActiveSpace() const;
 

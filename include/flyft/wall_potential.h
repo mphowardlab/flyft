@@ -17,7 +17,7 @@ class WallPotential : public ExternalPotential
         WallPotential(double origin, double normal);
         WallPotential(std::shared_ptr<DoubleParameter> origin, double normal);
 
-        void compute(std::shared_ptr<State> state) override;
+        void compute(std::shared_ptr<State> state, bool compute_value) override;
 
         std::shared_ptr<DoubleParameter> getOrigin();
         std::shared_ptr<const DoubleParameter> getOrigin() const;

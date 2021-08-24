@@ -115,12 +115,26 @@ int ParallelMesh::findProcessor(int idx) const
 
 void ParallelMesh::sync(std::shared_ptr<Field> field)
     {
+    startSync(field);
+    endSync(field);
+    }
+
+void ParallelMesh::startSync(std::shared_ptr<Field> field)
+    {
     // check if field was recently synced and stop if not needed
     auto token = field_tokens_.find(field->id());
     if (token != field_tokens_.end() && token->second == field->token())
         {
         return;
         }
+
+    // make sure field is not currently in flight before we do anything
+    #ifdef FLYFT_MPI
+    if (field_requests_.find(field->id()) != field_requests_.end())
+        {
+        throw std::runtime_error("Cannot sync field, data already in flight.");
+        }
+    #endif
 
     // check field shape
     const int shape = field->shape();
@@ -145,15 +159,16 @@ void ParallelMesh::sync(std::shared_ptr<Field> field)
         const int right = layout_(getProcessorCoordinatesByOffset(1));
 
         MPI_Comm comm = comm_->get();
-        MPI_Request requests[4];
+        std::vector<MPI_Request> requests(4);
+        // MPI_Request requests[4];
         // receive left buffer from left (tag 0), right buffer from right (tag 1)
         MPI_Irecv(&f(-buffer_shape),buffer_shape,MPI_DOUBLE,left,0,comm,&requests[0]);
         MPI_Irecv(&f(shape),buffer_shape,MPI_DOUBLE,right,1,comm,&requests[1]);
         // send left edge to left (tag 1), right edge to right (tag 0)
         MPI_Isend(&f(0),buffer_shape,MPI_DOUBLE,left,1,comm,&requests[2]);
         MPI_Isend(&f(shape-buffer_shape),buffer_shape,MPI_DOUBLE,right,0,comm,&requests[3]);
-        // wait for communication to finish
-        MPI_Waitall(4,requests,MPI_STATUSES_IGNORE);
+
+        field_requests_[field->id()] = requests;
         }
     else
     #endif
@@ -167,6 +182,32 @@ void ParallelMesh::sync(std::shared_ptr<Field> field)
 
     // cache token
     field_tokens_[field->id()] = field->token();
+    }
+
+void ParallelMesh::endSync(std::shared_ptr<Field> field)
+    {
+    #ifdef FLYFT_MPI
+    // wait for communication to finish
+    auto it = field_requests_.find(field->id());
+    if (it != field_requests_.end())
+        {
+        auto requests = it->second;
+        MPI_Waitall(requests.size(),&requests[0],MPI_STATUSES_IGNORE);
+        field_requests_.erase(it);
+        }
+    #endif // FLYFT_MPI
+    }
+
+void ParallelMesh::endSyncAll()
+    {
+    #ifdef FLYFT_MPI
+    for (auto it = field_requests_.begin(); it != field_requests_.end(); /* no increment here */)
+        {
+        auto requests = it->second;
+        MPI_Waitall(requests.size(),&requests[0],MPI_STATUSES_IGNORE);
+        field_requests_.erase(it++);
+        }
+    #endif // FLYFT_MPI
     }
 
 std::shared_ptr<Field> ParallelMesh::gather(std::shared_ptr<Field> field, int root) const

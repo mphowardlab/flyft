@@ -24,7 +24,7 @@ class Functional : public TrackedObject
         Functional& operator=(const Functional&) = delete;
         Functional& operator=(Functional&&) = delete;
 
-        virtual void compute(std::shared_ptr<State> state) = 0;
+        virtual void compute(std::shared_ptr<State> state, bool compute_value) = 0;
 
         double getValue() const;
 
@@ -44,8 +44,8 @@ class Functional : public TrackedObject
         Dependencies compute_depends_;
         Token compute_state_;
 
-        virtual bool setup(std::shared_ptr<State> state);
-        virtual void finalize(std::shared_ptr<State> state);
+        virtual bool setup(std::shared_ptr<State> state, bool compute_value);
+        virtual void finalize(std::shared_ptr<State> state, bool compute_value);
 
     };
 

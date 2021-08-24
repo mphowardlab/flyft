@@ -58,7 +58,7 @@ const Functional::Token& Functional::token()
     return TrackedObject::token();
     }
 
-bool Functional::setup(std::shared_ptr<State> state)
+bool Functional::setup(std::shared_ptr<State> state, bool compute_value)
     {
     // sync required fields
     for (const auto& t : state->getTypes())
@@ -70,10 +70,15 @@ bool Functional::setup(std::shared_ptr<State> state)
     state->matchFields(derivatives_,buffer_requests_);
 
     // return whether evaluation is required
-    return (!compute_state_ || state->token() != compute_state_ || compute_depends_.changed());
+    bool compute = (!compute_state_ ||
+                    state->token() != compute_state_ ||
+                    compute_depends_.changed() ||
+                    (compute_value && std::isnan(value_)));
+
+    return compute;
     }
 
-void Functional::finalize(std::shared_ptr<State> state)
+void Functional::finalize(std::shared_ptr<State> state, bool compute_value)
     {
     // commit new values
     token_.stage();
@@ -82,6 +87,12 @@ void Functional::finalize(std::shared_ptr<State> state)
     // capture dependencies
     compute_depends_.capture();
     compute_state_ = state->token();
+
+    // make sure value has NaN if not computed
+    if (!compute_value)
+        {
+        value_ = std::nan("");
+        }
     }
 
 }

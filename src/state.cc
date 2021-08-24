@@ -177,7 +177,23 @@ void State::syncFields()
     syncFields(fields_);
     }
 
+void State::startSyncFields()
+    {
+    startSyncFields(fields_);
+    }
+
+void State::endSyncFields()
+    {
+    endSyncFields(fields_);
+    }
+
 void State::syncFields(const TypeMap<std::shared_ptr<Field>>& fields) const
+    {
+    startSyncFields(fields);
+    endSyncFields(fields);
+    }
+
+void State::startSyncFields(const TypeMap<std::shared_ptr<Field>>& fields) const
     {
     for (auto it=fields.cbegin(); it != fields.cend(); ++it)
         {
@@ -187,9 +203,29 @@ void State::syncFields(const TypeMap<std::shared_ptr<Field>>& fields) const
             }
         else
             {
-            mesh_->sync(it->second);
+            mesh_->startSync(it->second);
             }
         }
+    }
+
+void State::endSyncFields(const TypeMap<std::shared_ptr<Field>>& fields) const
+    {
+    for (auto it=fields.cbegin(); it != fields.cend(); ++it)
+        {
+        if (std::find(types_.begin(), types_.end(), it->first) == types_.end())
+            {
+            // ERROR: types do not match
+            }
+        else
+            {
+            mesh_->endSync(it->second);
+            }
+        }
+    }
+
+void State::endSyncAll() const
+    {
+    mesh_->endSyncAll();
     }
 
 void State::matchFields(TypeMap<std::shared_ptr<Field>>& fields) const
