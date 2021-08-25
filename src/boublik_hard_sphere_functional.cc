@@ -10,14 +10,8 @@ BoublikHardSphereFunctional::BoublikHardSphereFunctional()
     compute_depends_.add(&diameters_);
     }
 
-void BoublikHardSphereFunctional::compute(std::shared_ptr<State> state, bool compute_value)
+void BoublikHardSphereFunctional::_compute(std::shared_ptr<State> state, bool compute_value)
     {
-    bool needs_compute = setup(state,compute_value);
-    if (!needs_compute)
-        {
-        return;
-        }
-
     auto types = state->getTypes();
     const auto mesh = *state->getMesh()->local();
 
@@ -164,8 +158,6 @@ void BoublikHardSphereFunctional::compute(std::shared_ptr<State> state, bool com
         {
         value_ = state->getCommunicator()->sum(value_);
         }
-
-    finalize(state,compute_value);
     }
 
 TypeMap<double>& BoublikHardSphereFunctional::getDiameters()

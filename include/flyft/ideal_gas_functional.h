@@ -16,10 +16,11 @@ class IdealGasFunctional : public Functional
     public:
         IdealGasFunctional();
 
-        void compute(std::shared_ptr<State> state, bool compute_value) override;
-
         TypeMap<double>& getVolumes();
         const TypeMap<double>& getVolumes() const;
+
+    protected:
+        void _compute(std::shared_ptr<State> state, bool compute_value) override;
 
     private:
         TypeMap<double> volumes_;

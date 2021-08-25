@@ -12,8 +12,9 @@ class FunctionalTrampoline : public Functional
         // Pull in constructors
         using Functional::Functional;
 
+    protected:
         //! pybind11 override of pure virtual compute method
-        void compute(std::shared_ptr<State> state, bool compute_value) override
+        void _compute(std::shared_ptr<State> state, bool compute_value) override
             {
             PYBIND11_OVERRIDE_PURE(void, Functional, compute, state, compute_value);
             }

@@ -24,7 +24,7 @@ class Functional : public TrackedObject
         Functional& operator=(const Functional&) = delete;
         Functional& operator=(Functional&&) = delete;
 
-        virtual void compute(std::shared_ptr<State> state, bool compute_value) = 0;
+        virtual Token compute(std::shared_ptr<State> state, bool compute_value);
 
         double getValue() const;
 
@@ -35,8 +35,6 @@ class Functional : public TrackedObject
 
         virtual int determineBufferShape(std::shared_ptr<State> state, const std::string& type);
 
-        const Token& token() override;
-
     protected:
         double value_;
         TypeMap<std::shared_ptr<Field>> derivatives_;
@@ -46,7 +44,8 @@ class Functional : public TrackedObject
         Token compute_state_token_;
 
         virtual bool setup(std::shared_ptr<State> state, bool compute_value);
-        virtual void finalize(std::shared_ptr<State> state, bool compute_value);
+        virtual void _compute(std::shared_ptr<State> state, bool compute_value) = 0;
+        virtual Token finalize(std::shared_ptr<State> state, bool compute_value);
     };
 
 }

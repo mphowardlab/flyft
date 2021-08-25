@@ -149,6 +149,12 @@ class GenericField : public TrackedObject
                 }
             }
 
+    Token token()
+        {
+        token_.commit();
+        return token_;
+        }
+
     private:
         T* data_;
         int shape_;

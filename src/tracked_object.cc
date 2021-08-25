@@ -42,12 +42,6 @@ TrackedObject::Identifier TrackedObject::id() const
     return id_;
     }
 
-const TrackedObject::Token& TrackedObject::token()
-    {
-    token_.commit();
-    return token_;
-    }
-
 TrackedObject::Token::Token()
     : Token(invalid_id)
     {}
@@ -93,11 +87,7 @@ bool TrackedObject::Token::operator==(const TrackedObject::Token& other) const
         {
         throw std::runtime_error("Cannot compare DataTokens with invalid ids");
         }
-    if (dirty_ || other.dirty_)
-        {
-        throw std::runtime_error("Cannot compare DataTokens without commiting changes");
-        }
-    return (id_ == other.id_ && code_ == other.code_);
+    return (id_ == other.id_ && code_ == other.code_ && (!dirty_ && !other.dirty_));
     }
 
 bool TrackedObject::Token::operator!=(const TrackedObject::Token& other) const
@@ -136,7 +126,7 @@ void TrackedObject::Dependencies::capture()
     tokens_.clear();
     for (const auto& o : objects_)
         {
-        tokens_[o.first] = o.second->token();
+        tokens_[o.first] = o.second->token_;
         }
     }
 
@@ -146,7 +136,7 @@ bool TrackedObject::Dependencies::changed()
     for (const auto& o : objects_)
         {
         const auto tok = tokens_.find(o.first);
-        if (tok == tokens_.end() || tok->second != o.second->token())
+        if (tok == tokens_.end() || tok->second != o.second->token_)
             {
             result = true;
             break;
