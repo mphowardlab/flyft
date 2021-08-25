@@ -19,7 +19,11 @@ class ExternalPotential : public Functional
                                std::shared_ptr<State> state) = 0;
 
     protected:
+        bool setup(std::shared_ptr<State> state, bool compute_value) override;
         void _compute(std::shared_ptr<State> state, bool compute_value) override;
+
+    private:
+        bool compute_potentials_;
     };
 
 }

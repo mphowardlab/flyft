@@ -5,18 +5,42 @@
 namespace flyft
 {
 
+bool ExternalPotential::setup(std::shared_ptr<State> state, bool compute_value)
+    {
+    bool compute = Functional::setup(state,compute_value);
+    // only compute potentials if a compute is needed and one of the internal dependencies has changed
+    if (compute)
+        {
+        compute_potentials_ = (!compute_token_ ||
+                               token_.dirty() ||
+                               token_ != compute_token_ ||
+                               compute_depends_.changed());
+        }
+    else
+        {
+        compute_potentials_ = false;
+        }
+    return compute;
+    }
+
 void ExternalPotential::_compute(std::shared_ptr<State> state, bool compute_value)
     {
-    // compute derivatives and accumulate energy
-    const auto mesh = *state->getMesh()->local();
-    value_ = 0.0;
-    for (const auto& t : state->getTypes())
+    // evaluate the external potential on the mesh, and store directly in derivative
+    if (compute_potentials_)
         {
-        // evaluate the external potential on the mesh, and store directly in derivative
-        potential(derivatives_(t),t,state);
+        for (const auto& t : state->getTypes())
+            {
+            potential(derivatives_(t),t,state);
+            }
+        compute_potentials_ = false;
+        }
 
-        // compute the total potential by integration
-        if (compute_value)
+    // optionally accumulate value
+    if (compute_value)
+        {
+        const auto mesh = *state->getMesh()->local();
+        value_ = 0.0;
+        for (const auto& t : state->getTypes())
             {
             auto f = state->getField(t)->const_view();
             auto d = derivatives_(t)->view();
@@ -43,10 +67,6 @@ void ExternalPotential::_compute(std::shared_ptr<State> state, bool compute_valu
                     }
                 }
             }
-        }
-
-    if (compute_value)
-        {
         value_ = state->getCommunicator()->sum(value_);
         }
     }

@@ -36,12 +36,7 @@ std::shared_ptr<const DoubleParameter> WallPotential::getOrigin() const
 
 void WallPotential::setOrigin(double origin)
     {
-    if (origin_)
-        {
-        compute_depends_.remove(origin_->id());
-        }
-    origin_ = std::make_shared<ConstantDoubleParameter>(origin);
-    compute_depends_.add(origin_.get());
+    setOrigin(std::make_shared<ConstantDoubleParameter>(origin));
     }
 
 void WallPotential::setOrigin(std::shared_ptr<DoubleParameter> origin)

@@ -6,7 +6,7 @@ namespace flyft
 {
 
 Functional::Functional()
-    : value_(0.)
+    : value_(std::nan(""))
     {
     }
 
@@ -21,8 +21,11 @@ Functional::Token Functional::compute(std::shared_ptr<State> state, bool compute
         {
         return token_;
         }
-    _compute(state,compute_value);
-    return finalize(state,compute_value);
+    else
+        {
+        _compute(state,compute_value);
+        return finalize(state,compute_value);
+        }
     }
 
 double Functional::getValue() const
@@ -89,7 +92,7 @@ bool Functional::setup(std::shared_ptr<State> state, bool compute_value)
         }
     
     // return whether evaluation is required
-    bool compute = ((!compute_token_ || token_ != compute_token_) ||
+    bool compute = ((!compute_token_ || token_.dirty() || token_ != compute_token_) ||
                     (!compute_state_token_ || state->token() != compute_state_token_) ||
                     compute_depends_.changed() ||
                     (compute_value && std::isnan(value_)));
