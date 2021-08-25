@@ -44,6 +44,7 @@ set(_FLYFT_CC_SOURCES
     rosenfeld_fmt.cc
     solver.cc
     state.cc
+    tracked_object.cc
     type_map.cc
     vector.cc
     virial_expansion.cc

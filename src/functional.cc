@@ -6,12 +6,26 @@ namespace flyft
 {
 
 Functional::Functional()
-    : value_(0.)
+    : value_(std::nan(""))
     {
     }
 
 Functional::~Functional()
     {
+    }
+
+Functional::Token Functional::compute(std::shared_ptr<State> state, bool compute_value)
+    {
+    bool needs_compute = setup(state,compute_value);
+    if (!needs_compute)
+        {
+        return token_;
+        }
+    else
+        {
+        _compute(state,compute_value);
+        return finalize(state,compute_value);
+        }
     }
 
 double Functional::getValue() const
@@ -48,16 +62,6 @@ int Functional::determineBufferShape(std::shared_ptr<State> /*state*/, const std
     return 0;
     }
 
-const Functional::Token& Functional::token()
-    {
-    if (compute_depends_.changed())
-        {
-        compute_depends_.capture();
-        token_.stage();
-        }
-    return TrackedObject::token();
-    }
-
 bool Functional::setup(std::shared_ptr<State> state, bool compute_value)
     {
     // sync required fields
@@ -88,14 +92,15 @@ bool Functional::setup(std::shared_ptr<State> state, bool compute_value)
         }
     
     // return whether evaluation is required
-    bool compute = ((!compute_token_ || token() != compute_token_) ||
+    bool compute = ((!compute_token_ || token_.dirty() || token_ != compute_token_) ||
                     (!compute_state_token_ || state->token() != compute_state_token_) ||
+                    compute_depends_.changed() ||
                     (compute_value && std::isnan(value_)));
 
     return compute;
     }
 
-void Functional::finalize(std::shared_ptr<State> state, bool compute_value)
+Functional::Token Functional::finalize(std::shared_ptr<State> state, bool compute_value)
     {
     // make sure value has NaN if not computed
     if (!compute_value)
@@ -105,10 +110,14 @@ void Functional::finalize(std::shared_ptr<State> state, bool compute_value)
 
     // stage changes after a compute
     token_.stage();
+    token_.commit();
 
     // capture dependencies
-    compute_token_ = token();
+    compute_token_ = token_;
     compute_state_token_ = state->token();
+    compute_depends_.capture();
+
+    return token_;
     }
 
 }

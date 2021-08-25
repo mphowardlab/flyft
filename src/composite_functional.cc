@@ -9,19 +9,17 @@ CompositeFunctional::CompositeFunctional()
     {
     }
 
-void CompositeFunctional::compute(std::shared_ptr<State> state, bool compute_value)
+bool CompositeFunctional::setup(std::shared_ptr<State> state, bool compute_value)
     {
-    bool needs_compute = setup(state,compute_value);
     for (const auto& o : objects_)
         {
         o->compute(state,compute_value);
         }
-    needs_compute |= (!compute_token_ || token() != compute_token_);
-    if (!needs_compute)
-        {
-        return;
-        }
+    return Functional::setup(state,compute_value);
+    }
 
+void CompositeFunctional::_compute(std::shared_ptr<State> state, bool compute_value)
+    {
     // initialize to zeros
     value_ = 0.0;
     const auto mesh = *state->getMesh()->local();
@@ -55,8 +53,6 @@ void CompositeFunctional::compute(std::shared_ptr<State> state, bool compute_val
                 }
             }
         }
-
-    finalize(state,compute_value);
     }
 
 void CompositeFunctional::requestDerivativeBuffer(const std::string& type, int buffer_request)

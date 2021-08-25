@@ -18,7 +18,6 @@ class GrandPotential : public Functional
     public:
         GrandPotential();
 
-        void compute(std::shared_ptr<State> state, bool compute_value) override;
         void requestDerivativeBuffer(const std::string& type, int buffer_request) override;
         int determineBufferShape(std::shared_ptr<State> state, const std::string& type) override;
 
@@ -44,6 +43,10 @@ class GrandPotential : public Functional
 
         TypeMap<Constraint>& getConstraintTypes();
         const TypeMap<Constraint>& getConstraintTypes() const;
+
+    protected:
+        bool setup(std::shared_ptr<State> state, bool compute_value) override;
+        void _compute(std::shared_ptr<State> state, bool compute_value) override;
 
     private:
         std::shared_ptr<IdealGasFunctional> ideal_;

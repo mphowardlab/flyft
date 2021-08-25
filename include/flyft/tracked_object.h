@@ -70,7 +70,6 @@ class TrackedObject
         virtual ~TrackedObject();
 
         Identifier id() const;
-        virtual const Token& token();
 
     protected:
         Identifier id_;

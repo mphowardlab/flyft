@@ -8,14 +8,8 @@ IdealGasFunctional::IdealGasFunctional()
     compute_depends_.add(&volumes_);
     }
 
-void IdealGasFunctional::compute(std::shared_ptr<State> state, bool compute_value)
+void IdealGasFunctional::_compute(std::shared_ptr<State> state, bool compute_value)
     {
-    bool needs_compute = setup(state,compute_value);
-    if (!needs_compute)
-        {
-        return;
-        }
-
     // compute derivatives and accumulate energy
     const auto mesh = *state->getMesh()->local();
     value_ = 0.0;
@@ -60,8 +54,6 @@ void IdealGasFunctional::compute(std::shared_ptr<State> state, bool compute_valu
         {
         value_ = state->getCommunicator()->sum(value_);
         }
-
-    finalize(state,compute_value);
     }
 
 TypeMap<double>& IdealGasFunctional::getVolumes()

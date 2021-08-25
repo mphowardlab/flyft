@@ -102,14 +102,8 @@ static void computeWeights(std::complex<double>& w0,
         }
     }
 
-void RosenfeldFMT::compute(std::shared_ptr<State> state, bool compute_value)
+void RosenfeldFMT::_compute(std::shared_ptr<State> state, bool compute_value)
     {
-    bool needs_compute = setup(state,compute_value);
-    if (!needs_compute)
-        {
-        return;
-        }
-
     // compute n weights in fourier space (requires communication before fourier transform)
     state->syncFields();
     const auto mesh = *state->getMesh()->local();
@@ -363,8 +357,6 @@ void RosenfeldFMT::compute(std::shared_ptr<State> state, bool compute_value)
             }
         value_ = state->getCommunicator()->sum(value_);
         }
-
-    finalize(state,compute_value);
     }
 
 int RosenfeldFMT::determineBufferShape(std::shared_ptr<State> state, const std::string& /*type*/)

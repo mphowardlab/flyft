@@ -11,9 +11,8 @@ GrandPotential::GrandPotential()
     compute_depends_.add(&constraint_types_);
     }
 
-void GrandPotential::compute(std::shared_ptr<State> state, bool compute_value)
+bool GrandPotential::setup(std::shared_ptr<State> state, bool compute_value)
     {
-    bool needs_compute = setup(state,compute_value);
     if (ideal_)
         {
         ideal_->compute(state,compute_value);
@@ -26,12 +25,11 @@ void GrandPotential::compute(std::shared_ptr<State> state, bool compute_value)
         {
         external_->compute(state,compute_value);
         }
-    needs_compute |= (!compute_token_ || token() != compute_token_);
-    if (!needs_compute)
-        {
-        return;
-        }
+    return Functional::setup(state,compute_value);
+    }
 
+void GrandPotential::_compute(std::shared_ptr<State> state, bool compute_value)
+    {
     const auto mesh = *state->getMesh()->local();
 
     // sum up contributions to derivatives for each type
@@ -102,8 +100,6 @@ void GrandPotential::compute(std::shared_ptr<State> state, bool compute_value)
             }
         value_ += state->getCommunicator()->sum(constraint_value);
         }
-
-    finalize(state,compute_value);
     }
 
 void GrandPotential::requestDerivativeBuffer(const std::string& type, int buffer_request)

@@ -14,14 +14,14 @@ WallPotential::WallPotential(std::shared_ptr<DoubleParameter> origin, double nor
     setNormal(normal);
     }
 
-void WallPotential::compute(std::shared_ptr<State> state, bool compute_value)
+bool WallPotential::setup(std::shared_ptr<State> state, bool compute_value)
     {
     const auto x0 = origin_->evaluate(state);
     if (x0 < 0 || x0 > state->getMesh()->full()->L())
         {
         // origin out of bounds
         }
-    ExternalPotential::compute(state,compute_value);
+    return ExternalPotential::setup(state,compute_value);
     }
 
 std::shared_ptr<DoubleParameter> WallPotential::getOrigin()
@@ -36,12 +36,7 @@ std::shared_ptr<const DoubleParameter> WallPotential::getOrigin() const
 
 void WallPotential::setOrigin(double origin)
     {
-    if (origin_)
-        {
-        compute_depends_.remove(origin_->id());
-        }
-    origin_ = std::make_shared<ConstantDoubleParameter>(origin);
-    compute_depends_.add(origin_.get());
+    setOrigin(std::make_shared<ConstantDoubleParameter>(origin));
     }
 
 void WallPotential::setOrigin(std::shared_ptr<DoubleParameter> origin)

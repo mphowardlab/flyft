@@ -15,9 +15,10 @@ class VirialExpansion : public Functional
     public:
         VirialExpansion();
 
-        void compute(std::shared_ptr<State> state, bool compute_value) override;
+        PairMap<double>& getCoefficients();
 
-        const PairMap<double>& getCoefficients();
+    private:
+        void _compute(std::shared_ptr<State> state, bool compute_value) override;
 
     private:
         PairMap<double> coeffs_;
