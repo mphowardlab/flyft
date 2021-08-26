@@ -23,7 +23,20 @@ Functional::Token Functional::compute(std::shared_ptr<State> state, bool compute
         }
     else
         {
+        // overlap any synchronization of the fields that may be requested if this functional
+        // does not need a field buffer itself, as it should be nearly "free"
+        bool force_sync = !needsBuffer(state);
+        if (force_sync)
+            {
+            state->startSyncFields();
+            }
+
         _compute(state,compute_value);
+
+        if (force_sync)
+            {
+            state->endSyncFields();
+            }
         return finalize(state,compute_value);
         }
     }
@@ -55,6 +68,21 @@ void Functional::requestDerivativeBuffer(const std::string& type, int buffer_req
         {
         buffer_requests_[type] = buffer_request;
         }
+    }
+
+bool Functional::needsBuffer(std::shared_ptr<State> state)
+    {
+    bool needs_buffer = false;
+    for (const auto& t : state->getTypes())
+        {
+        int field_buffer = determineBufferShape(state,t);
+        if (field_buffer != 0)
+            {
+            needs_buffer = true;
+            break;
+            }
+        }
+    return needs_buffer;
     }
 
 int Functional::determineBufferShape(std::shared_ptr<State> /*state*/, const std::string& /*type*/)
@@ -90,9 +118,9 @@ bool Functional::setup(std::shared_ptr<State> state, bool compute_value)
         // attach the active objects (will do nothing if object is already a dependency)
         compute_depends_.add(it.second.get());
         }
-    
+
     // return whether evaluation is required
-    bool compute = ((!compute_token_ || token_.dirty() || token_ != compute_token_) ||
+    bool compute = ((!compute_token_ || token_ != compute_token_) ||
                     (!compute_state_token_ || state->token() != compute_state_token_) ||
                     compute_depends_.changed() ||
                     (compute_value && std::isnan(value_)));
@@ -109,15 +137,14 @@ Functional::Token Functional::finalize(std::shared_ptr<State> state, bool comput
         }
 
     // stage changes after a compute
-    token_.stage();
-    token_.commit();
+    token_.stageAndCommit();
 
     // capture dependencies
     compute_token_ = token_;
     compute_state_token_ = state->token();
     compute_depends_.capture();
 
-    return token_;
+    return compute_token_;
     }
 
 }

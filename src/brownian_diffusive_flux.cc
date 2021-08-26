@@ -67,14 +67,13 @@ void BrownianDiffusiveFlux::compute(std::shared_ptr<GrandPotential> grand, std::
     if (excess)
         {
         excess->compute(state,false);
-        state->startSyncFields(excess->getDerivatives());
         }
     if (external)
         {
         external->compute(state,false);
-        state->startSyncFields(external->getDerivatives());
         }
-    state->startSyncFields();
+    // sync fields as a precaution, but this will already likely have been done by functionals
+    state->syncFields();
 
     // compute fluxes on the left edge of the volumes (exclude the first point)
     const auto mesh = *state->getMesh()->local();
@@ -86,36 +85,33 @@ void BrownianDiffusiveFlux::compute(std::shared_ptr<GrandPotential> grand, std::
         auto V = (external) ? external->getDerivative(t)->const_view() : Field::ConstantView();
         auto flux = fluxes_(t)->view();
 
+        // compute flux on edges and start sending
+        int flux_buffer = fluxes_(t)->buffer_shape();
+        for (int idx=0; idx < flux_buffer; ++idx)
+            {
+            flux(idx) = calculateFlux(idx,D,rho,mu_ex,V,mesh);
+            }
+        for (int idx=mesh.shape()-flux_buffer; idx < mesh.shape(); ++idx)
+            {
+            flux(idx) = calculateFlux(idx,D,rho,mu_ex,V,mesh);
+            }
+        state->getMesh()->startSync(fluxes_(t));
+
+        // compute flux on interior points
         #ifdef FLYFT_OPENMP
-        #pragma omp parallel for schedule(static) default(none) firstprivate(D,mesh) shared(rho,mu_ex,V,flux)
+        #pragma omp parallel for schedule(static) default(none) firstprivate(D,mesh) \
+        shared(rho,mu_ex,V,flux,flux_buffer)
         #endif
-        for (int idx=1; idx < mesh.shape(); ++idx)
+        for (int idx=flux_buffer; idx < mesh.shape()-flux_buffer; ++idx)
             {
             flux(idx) = calculateFlux(idx,D,rho,mu_ex,V,mesh);
             }
         }
 
-    // finish communication and do calculation on left edge
-    if (excess)
-        {
-        state->endSyncFields(excess->getDerivatives());
-        }
-    if (external)
-        {
-        state->endSyncFields(external->getDerivatives());
-        }
-    state->endSyncFields();
-
-    // compute fluxes on the edges
+    // finalize all flux communication
     for (const auto& t : state->getTypes())
         {
-        const auto D = diffusivities_(t);
-        auto rho = state->getField(t)->const_view();
-        auto mu_ex = (excess) ? excess->getDerivative(t)->const_view() : Field::ConstantView();
-        auto V = (external) ? external->getDerivative(t)->const_view() : Field::ConstantView();
-        auto flux = fluxes_(t)->view();
-
-        flux(0) = calculateFlux(0,D,rho,mu_ex,V,mesh);
+        state->getMesh()->endSync(fluxes_(t));
         }
     }
 

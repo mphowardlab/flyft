@@ -11,14 +11,6 @@ def test_init(ew):
     assert ew.origin == pytest.approx(2.0)
     assert ew.normal == 1.0
 
-    ew2 = flyft.external.ExponentialWall(2.0,2.0)
-    assert ew2.origin == pytest.approx(2.0)
-    assert ew2.normal == 1.0
-
-    ew3 = flyft.external.ExponentialWall(4.0,-3.0)
-    assert ew3.origin == pytest.approx(4.0)
-    assert ew3.normal == -1.0
-
 def test_epsilons(ew):
     assert len(ew.epsilons) == 0
 

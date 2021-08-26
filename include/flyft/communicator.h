@@ -14,7 +14,7 @@
 namespace flyft
 {
 
-class Communicator : public TrackedObject
+class Communicator
     {
     public:
         Communicator();
@@ -25,7 +25,7 @@ class Communicator : public TrackedObject
         ~Communicator();
 
         #ifdef FLYFT_MPI
-        MPI_Comm get() const;  
+        MPI_Comm get() const;
         #endif
         int size() const;
         int rank() const;

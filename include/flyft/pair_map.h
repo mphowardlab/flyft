@@ -46,7 +46,7 @@ class PairMap : public TrackedObject
 
         mapped_type& operator[](const key_type& key)
             {
-            token_.stage();
+            token_.stageAndCommit();
             return data_[make_key(key)];
             }
 
@@ -57,13 +57,13 @@ class PairMap : public TrackedObject
 
         iterator begin()
             {
-            token_.stage();
+            token_.stageAndCommit();
             return data_.begin();
             }
 
         iterator end()
             {
-            token_.stage();
+            token_.stageAndCommit();
             return data_.end();
             }
 
@@ -79,13 +79,13 @@ class PairMap : public TrackedObject
 
         iterator rbegin()
             {
-            token_.stage();
+            token_.stageAndCommit();
             return data_.rbegin();
             }
 
         iterator rend()
             {
-            token_.stage();
+            token_.stageAndCommit();
             return data_.rend();
             }
 
@@ -111,20 +111,20 @@ class PairMap : public TrackedObject
 
         void clear()
             {
-            token_.stage();
             data_.clear();
+            token_.stageAndCommit();
             }
 
         template<class... Args>
         std::pair<iterator,bool> emplace(Args&&... args)
             {
-            token_.stage();
+            token_.stageAndCommit();
             return data_.emplace(std::forward<Args>(args)...);
             }
 
         iterator find(const key_type& key)
             {
-            token_.stage();
+            token_.stageAndCommit();
             return data_.find(make_key(key));
             }
 
@@ -140,7 +140,7 @@ class PairMap : public TrackedObject
 
         iterator erase(const_iterator pos)
             {
-            token_.stage();
+            token_.stageAndCommit();
             return data_.erase(pos);
             }
 

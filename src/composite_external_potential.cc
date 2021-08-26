@@ -27,19 +27,21 @@ void CompositeExternalPotential::potential(std::shared_ptr<Field> V, const std::
         }
 
     // fill total potential with zeros and accumulate
-    const auto mesh = *state->getMesh()->local();
-    auto data = V->view();
-    std::fill(data.begin(),data.end(),0.);
+    auto d = V->full_view();
+    std::fill(d.begin(), d.end(), 0.);
     for (const auto& o : objects_)
         {
-        auto o_data = o->getDerivative(type)->const_view();
-        #ifdef FLYFT_OPENMP
-        #pragma omp parallel for schedule(static) default(none) firstprivate(mesh) shared(data,o_data)
-        #endif
-        for (int idx=0; idx < mesh.shape(); ++idx)
-            {
-            data(idx) += o_data(idx);
-            }
+        auto df = o->getDerivative(type)->const_full_view();
+        std::transform(d.begin(), d.end(), df.begin(), d.begin(), std::plus<>());
+        }
+    }
+
+void CompositeExternalPotential::requestDerivativeBuffer(const std::string& type, int buffer_request)
+    {
+    ExternalPotential::requestDerivativeBuffer(type,buffer_request);
+    for (const auto& o : objects_)
+        {
+        o->requestDerivativeBuffer(type,buffer_request);
         }
     }
 
@@ -49,7 +51,6 @@ bool CompositeExternalPotential::addObject(std::shared_ptr<ExternalPotential> ob
     if (added)
         {
         compute_depends_.add(object.get());
-        token_.stage();
         }
     return added;
     }
@@ -60,7 +61,6 @@ bool CompositeExternalPotential::removeObject(std::shared_ptr<ExternalPotential>
     if (removed)
         {
         compute_depends_.remove(object->id());
-        token_.stage();
         }
     return removed;
     }
@@ -69,8 +69,11 @@ void CompositeExternalPotential::clearObjects()
     {
    if (objects_.size() > 0)
         {
+        for (const auto& o : objects_)
+            {
+            compute_depends_.remove(o->id());
+            }
         CompositeMixin<ExternalPotential>::clearObjects();
-        token_.stage();
         }
     }
 

@@ -36,14 +36,14 @@ void GrandPotential::_compute(std::shared_ptr<State> state, bool compute_value)
     double constraint_value = 0.0;
     for (const auto& t : state->getTypes())
         {
-        auto d = derivatives_(t)->view();
-        auto did = (ideal_) ? ideal_->getDerivative(t)->const_view() : Field::ConstantView();
-        auto dex = (excess_) ? excess_->getDerivative(t)->const_view() : Field::ConstantView();
-        auto dext = (external_) ? external_->getDerivative(t)->const_view() : Field::ConstantView();
+        auto d = derivatives_(t)->full_view();
+        auto did = (ideal_) ? ideal_->getDerivative(t)->const_full_view() : Field::ConstantView();
+        auto dex = (excess_) ? excess_->getDerivative(t)->const_full_view() : Field::ConstantView();
+        auto dext = (external_) ? external_->getDerivative(t)->const_full_view() : Field::ConstantView();
         #ifdef FLYFT_OPENMP
         #pragma omp parallel for schedule(static) default(none) firstprivate(mesh) shared(d,did,dex,dext)
         #endif
-        for (int idx=0; idx < mesh.shape(); ++idx)
+        for (int idx=0; idx < d.size(); ++idx)
             {
             double deriv = 0.;
             if (did)
@@ -104,6 +104,7 @@ void GrandPotential::_compute(std::shared_ptr<State> state, bool compute_value)
 
 void GrandPotential::requestDerivativeBuffer(const std::string& type, int buffer_request)
     {
+    Functional::requestDerivativeBuffer(type,buffer_request);
     if (ideal_)
         {
         ideal_->requestDerivativeBuffer(type,buffer_request);

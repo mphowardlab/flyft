@@ -247,13 +247,12 @@ void RosenfeldFMT::_compute(std::shared_ptr<State> state, bool compute_value)
 
         // finish sending the data
             {
-            auto comm = state->getMesh();
-            comm->endSync(dphi_dn0_);
-            comm->endSync(dphi_dn1_);
-            comm->endSync(dphi_dn2_);
-            comm->endSync(dphi_dn3_);
-            comm->endSync(dphi_dnv1_);
-            comm->endSync(dphi_dnv2_);
+            state->getMesh()->endSync(dphi_dn0_);
+            state->getMesh()->endSync(dphi_dn1_);
+            state->getMesh()->endSync(dphi_dn2_);
+            state->getMesh()->endSync(dphi_dn3_);
+            state->getMesh()->endSync(dphi_dnv1_);
+            state->getMesh()->endSync(dphi_dnv2_);
             }
         }
 
@@ -340,21 +339,35 @@ void RosenfeldFMT::_compute(std::shared_ptr<State> state, bool compute_value)
                 {
                 dout(idx) = din(idx);
                 }
+
+            // start communicating this type
+            state->getMesh()->startSync(derivatives_(t));
+            }
+
+        // reduce the value of the functional
+        if (compute_value)
+            {
+            auto phi = phi_->const_view();
+            value_ = 0.0;
+            #ifdef FLYFT_OPENMP
+            #pragma omp parallel for schedule(static) default(none) firstprivate(mesh) shared(phi) reduction(+:value_)
+            #endif
+            for (int idx=0; idx < mesh.shape(); ++idx)
+                {
+                value_ += mesh.step()*phi(idx);
+                }
+            }
+
+        // finish up communication of all types
+        for (const auto& t : state->getTypes())
+            {
+            state->getMesh()->endSync(derivatives_(t));
             }
         }
 
-    // accumulate value
+    // reduce value across ranks
     if (compute_value)
         {
-        auto phi = phi_->const_view();
-        value_ = 0.0;
-        #ifdef FLYFT_OPENMP
-        #pragma omp parallel for schedule(static) default(none) firstprivate(mesh) shared(phi) reduction(+:value_)
-        #endif
-        for (int idx=0; idx < mesh.shape(); ++idx)
-            {
-            value_ += mesh.step()*phi(idx);
-            }
         value_ = state->getCommunicator()->sum(value_);
         }
     }

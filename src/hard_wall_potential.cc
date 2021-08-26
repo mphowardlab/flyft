@@ -20,8 +20,8 @@ void HardWallPotential::potential(std::shared_ptr<Field> V, const std::string& t
     {
     // edge where sphere contacts the wall
     const double R = 0.5*diameters_(type);
-    const double edge = origin_->evaluate(state) + normal_*R;
-    const auto normal = normal_;
+    const auto normal = normal_->evaluate(state);
+    const double edge = origin_->evaluate(state) + normal*R;
 
     const auto mesh = *state->getMesh()->local();
     auto data = V->view();

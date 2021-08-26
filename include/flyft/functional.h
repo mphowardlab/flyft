@@ -33,6 +33,7 @@ class Functional : public TrackedObject
         std::shared_ptr<const Field> getDerivative(const std::string& type) const;
         virtual void requestDerivativeBuffer(const std::string& type, int buffer_request);
 
+        bool needsBuffer(std::shared_ptr<State> state);
         virtual int determineBufferShape(std::shared_ptr<State> state, const std::string& type);
 
     protected:

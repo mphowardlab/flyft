@@ -53,6 +53,31 @@ void bindWallPotential(py::module_& m)
                             }
                       }
                       )
-        .def_property("normal", &WallPotential::getNormal, &WallPotential::setNormal)
+        .def_property("normal",
+                      [](WallPotential& self) -> py::object {
+                        auto normal = self.getNormal();
+                        auto const_normal = std::dynamic_pointer_cast<ConstantDoubleParameter>(normal);
+                        if (const_normal)
+                            {
+                            return py::cast(const_normal->getValue());
+                            }
+                        else
+                            {
+                            return py::cast(normal);
+                            }
+                      },
+                      [](WallPotential& self, py::object obj) {
+                        try
+                            {
+                            auto normal = obj.cast<double>();
+                            self.setNormal(normal);
+                            }
+                        catch (const pybind11::cast_error& e)
+                            {
+                            auto normal = obj.cast<std::shared_ptr<DoubleParameter>>();
+                            self.setNormal(normal);
+                            }
+                      }
+                      )
         ;
     }

@@ -14,6 +14,8 @@ namespace flyft
 class ExternalPotential : public Functional
     {
     public:
+        ExternalPotential();
+
         virtual void potential(std::shared_ptr<Field> V,
                                const std::string& type,
                                std::shared_ptr<State> state) = 0;
@@ -24,6 +26,7 @@ class ExternalPotential : public Functional
 
     private:
         bool compute_potentials_;
+        Mesh compute_potentials_mesh_;
     };
 
 }
