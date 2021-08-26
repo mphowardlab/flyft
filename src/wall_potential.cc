@@ -49,26 +49,48 @@ void WallPotential::setOrigin(std::shared_ptr<DoubleParameter> origin)
     compute_depends_.add(origin_.get());
     }
 
-double WallPotential::getNormal() const
+std::shared_ptr<DoubleParameter> WallPotential::getNormal()
+    {
+    return normal_;
+    }
+
+std::shared_ptr<const DoubleParameter> WallPotential::getNormal() const
     {
     return normal_;
     }
 
 void WallPotential::setNormal(double normal)
     {
-    if (normal > 0)
+    setNormal(std::make_shared<ConstantDoubleParameter>(normal));
+    }
+
+
+void WallPotential::setNormal(std::shared_ptr<DoubleParameter> normal)
+    {
+    if (normal_)
         {
-        normal_ = 1.0;
+        compute_depends_.remove(normal_->id());
         }
-    else if (normal < 0)
+    normal_ = normal;
+    compute_depends_.add(normal_.get());
+    }
+
+double WallPotential::computeNormal(std::shared_ptr<State> state)
+    {
+    double n = normal_->evaluate(state);
+    if (n > 0)
         {
-        normal_ = -1.0;
+        n = 1.0;
+        }
+    else if (n < 0)
+        {
+        n = -1.0;
         }
     else
         {
-        // error: normal must be nonzero
+        throw std::runtime_error("Normal must be nonzero");
         }
-    token_.stage();
+    return n;
     }
 
 }

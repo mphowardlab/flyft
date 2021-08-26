@@ -22,10 +22,9 @@ void CompositeFunctional::_compute(std::shared_ptr<State> state, bool compute_va
     {
     // initialize to zeros
     value_ = 0.0;
-    const auto mesh = *state->getMesh()->local();
     for (const auto& t : state->getTypes())
         {
-        auto d = derivatives_(t)->view();
+        auto d = derivatives_(t)->full_view();
         std::fill(d.begin(),d.end(),0.);
         }
 
@@ -42,21 +41,16 @@ void CompositeFunctional::_compute(std::shared_ptr<State> state, bool compute_va
         // accumulate derivatives
         for (const auto& t : state->getTypes())
             {
-            auto d = derivatives_(t)->view();
-            auto df = f->getDerivative(t)->const_view();
-            #ifdef FLYFT_OPENMP
-            #pragma omp parallel for schedule(static) default(none) firstprivate(mesh) shared(d,df)
-            #endif
-            for (int idx=0; idx < mesh.shape(); ++idx)
-                {
-                d(idx) += df(idx);
-                }
+            auto d = derivatives_(t)->full_view();
+            auto df = f->getDerivative(t)->const_full_view();
+            std::transform(d.begin(), d.end(), df.begin(), d.begin(), std::plus<>());
             }
         }
     }
 
 void CompositeFunctional::requestDerivativeBuffer(const std::string& type, int buffer_request)
     {
+    Functional::requestDerivativeBuffer(type,buffer_request);
     for (const auto& f : objects_)
         {
         f->requestDerivativeBuffer(type,buffer_request);
@@ -80,7 +74,6 @@ bool CompositeFunctional::addObject(std::shared_ptr<Functional> object)
     if (added)
         {
         compute_depends_.add(object.get());
-        token_.stage();
         }
     return added;
     }
@@ -91,7 +84,6 @@ bool CompositeFunctional::removeObject(std::shared_ptr<Functional> object)
     if (removed)
         {
         compute_depends_.remove(object->id());
-        token_.stage();
         }
     return removed;
     }
@@ -100,8 +92,11 @@ void CompositeFunctional::clearObjects()
     {
     if (objects_.size() > 0)
         {
+        for (const auto& o : objects_)
+            {
+            compute_depends_.remove(o->id());
+            }
         CompositeMixin<Functional>::clearObjects();
-        token_.stage();
         }
     }
 

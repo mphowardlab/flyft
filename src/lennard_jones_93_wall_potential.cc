@@ -26,7 +26,7 @@ void LennardJones93WallPotential::potential(std::shared_ptr<Field> V, const std:
     const auto sigma = sigmas_(type);
     const auto cutoff = cutoffs_(type);
     const auto x0 = origin_->evaluate(state);
-    const auto normal = normal_;
+    const auto normal = normal_->evaluate(state);
 
     // precompute energy shift
     bool shift = shifts_(type);

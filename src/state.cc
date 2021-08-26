@@ -291,13 +291,12 @@ double State::getTime() const
 void State::setTime(double time)
     {
     time_ = time;
-    token_.stage();
+    token_.stageAndCommit();
     }
 
 void State::advanceTime(double timestep)
     {
-    time_ += timestep;
-    token_.stage();
+    setTime(time_+timestep);
     }
 
 State::Token State::token()
@@ -305,8 +304,7 @@ State::Token State::token()
     if (depends_.changed())
         {
         depends_.capture();
-        token_.stage();
-        token_.commit();
+        token_.stageAndCommit();
         }
     return token_;
     }

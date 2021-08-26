@@ -30,6 +30,7 @@ class TrackedObject
                 void commit();
                 bool dirty() const;
                 void stage();
+                void stageAndCommit();
 
                 operator bool() const;
                 bool operator==(const Token& other) const;
@@ -46,7 +47,7 @@ class TrackedObject
         class Dependencies
             {
             public:
-                Dependencies() = default;
+                Dependencies();
                 ~Dependencies() = default;
 
                 void add(TrackedObject* object);
@@ -60,6 +61,7 @@ class TrackedObject
             private:
                 std::unordered_map<Identifier,TrackedObject*> objects_;
                 std::unordered_map<Identifier,Token> tokens_;
+                bool object_map_changed_;
             };
 
         TrackedObject();
@@ -70,6 +72,7 @@ class TrackedObject
         virtual ~TrackedObject();
 
         Identifier id() const;
+        virtual Token token();
 
     protected:
         Identifier id_;

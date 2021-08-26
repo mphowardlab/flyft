@@ -22,14 +22,18 @@ class WallPotential : public ExternalPotential
         void setOrigin(double origin);
         void setOrigin(std::shared_ptr<DoubleParameter> origin);
 
-        double getNormal() const;
+        std::shared_ptr<DoubleParameter> getNormal();
+        std::shared_ptr<const DoubleParameter> getNormal() const;
         void setNormal(double normal);
+        void setNormal(std::shared_ptr<DoubleParameter> normal);
 
     protected:
         std::shared_ptr<DoubleParameter> origin_;
-        double normal_;
+        std::shared_ptr<DoubleParameter> normal_;
 
         bool setup(std::shared_ptr<State> state, bool compute_value) override;
+
+        double computeNormal(std::shared_ptr<State> state);
     };
 
 }

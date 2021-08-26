@@ -11,14 +11,6 @@ def test_init(hw):
     assert hw.origin == pytest.approx(2.0)
     assert hw.normal == 1.0
 
-    hw2 = flyft.external.HardWall(2.0,2.0)
-    assert hw2.origin == pytest.approx(2.0)
-    assert hw2.normal == 1.0
-
-    hw3 = flyft.external.HardWall(4.0,-3.0)
-    assert hw3.origin == pytest.approx(4.0)
-    assert hw3.normal == -1.0
-
 def test_diameters(hw):
     assert len(hw.diameters) == 0
 

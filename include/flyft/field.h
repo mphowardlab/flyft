@@ -68,7 +68,7 @@ class GenericField : public TrackedObject
 
         View view()
             {
-            token_.stage();
+            token_.stageAndCommit();
             return View(data_,layout_,buffer_shape_,full_shape()-buffer_shape_);
             }
 
@@ -79,7 +79,7 @@ class GenericField : public TrackedObject
 
         View full_view()
             {
-            token_.stage();
+            token_.stageAndCommit();
             return View(data_,layout_,0,full_shape());
             }
 
@@ -132,7 +132,7 @@ class GenericField : public TrackedObject
                 shape_ = shape;
                 buffer_shape_ = buffer_shape;
                 layout_ = layout;
-                token_.stage();
+                token_.stageAndCommit();
                 }
             }
 
@@ -148,12 +148,6 @@ class GenericField : public TrackedObject
                 setBuffer(buffer_shape);
                 }
             }
-
-    Token token()
-        {
-        token_.commit();
-        return token_;
-        }
 
     private:
         T* data_;

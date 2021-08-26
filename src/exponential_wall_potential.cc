@@ -23,7 +23,7 @@ void ExponentialWallPotential::potential(std::shared_ptr<Field> V, const std::st
     const auto kappa = kappas_(type);
     const auto shift = shifts_(type);
     const double x0 = origin_->evaluate(state) + shift;
-    const auto normal = normal_;
+    const auto normal = normal_->evaluate(state);
 
     const auto mesh = *state->getMesh()->local();
     auto data = V->view();

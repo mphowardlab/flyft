@@ -184,7 +184,11 @@ void ParallelMesh::startSync(std::shared_ptr<Field> field)
     field_tokens_[field->id()] = field->token();
     }
 
+#ifdef FLYFT_MPI
 void ParallelMesh::endSync(std::shared_ptr<Field> field)
+#else
+void ParallelMesh::endSync(std::shared_ptr<Field> /*field*/)
+#endif
     {
     #ifdef FLYFT_MPI
     // wait for communication to finish
@@ -210,7 +214,11 @@ void ParallelMesh::endSyncAll()
     #endif // FLYFT_MPI
     }
 
+#ifdef FLYFT_MPI
 std::shared_ptr<Field> ParallelMesh::gather(std::shared_ptr<Field> field, int root) const
+#else
+std::shared_ptr<Field> ParallelMesh::gather(std::shared_ptr<Field> field, int /*root*/) const
+#endif
     {
     std::shared_ptr<Field> new_field;
 

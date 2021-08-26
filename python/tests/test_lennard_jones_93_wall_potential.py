@@ -11,14 +11,6 @@ def test_init(lj):
     assert lj.origin == pytest.approx(2.0)
     assert lj.normal == 1.0
 
-    lj2 = flyft.external.LennardJones93Wall(2.0,2.0)
-    assert lj2.origin == pytest.approx(2.0)
-    assert lj2.normal == 1.0
-
-    lj3 = flyft.external.LennardJones93Wall(4.0,-3.0)
-    assert lj3.origin == pytest.approx(4.0)
-    assert lj3.normal == -1.0
-
 def test_epsilons(lj):
     assert len(lj.epsilons) == 0
 
