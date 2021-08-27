@@ -18,7 +18,7 @@ bool CompositeExternalPotential::setup(std::shared_ptr<State> state, bool comput
     return ExternalPotential::setup(state,compute_value);
     }
 
-void CompositeExternalPotential::potential(std::shared_ptr<Field> V, const std::string& type, std::shared_ptr<State> state)
+void CompositeExternalPotential::computePotentials(std::shared_ptr<State> state)
     {
     // ensure objects are up-to-date, this will do nothing if nothing has changed
     for (const auto& o : objects_)
@@ -27,12 +27,15 @@ void CompositeExternalPotential::potential(std::shared_ptr<Field> V, const std::
         }
 
     // fill total potential with zeros and accumulate
-    auto d = V->full_view();
-    std::fill(d.begin(), d.end(), 0.);
-    for (const auto& o : objects_)
+    for (const auto& t : state->getTypes())
         {
-        auto df = o->getDerivative(type)->const_full_view();
-        std::transform(d.begin(), d.end(), df.begin(), d.begin(), std::plus<>());
+        auto d = derivatives_(t)->full_view();
+        std::fill(d.begin(), d.end(), 0.);
+        for (const auto& o : objects_)
+            {
+            auto df = o->getDerivative(t)->const_full_view();
+            std::transform(d.begin(), d.end(), df.begin(), d.begin(), std::plus<>());
+            }
         }
     }
 

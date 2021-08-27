@@ -1,9 +1,9 @@
 #ifndef FLYFT_LINEAR_POTENTIAL_H_
 #define FLYFT_LINEAR_POTENTIAL_H_
 
-#include "flyft/external_potential.h"
 #include "flyft/field.h"
 #include "flyft/state.h"
+#include "flyft/templated_external_potential.h"
 #include "flyft/type_map.h"
 
 #include <memory>
@@ -12,14 +12,28 @@
 namespace flyft
 {
 
-class LinearPotential : public ExternalPotential
+class LinearPotentialFunction
+    {
+    public:
+        LinearPotentialFunction(double x0, double y0, double slope)
+            : x0_(x0), y0_(y0), slope_(slope)
+            {}
+
+        double operator()(double x) const
+            {
+            return y0_+slope_*(x-x0_);
+            }
+
+    private:
+        double x0_;
+        double y0_;
+        double slope_;
+    };
+
+class LinearPotential : public TemplatedExternalPotential<LinearPotentialFunction>
     {
     public:
         LinearPotential();
-
-        void potential(std::shared_ptr<Field> V,
-                       const std::string& type,
-                       std::shared_ptr<State> state) override;
 
         TypeMap<double>& getXs();
         const TypeMap<double>& getXs() const;
@@ -29,6 +43,9 @@ class LinearPotential : public ExternalPotential
 
         TypeMap<double>& getSlopes();
         const TypeMap<double>& getSlopes() const;
+
+    protected:
+        Function makePotentialFunction(std::shared_ptr<State> state, const std::string& type) override;
 
     protected:
         TypeMap<double> xs_;

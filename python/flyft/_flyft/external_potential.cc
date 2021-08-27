@@ -10,12 +10,11 @@ class ExternalPotentialTrampoline : public ExternalPotential
         // Pull in constructors
         using ExternalPotential::ExternalPotential;
 
+    protected:
         //! pybind11 override of pure virtual compute method
-        void potential(std::shared_ptr<Field> V,
-                       const std::string& type,
-                       std::shared_ptr<State> state) override
+        void computePotentials(std::shared_ptr<State> state) override
             {
-            PYBIND11_OVERRIDE_PURE(void, ExternalPotential, potential, V, type, state);
+            PYBIND11_OVERRIDE_PURE(void, ExternalPotential, computePotentials, state);
             }
     };
 }

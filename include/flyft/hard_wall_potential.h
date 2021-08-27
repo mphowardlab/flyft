@@ -12,7 +12,24 @@
 namespace flyft
 {
 
-class HardWallPotential : public WallPotential
+class HardWallPotentialFunction : public WallPotentialFunction
+    {
+    public:
+        HardWallPotentialFunction(double origin, double normal, double diameter)
+            : WallPotentialFunction(origin,normal), R_(0.5*diameter)
+            {}
+
+        double operator()(double x) const
+            {
+            const double dx = distance(x);
+            return (dx < R_) ? std::numeric_limits<double>::infinity() : 0.0;
+            }
+
+    private:
+        double R_;
+    };
+
+class HardWallPotential : public WallPotential<HardWallPotentialFunction>
     {
     public:
         HardWallPotential() = delete;
@@ -22,7 +39,8 @@ class HardWallPotential : public WallPotential
         TypeMap<double>& getDiameters();
         const TypeMap<double>& getDiameters() const;
 
-        void potential(std::shared_ptr<Field> V, const std::string& type, std::shared_ptr<State> state) override;
+    protected:
+        Function makePotentialFunction(std::shared_ptr<State> state, const std::string& type) override;
 
     private:
         TypeMap<double> diameters_;

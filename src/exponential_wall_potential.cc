@@ -16,28 +16,6 @@ ExponentialWallPotential::ExponentialWallPotential(std::shared_ptr<DoubleParamet
     compute_depends_.add(&shifts_);
     }
 
-void ExponentialWallPotential::potential(std::shared_ptr<Field> V, const std::string& type, std::shared_ptr<State> state)
-    {
-    // get potential parameters for this type
-    const auto epsilon = epsilons_(type);
-    const auto kappa = kappas_(type);
-    const auto shift = shifts_(type);
-    const double x0 = origin_->evaluate(state) + shift;
-    const auto normal = normal_->evaluate(state);
-
-    const auto mesh = *state->getMesh()->local();
-    auto data = V->view();
-    #ifdef FLYFT_OPENMP
-    #pragma omp parallel for schedule(static) default(none) firstprivate(epsilon,kappa,shift,x0,normal,mesh) shared(data)
-    #endif
-    for (int idx=0; idx < mesh.shape(); ++idx)
-        {
-        const auto x = mesh.coordinate(idx);
-        const double dx = normal*(x-x0);
-        data(idx) = epsilon*std::exp(-kappa*dx);
-        }
-    }
-
 TypeMap<double>& ExponentialWallPotential::getEpsilons()
     {
     return epsilons_;
@@ -66,6 +44,15 @@ TypeMap<double>& ExponentialWallPotential::getShifts()
 const TypeMap<double>& ExponentialWallPotential::getShifts() const
     {
     return shifts_;
+    }
+
+ExponentialWallPotential::Function ExponentialWallPotential::makePotentialFunction(std::shared_ptr<State> state, const std::string& type)
+    {
+    const double x0 = origin_->evaluate(state) + shifts_(type);
+    const auto normal = normal_->evaluate(state);
+    const auto epsilon = epsilons_(type);
+    const auto kappa = kappas_(type);
+    return Function(x0,normal,epsilon,kappa);
     }
 
 }

@@ -22,11 +22,12 @@ class LinearPotential(ExternalPotential,mirrorclass=_flyft.LinearPotential):
     ys = mirror.WrappedProperty(mirror.MutableMapping)
     slopes = mirror.WrappedProperty(mirror.MutableMapping)
 
-class WallPotential(ExternalPotential,mirrorclass=_flyft.WallPotential):
+class WallPotential(ExternalPotential):
     def __init__(self, origin, normal):
         super().__init__(origin, normal)
-        # force a second time to cache origin if needed
+        # force a second time to cache if needed
         self.origin = origin
+        self.normal = normal
 
     origin = mirror.Property()
     normal = mirror.Property()

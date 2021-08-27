@@ -12,7 +12,24 @@
 namespace flyft
 {
 
-class HarmonicWallPotential : public WallPotential
+class HarmonicWallPotentialFunction : public WallPotentialFunction
+    {
+    public:
+        HarmonicWallPotentialFunction(double origin, double normal, double k)
+            : WallPotentialFunction(origin,normal), k_(k)
+            {}
+
+        double operator()(double x) const
+            {
+            const double dx = distance(x);
+            return (dx < 0) ? 0.5*k_*dx*dx : 0.0;
+            }
+
+    private:
+        double k_;
+    };
+
+class HarmonicWallPotential : public WallPotential<HarmonicWallPotentialFunction>
     {
     public:
         HarmonicWallPotential() = delete;
@@ -25,7 +42,8 @@ class HarmonicWallPotential : public WallPotential
         TypeMap<double>& getShifts();
         const TypeMap<double>& getShifts() const;
 
-        void potential(std::shared_ptr<Field> V, const std::string& type, std::shared_ptr<State> state) override;
+    protected:
+        Function makePotentialFunction(std::shared_ptr<State> state, const std::string& type) override;
 
     private:
         TypeMap<double> spring_constants_;
