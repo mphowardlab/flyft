@@ -16,25 +16,6 @@ HardWallPotential::HardWallPotential(std::shared_ptr<DoubleParameter> origin, do
     compute_depends_.add(&diameters_);
     }
 
-void HardWallPotential::potential(std::shared_ptr<Field> V, const std::string& type, std::shared_ptr<State> state)
-    {
-    // edge where sphere contacts the wall
-    const double R = 0.5*diameters_(type);
-    const auto normal = normal_->evaluate(state);
-    const double edge = origin_->evaluate(state) + normal*R;
-
-    const auto mesh = *state->getMesh()->local();
-    auto data = V->view();
-    #ifdef FLYFT_OPENMP
-    #pragma omp parallel for schedule(static) default(none) firstprivate(mesh,edge,normal) shared(data)
-    #endif
-    for (int idx=0; idx < mesh.shape(); ++idx)
-        {
-        const auto x = mesh.coordinate(idx);
-        data(idx) = (normal*(x-edge) < 0) ? std::numeric_limits<double>::infinity() : 0.0;
-        }
-    }
-
 TypeMap<double>& HardWallPotential::getDiameters()
     {
     return diameters_;
@@ -43,6 +24,15 @@ TypeMap<double>& HardWallPotential::getDiameters()
 const TypeMap<double>& HardWallPotential::getDiameters() const
     {
     return diameters_;
+    }
+
+
+HardWallPotential::Function HardWallPotential::makePotentialFunction(std::shared_ptr<State> state, const std::string& type)
+    {
+    const auto x0 = origin_->evaluate(state);
+    const auto normal = normal_->evaluate(state);
+    const auto diameter = diameters_(type);
+    return Function(x0,normal,diameter);
     }
 
 }

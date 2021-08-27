@@ -17,8 +17,6 @@ class CompositeExternalPotential : public ExternalPotential, public CompositeMix
     public:
         CompositeExternalPotential();
 
-        void potential(std::shared_ptr<Field> V, const std::string& type, std::shared_ptr<State> state) override;
-
         void requestDerivativeBuffer(const std::string& type, int buffer_request) override;
 
         bool addObject(std::shared_ptr<ExternalPotential> object);
@@ -27,6 +25,7 @@ class CompositeExternalPotential : public ExternalPotential, public CompositeMix
 
     protected:
         bool setup(std::shared_ptr<State> state, bool compute_value) override;
+        void computePotentials(std::shared_ptr<State> state) override;
     };
 
 }

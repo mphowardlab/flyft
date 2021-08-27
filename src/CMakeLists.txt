@@ -30,7 +30,6 @@ add_library(flyft SHARED
     state.cc
     tracked_object.cc
     virial_expansion.cc
-    wall_potential.cc
     )
 
 target_include_directories(

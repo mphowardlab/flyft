@@ -48,7 +48,6 @@ set(_FLYFT_CC_SOURCES
     type_map.cc
     vector.cc
     virial_expansion.cc
-    wall_potential.cc
     )
 list(TRANSFORM _FLYFT_CC_SOURCES PREPEND _flyft/)
 

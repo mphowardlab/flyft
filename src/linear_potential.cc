@@ -10,26 +10,6 @@ LinearPotential::LinearPotential()
     compute_depends_.add(&slopes_);
     }
 
-void LinearPotential::potential(std::shared_ptr<Field> V,
-                                const std::string& type,
-                                std::shared_ptr<State> state)
-    {
-    const auto x0 = xs_(type);
-    const auto y0 = ys_(type);
-    const auto m = slopes_(type);
-
-    const auto mesh = *state->getMesh()->local();
-    auto data = V->view();
-    #ifdef FLYFT_OPENMP
-    #pragma omp parallel for schedule(static) default(none) firstprivate(x0,y0,m,mesh) shared(data)
-    #endif
-    for (int idx=0; idx < mesh.shape(); ++idx)
-        {
-        const auto x = mesh.coordinate(idx);
-        data(idx) = y0+m*(x-x0);
-        }
-    }
-
 TypeMap<double>& LinearPotential::getXs()
     {
     return xs_;
@@ -58,6 +38,14 @@ TypeMap<double>& LinearPotential::getSlopes()
 const TypeMap<double>& LinearPotential::getSlopes() const
     {
     return slopes_;
+    }
+
+LinearPotential::Function LinearPotential::makePotentialFunction(std::shared_ptr<State> /*state*/, const std::string& type)
+    {
+    const auto x0 = xs_(type);
+    const auto y0 = ys_(type);
+    const auto slope = slopes_(type);
+    return Function(x0,y0,slope);
     }
 
 }
