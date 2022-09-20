@@ -63,29 +63,36 @@ class RosenfeldFMT : public Functional
 
         bool setup(std::shared_ptr<State> state, bool compute_value) override;
         void _compute(std::shared_ptr<State> state, bool compute_value) override;
-        virtual void computePhiAndDerivatives(int idx,
-                                              Field::View& phi,
-                                              Field::View& dphi_dn0,
-                                              Field::View& dphi_dn1,
-                                              Field::View& dphi_dn2,
-                                              Field::View& dphi_dn3,
-                                              Field::View& dphi_dnv1,
-                                              Field::View& dphi_dnv2,
-                                              const Field::ConstantView& n0,
-                                              const Field::ConstantView& n1,
-                                              const Field::ConstantView& n2,
-                                              const Field::ConstantView& n3,
-                                              const Field::ConstantView& nv1,
-                                              const Field::ConstantView& nv2,
-                                              bool compute_value);
-        virtual void computeWeights(std::complex<double>& w0,
-                                    std::complex<double>& w1,
-                                    std::complex<double>& w2,
-                                    std::complex<double>& w3,
-                                    std::complex<double>& wv1,
-                                    std::complex<double>& wv2,
-                                    double k,
-                                    double R);
+        void computePhiAndDerivatives(int idx,
+                                      Field::View& phi,
+                                      Field::View& dphi_dn0,
+                                      Field::View& dphi_dn1,
+                                      Field::View& dphi_dn2,
+                                      Field::View& dphi_dn3,
+                                      Field::View& dphi_dnv1,
+                                      Field::View& dphi_dnv2,
+                                      const Field::ConstantView& n0,
+                                      const Field::ConstantView& n1,
+                                      const Field::ConstantView& n2,
+                                      const Field::ConstantView& n3,
+                                      const Field::ConstantView& nv1,
+                                      const Field::ConstantView& nv2,
+                                      bool compute_value) const;
+        virtual void computePrefactorFunctions(double& f1,
+                                               double& f2,
+                                               double& f4,
+                                               double& df1dn3,
+                                               double& df2dn3,
+                                               double& df4dn3,
+                                               double n3) const;
+        void computeWeights(std::complex<double>& w0,
+                            std::complex<double>& w1,
+                            std::complex<double>& w2,
+                            std::complex<double>& w3,
+                            std::complex<double>& wv1,
+                            std::complex<double>& wv2,
+                            double k,
+                            double R) const;
 
         void setupField(std::shared_ptr<Field>& field);
         void setupComplexField(std::unique_ptr<ComplexField>& kfield);

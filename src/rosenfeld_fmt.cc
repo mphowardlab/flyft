@@ -283,6 +283,106 @@ void RosenfeldFMT::_compute(std::shared_ptr<State> state, bool compute_value)
         }
     }
 
+void RosenfeldFMT::computePhiAndDerivatives(int idx,
+                                            Field::View& phi,
+                                            Field::View& dphi_dn0,
+                                            Field::View& dphi_dn1,
+                                            Field::View& dphi_dn2,
+                                            Field::View& dphi_dn3,
+                                            Field::View& dphi_dnv1,
+                                            Field::View& dphi_dnv2,
+                                            const Field::ConstantView& n0,
+                                            const Field::ConstantView& n1,
+                                            const Field::ConstantView& n2,
+                                            const Field::ConstantView& n3,
+                                            const Field::ConstantView& nv1,
+                                            const Field::ConstantView& nv2,
+                                            bool compute_value) const
+    {
+    // these are all functions of n3 (via vf)
+    double f1, f2, f4, df1, df2, df4;
+    computePrefactorFunctions(f1, f2, f4, df1, df2, df4, n3(idx));
+
+    if (compute_value)
+        {
+        phi(idx) = (f1*n0(idx)
+                    +f2*(n1(idx)*n2(idx)-nv1(idx)*nv2(idx))
+                    +f4*(n2(idx)*n2(idx)*n2(idx)-3.*n2(idx)*nv2(idx)*nv2(idx)));
+        }
+    else
+        {
+        phi(idx) = 0.;
+        }
+
+    dphi_dn0(idx) = f1;
+    dphi_dn1(idx) = f2*n2(idx);
+    dphi_dn2(idx) = f2*n1(idx) + 3.*f4*(n2(idx)*n2(idx)-nv2(idx)*nv2(idx));
+    dphi_dn3(idx) = (df1*n0(idx)
+                        +df2*(n1(idx)*n2(idx)-nv1(idx)*nv2(idx))
+                        +df4*(n2(idx)*n2(idx)*n2(idx)-3.*n2(idx)*nv2(idx)*nv2(idx)));
+    dphi_dnv1(idx) = -f2*nv2(idx);
+    dphi_dnv2(idx) = -f2*nv1(idx)-6.*f4*n2(idx)*nv2(idx);
+    }
+
+void RosenfeldFMT::computePrefactorFunctions(double& f1,
+                                             double& f2,
+                                             double& f4,
+                                             double& df1dn3,
+                                             double& df2dn3,
+                                             double& df4dn3,
+                                             double n3) const
+    {
+    // precompute the "void fraction" vf, which is only a function of n3
+    const double vf = 1.-n3;
+    if (vf < 0)
+        {
+        // local void fraction unphysical
+        }
+    const double logvf = std::log(vf);
+    const double vfinv = 1./vf;
+    f1 = -logvf;
+    f2 = vfinv;
+    f4 = vfinv*vfinv/(24.*M_PI);
+    df1dn3 = vfinv;
+    df2dn3 = vfinv*vfinv;
+    df4dn3 = 2.*f4*vfinv;
+    }
+
+void RosenfeldFMT::computeWeights(std::complex<double>& w0,
+                                  std::complex<double>& w1,
+                                  std::complex<double>& w2,
+                                  std::complex<double>& w3,
+                                  std::complex<double>& wv1,
+                                  std::complex<double>& wv2,
+                                  double k,
+                                  double R) const
+
+    {
+    if (k != 0.)
+        {
+        const double kR = k*R;
+        const double sinkR = std::sin(kR);
+        const double coskR = std::cos(kR);
+
+        w0 = sinkR/kR;
+        w1 = R*w0;
+        w2 = (4.*M_PI)*R*w1;
+        w3 = (4.*M_PI)*(sinkR-kR*coskR)/(k*k*k);
+        // do these in opposite order because wv2 follows easily from w3
+        wv2 = std::complex<double>(0.,-k)*w3;
+        wv1 = wv2/(4.*M_PI*R);
+        }
+    else
+        {
+        w0 = 1.0;
+        w1 = R;
+        w2 = (4.*M_PI)*R*w1;
+        w3 = w2*(R/3.);
+        wv1 = 0.0;
+        wv2 = 0.0;
+        }
+    }
+
 int RosenfeldFMT::determineBufferShape(std::shared_ptr<State> state, const std::string& /*type*/)
     {
     // TODO: cache this
@@ -322,95 +422,6 @@ bool RosenfeldFMT::setup(std::shared_ptr<State> state, bool compute_value)
     setupComplexField(derivativek_);
 
     return compute;
-    }
-
-void RosenfeldFMT::computePhiAndDerivatives(int idx,
-                                            Field::View& phi,
-                                            Field::View& dphi_dn0,
-                                            Field::View& dphi_dn1,
-                                            Field::View& dphi_dn2,
-                                            Field::View& dphi_dn3,
-                                            Field::View& dphi_dnv1,
-                                            Field::View& dphi_dnv2,
-                                            const Field::ConstantView& n0,
-                                            const Field::ConstantView& n1,
-                                            const Field::ConstantView& n2,
-                                            const Field::ConstantView& n3,
-                                            const Field::ConstantView& nv1,
-                                            const Field::ConstantView& nv2,
-                                            bool compute_value)
-    {
-    // precompute the "void fraction" vf, which is only a function of n3
-    const double vf = 1.-n3(idx);
-    if (vf < 0)
-        {
-        // local void fraction unphysical
-        }
-    const double logvf = std::log(vf);
-    const double vfinv = 1./vf;
-
-    // these are all functions of n3 (via vf)
-    const double f1 = -logvf;
-    const double df1 = vfinv;
-    const double f2 = vfinv;
-    const double df2 = vfinv*vfinv;
-    const double f4 = vfinv*vfinv/(24.*M_PI);
-    const double df4 = 2.*f4*vfinv;
-
-    if (compute_value)
-        {
-        phi(idx) = (f1*n0(idx)
-                    +f2*(n1(idx)*n2(idx)-nv1(idx)*nv2(idx))
-                    +f4*(n2(idx)*n2(idx)*n2(idx)-3.*n2(idx)*nv2(idx)*nv2(idx)));
-        }
-    else
-        {
-        phi(idx) = 0.;
-        }
-
-    dphi_dn0(idx) = f1;
-    dphi_dn1(idx) = f2*n2(idx);
-    dphi_dn2(idx) = f2*n1(idx) + 3.*f4*(n2(idx)*n2(idx)-nv2(idx)*nv2(idx));
-    dphi_dn3(idx) = (df1*n0(idx)
-                        +df2*(n1(idx)*n2(idx)-nv1(idx)*nv2(idx))
-                        +df4*(n2(idx)*n2(idx)*n2(idx)-3.*n2(idx)*nv2(idx)*nv2(idx)));
-    dphi_dnv1(idx) = -f2*nv2(idx);
-    dphi_dnv2(idx) = -f2*nv1(idx)-6.*f4*n2(idx)*nv2(idx);
-    }
-
-void RosenfeldFMT::computeWeights(std::complex<double>& w0,
-                                  std::complex<double>& w1,
-                                  std::complex<double>& w2,
-                                  std::complex<double>& w3,
-                                  std::complex<double>& wv1,
-                                  std::complex<double>& wv2,
-                                  double k,
-                                  double R)
-
-    {
-    if (k != 0.)
-        {
-        const double kR = k*R;
-        const double sinkR = std::sin(kR);
-        const double coskR = std::cos(kR);
-
-        w0 = sinkR/kR;
-        w1 = R*w0;
-        w2 = (4.*M_PI)*R*w1;
-        w3 = (4.*M_PI)*(sinkR-kR*coskR)/(k*k*k);
-        // do these in opposite order because wv2 follows easily from w3
-        wv2 = std::complex<double>(0.,-k)*w3;
-        wv1 = wv2/(4.*M_PI*R);
-        }
-    else
-        {
-        w0 = 1.0;
-        w1 = R;
-        w2 = (4.*M_PI)*R*w1;
-        w3 = w2*(R/3.);
-        wv1 = 0.0;
-        wv2 = 0.0;
-        }
     }
 
 void RosenfeldFMT::setupField(std::shared_ptr<Field>& field)

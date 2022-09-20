@@ -7,22 +7,28 @@ WhiteBear::WhiteBear()
     {
     }
 
-void WhiteBear::computePhiAndDerivatives(int idx,
-                                         Field::View& phi,
-                                         Field::View& dphi_dn0,
-                                         Field::View& dphi_dn1,
-                                         Field::View& dphi_dn2,
-                                         Field::View& dphi_dn3,
-                                         Field::View& dphi_dnv1,
-                                         Field::View& dphi_dnv2,
-                                         const Field::ConstantView& n0,
-                                         const Field::ConstantView& n1,
-                                         const Field::ConstantView& n2,
-                                         const Field::ConstantView& n3,
-                                         const Field::ConstantView& nv1,
-                                         const Field::ConstantView& nv2,
-                                         bool compute_value)
+void WhiteBear::computePrefactorFunctions(double& f1,
+                                          double& f2,
+                                          double& f4,
+                                          double& df1dn3,
+                                          double& df2dn3,
+                                          double& df4dn3,
+                                          double n3) const
     {
+    // precompute the "void fraction" vf, which is only a function of n3
+    const double vf = 1.-n3;
+    if (vf < 0)
+        {
+        // local void fraction unphysical
+        }
+    const double logvf = std::log(vf);
+    const double vfinv = 1./vf;
+    f1 = -logvf;
+    f2 = vfinv;
+    f4 = vfinv*vfinv/(24.*M_PI);
+    df1dn3 = vfinv;
+    df2dn3 = vfinv*vfinv;
+    df4dn3 = 2.*f4*vfinv;
     }
 
 }
