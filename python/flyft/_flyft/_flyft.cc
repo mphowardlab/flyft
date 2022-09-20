@@ -20,6 +20,8 @@ void bindGrandPotential(py::module_&);
 void bindIdealGasFunctional(py::module_&);
 void bindRosenfeldFMT(py::module_&);
 void bindVirialExpansion(py::module_&);
+void bindWhiteBear(py::module_&);
+void bindWhiteBearMarkII(py::module_&);
 
 void bindExternalPotential(py::module_&);
 void bindCompositeExternalPotential(py::module_&);
@@ -77,6 +79,8 @@ PYBIND11_MODULE(_flyft, m)
     bindIdealGasFunctional(m);
     bindRosenfeldFMT(m);
     bindVirialExpansion(m);
+    bindWhiteBear(m);
+    bindWhiteBearMarkII(m);
 
     bindExternalPotential(m);
     bindCompositeExternalPotential(m);

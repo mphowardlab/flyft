@@ -48,6 +48,8 @@ set(_FLYFT_CC_SOURCES
     type_map.cc
     vector.cc
     virial_expansion.cc
+    white_bear.cc
+    white_bear_mark_ii.cc
     )
 list(TRANSFORM _FLYFT_CC_SOURCES PREPEND _flyft/)
 

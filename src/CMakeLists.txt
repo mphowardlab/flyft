@@ -30,6 +30,8 @@ add_library(flyft SHARED
     state.cc
     tracked_object.cc
     virial_expansion.cc
+    white_bear.cc
+    white_bear_mark_ii.cc
     )
 
 target_include_directories(

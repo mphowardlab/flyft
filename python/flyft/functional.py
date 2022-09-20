@@ -50,3 +50,9 @@ class RosenfeldFMT(Functional,mirrorclass=_flyft.RosenfeldFMT):
 
 class VirialExpansion(Functional,mirrorclass=_flyft.VirialExpansion):
     coefficients = mirror.WrappedProperty(mirror.MutableMapping)
+
+class WhiteBear(RosenfeldFMT,mirrorclass=_flyft.WhiteBear):
+    pass
+
+class WhiteBearMarkII(WhiteBear,mirrorclass=_flyft.WhiteBearMarkII):
+    pass
