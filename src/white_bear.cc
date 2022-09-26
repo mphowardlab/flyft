@@ -23,19 +23,18 @@ void WhiteBear::computePrefactorFunctions(double& f1,
         }
     const double logvf = std::log(vf);
     const double vfinv = 1./vf;
-  
+    const double vfinvsq = vfinv*vfinv;
     
     f1 = -logvf;
     f2 = vfinv;
     df1dn3 = vfinv;    
-    const double vfinvsq = vfinv*vfinv;
     df2dn3 = vfinvsq;
     const double n3tol = 1.e-2;
     if (n3 > n3tol)
         {
         const double f4_denom = 36.*M_PI*n3*n3;
         f4 = (n3*vfinvsq+logvf)/f4_denom;
-        df4dn3 = (-n3*(2.+n3*(-5.+n3))*(vfinvsq*vfinv)+2.*logvf)/(f4_denom*n3);
+        df4dn3 = -(n3*(2.+n3*(-5.+n3))*(vfinvsq*vfinv)+2.*logvf)/(f4_denom*n3);
         }
     else
         {
