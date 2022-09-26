@@ -25,10 +25,19 @@ void WhiteBear::computePrefactorFunctions(double& f1,
     const double vfinv = 1./vf;
     f1 = -logvf;
     f2 = vfinv;
-    f4 = vfinv*vfinv/(24.*M_PI);
     df1dn3 = vfinv;
     df2dn3 = vfinv*vfinv;
-    df4dn3 = 2.*f4*vfinv;
+    const double n3sq = n3*n3;
+    if (n3<0.01)
+    {
+    f4 = (18+n3*(32+45*n3))/(432*M_PI);
+    df4dn3 = (70+3*n3*(65+126*n3))/(1080*M_PI) ;
+    }
+    else
+    {
+    f4 = (n3+vf*vf*logvf)*(vfinv*vfinv)*(1/(n3sq*36*M_PI));
+    df4dn3 = -1*(n3*(-2+(5-n3)*vf*n3)+2*vf*vf*vf*logvf)*(vfinv*vfinv*vfinv)*(1/(n3sq*n3*M_PI));
+    }
     }
 
 }
