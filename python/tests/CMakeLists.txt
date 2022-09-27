@@ -25,6 +25,7 @@ set(FLYFT_PYTEST_SOURCES
     test_rosenfeld_fmt.py
     test_state.py
     test_virial_expansion.py
+    test_white_bear.py
     pytest-mpi.sh
     )
 
