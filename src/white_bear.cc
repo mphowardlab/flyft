@@ -3,10 +3,6 @@
 namespace flyft
 {
 
-WhiteBear::WhiteBear()
-    {
-    }
-
 void WhiteBear::computePrefactorFunctions(double& f1,
                                           double& f2,
                                           double& f4,
@@ -24,10 +20,10 @@ void WhiteBear::computePrefactorFunctions(double& f1,
     const double logvf = std::log(vf);
     const double vfinv = 1./vf;
     const double vfinvsq = vfinv*vfinv;
-    
+
     f1 = -logvf;
     f2 = vfinv;
-    df1dn3 = vfinv;    
+    df1dn3 = vfinv;
     df2dn3 = vfinvsq;
     const double n3tol = 1.e-2;
     if (n3 > n3tol)

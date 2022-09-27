@@ -6,12 +6,9 @@
 
 namespace flyft
 {
-    
+
 class WhiteBear : public RosenfeldFMT
     {
-    public:
-        WhiteBear();
-
     protected:
         void computePrefactorFunctions(double& f1,
                                        double& f2,

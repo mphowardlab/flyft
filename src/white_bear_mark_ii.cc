@@ -3,10 +3,6 @@
 namespace flyft
 {
 
-WhiteBearMarkII::WhiteBearMarkII()
-    {
-    }
-
 void WhiteBearMarkII::computePrefactorFunctions(double& f1,
                                                 double& f2,
                                                 double& f4,
@@ -23,7 +19,7 @@ void WhiteBearMarkII::computePrefactorFunctions(double& f1,
         }
     const double logvf = std::log(vf);
     const double vfinv = 1./vf;
-   
+
     f1 = -logvf;
     df1dn3 = vfinv;
     const double n3tol = 1.e-2;
@@ -43,7 +39,7 @@ void WhiteBearMarkII::computePrefactorFunctions(double& f1,
         f2 = 1.+n3+10.*n3sq/9.;
         f4 = (18.+28.*n3+39.*n3sq)/(432.*M_PI);
         df2dn3 = 1.+(20./9.)*n3+(7./2.)*n3sq;
-        df4dn3 = (70.+195.*n3+378.*n3sq)/(1080.*M_PI); 
+        df4dn3 = (70.+195.*n3+378.*n3sq)/(1080.*M_PI);
         }
     }
 }

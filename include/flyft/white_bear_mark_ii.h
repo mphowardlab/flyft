@@ -6,12 +6,9 @@
 
 namespace flyft
 {
-    
+
 class WhiteBearMarkII : public WhiteBear
     {
-    public:
-        WhiteBearMarkII();
-
     protected:
         void computePrefactorFunctions(double& f1,
                                        double& f2,
