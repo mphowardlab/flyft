@@ -30,7 +30,7 @@ void WhiteBear::computePrefactorFunctions(double& f1,
         {
         const double f4_denom = 36.*M_PI*n3*n3;
         f4 = (n3*vfinvsq+logvf)/f4_denom;
-        df4dn3 = -(n3*(2.+n3*(-5.+n3))*(vfinvsq*vfinv)+2.*logvf)/(f4_denom*n3);
+        df4dn3 = -((2.+n3*(-5.+n3))*(vfinvsq*vfinv)+2.*logvf/n3)/f4_denom;
         }
     else
         {

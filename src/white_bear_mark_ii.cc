@@ -30,7 +30,7 @@ void WhiteBearMarkII::computePrefactorFunctions(double& f1,
         f2 = ((5.-n3)*vfinv+2.*logvf/n3)/3.;
         f4 = -(n3*(1.+n3*(-3.+n3))*vfinvsq+logvf)/f4_denom;
         df2dn3 = -2.*((1.-3.*n3)*vfinvsq+logvf/n3)/(3.*n3);
-        df4dn3 = (n3*(2.*vfinv+n3*(-5.+n3))*vfinvsq+2.*logvf)/(f4_denom*n3);
+        df4dn3 = ((2.*vfinv+n3*(-5.+n3))*vfinvsq+2.*logvf/n3)/f4_denom;
         }
     else
         {
