@@ -85,7 +85,7 @@ class RosenfeldFMT : public Functional
                                                double& df2dn3,
                                                double& df4dn3,
                                                double n3) const;
-        void computeWeights(std::complex<double>& w0,
+        virtual void computeWeights(std::complex<double>& w0,
                             std::complex<double>& w1,
                             std::complex<double>& w2,
                             std::complex<double>& w3,
