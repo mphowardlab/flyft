@@ -4,5 +4,5 @@
 
 double CartesianMesh::volume(int i) const
     {
-    return step_;
+    return area_*step_;
     }
