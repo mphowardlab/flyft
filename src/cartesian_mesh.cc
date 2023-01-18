@@ -1,6 +1,11 @@
 #include "flyft/cartesian_mesh.h"
 
-#include <cmath>
+
+double CartesianMesh::defaultArea()
+{
+    area_= 1.;
+    return area_;
+}
 
 double CartesianMesh::volume(int i) const
     {
