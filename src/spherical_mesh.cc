@@ -7,7 +7,7 @@ namespace flyft
 
 SphericalMesh::volume(int i) const
     {
-    out = coordinate(i+1)*coordinate(i+1);
-    in = coordinate(i)*coordinate(i);
-    return (4/3)*M_PI*(coordinate(i+1)-coordinate(i))*(out+coordinate(i)*coordinate(i+1)+in);
+    r_out = coordinate(i+1);
+    r_in = coordinate(i);
+    return (4.*M_PI/3.)*(r_out*r_out*r_out - r_in*r_in*r_in);
     }
