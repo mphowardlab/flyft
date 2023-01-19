@@ -9,9 +9,9 @@ namespace flyft
 class CartesianMesh: public Mesh
     {
     public: 
-    
+        CartesianMesh(double L, int shape);
         double volume(int i) const override;
-        virtual double defaultArea() const;
+       
     
     private:
         double area_; //Crossectional area of the bin
