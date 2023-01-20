@@ -10,8 +10,12 @@ class CartesianMesh: public Mesh
     {
     public: 
         CartesianMesh(double L, int shape);
+        CartesianMesh(double L, int shape, double origin);
+        CartesianMesh(int shape, double step);
+        CartesianMesh(int shape, double step, double origin);
+        
         double volume(int i) const override;
-       
+        
     
     private:
         double area_; //Crossectional area of the bin
