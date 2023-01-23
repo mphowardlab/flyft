@@ -15,7 +15,7 @@
 namespace flyft
 {
 
-class State : public TrackedObject, public ParallelMesh
+class State : public TrackedObject
     {
     public:
         State() = delete;
