@@ -15,14 +15,12 @@
 namespace flyft
 {
 
-class State : public TrackedObject
+class State : public TrackedObject, public ParallelMesh
     {
     public:
         State() = delete;
-        State(double L, int shape, const std::string& type);
-        State(double L, int shape, const std::vector<std::string>& types);
-        State(double L, int shape, const std::string& type, std::shared_ptr<Communicator> comm);
-        State(double L, int shape, const std::vector<std::string>& types, std::shared_ptr<Communicator> comm);
+        State(std::shared_ptr<ParallelMesh> mesh, const std::string& type);
+        State(std::shared_ptr<ParallelMesh> mesh, const std::vector<std::string>& types);
         State(const State& other);
         State(State&& other);
         State& operator=(const State& other);

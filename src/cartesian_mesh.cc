@@ -1,22 +1,22 @@
 #include "flyft/cartesian_mesh.h"
 
 double CartesianMesh::CartesianMesh(double L, int shape)
-    : Mesh(L,shape), area_(1.0)
+    : CartesianMesh(L,shape,0)
     {
     }
 
 double CartesianMesh::CartesianMesh(double L,int shape, double origin)
-    : Mesh(L,shape,origin)
+    : Mesh(L,shape,origin),area_(1.0)
     {
     }
 
 double CartesianMesh::CartesianMesh(int shape,double step)
-    : Mesh(shape,step,0)
+    : CartesianMesh(shape,step,0)
     {
     }
 
 double CartesianMesh::CartesianMesh(int shape, double step, double origin)
-    : Mesh(shape,step,origin)
+    : Mesh(shape,step,origin),area_(1.0)
     {
     }
 
