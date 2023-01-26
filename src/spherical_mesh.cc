@@ -7,8 +7,7 @@ namespace flyft
 
 std::shared_ptr<Mesh> SphericalMesh::slice(int start, int end) const
     {
-    // TODO: fill this in
-    return std::shared_ptr<Mesh>();
+        return std::shared_ptr<Mesh>(new SphericalMesh(end-start,step_,origin_+asLength(start)));
     }
 
 double SphericalMesh::volume(int i) const
