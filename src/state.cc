@@ -6,10 +6,6 @@
 namespace flyft
 {
 
-State::State(std::shared_ptr<ParallelMesh> mesh, const std::vector<std::string>& types)
-    : State(mesh, types)
-    {}
-
 State::State(std::shared_ptr<ParallelMesh> mesh, const std::string& type)
     : State(mesh, std::vector<std::string>({type}))
     {}
