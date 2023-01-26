@@ -4,7 +4,7 @@
 
 namespace flyft
 {
-    
+
 Mesh::Mesh(double L, int shape)
     : Mesh(L,shape,0)
     {

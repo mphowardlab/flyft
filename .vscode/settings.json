@@ -100,5 +100,6 @@
         "variant": "cpp",
         "cinttypes": "cpp",
         "__functional_base_03": "cpp"
-    }
+    },
+    "cmake.configureOnOpen": true
 }

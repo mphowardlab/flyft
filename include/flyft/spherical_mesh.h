@@ -6,9 +6,11 @@
 namespace flyft
 {
 
-class SphericalMesh: public Mesh
+class SphericalMesh : public Mesh
     {
     public:
         double volume(int i) const override;
     };
 }
+
+#endif // FLYFT_SPHERICAL_MESH_H_

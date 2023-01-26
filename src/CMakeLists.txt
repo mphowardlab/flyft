@@ -27,6 +27,7 @@ add_library(flyft SHARED
     picard_iteration.cc
     rosenfeld_fmt.cc
     solver.cc
+    spherical_mesh.cc
     state.cc
     tracked_object.cc
     virial_expansion.cc

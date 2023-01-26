@@ -18,9 +18,7 @@ class CartesianMesh: public Mesh
         
     
     private:
-        double area_; //Crossectional area of the bin
+        double area_; //<! Cross sectional area
     };
 }
 #endif // FLYFT_CARTESIAN_MESH_H_
-
-
