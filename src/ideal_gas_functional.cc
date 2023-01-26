@@ -13,7 +13,7 @@ static void computeFunctional(int idx,
                               double& value,
                               const Field::ConstantView& f,
                               const double vol,
-                              const Mesh& mesh,
+                              const Mesh* mesh,
                               bool compute_value)
     {
     const double rho = f(idx);
@@ -23,7 +23,7 @@ static void computeFunctional(int idx,
         d(idx) = std::log(vol*rho);
         if (compute_value)
             {
-            energy = mesh.step()*rho*(d(idx)-1.);
+            energy = mesh->step()*rho*(d(idx)-1.);
             }
         else
             {
@@ -49,7 +49,7 @@ void IdealGasFunctional::_compute(std::shared_ptr<State> state, bool compute_val
         auto d = deriv->view();
         auto f = state->getField(t)->const_view();
         const auto vol = volumes_(t);
-        const auto mesh = *state->getMesh()->local();
+        const auto mesh = state->getMesh()->local().get();
 
         // compute edges of each derivative first and put in flight
         const auto deriv_buffer = deriv->buffer_shape();
@@ -57,7 +57,7 @@ void IdealGasFunctional::_compute(std::shared_ptr<State> state, bool compute_val
             {
             computeFunctional(idx,d,value_,f,vol,mesh,compute_value);
             }
-        for (int idx=mesh.shape()-deriv_buffer; idx < mesh.shape(); ++idx)
+        for (int idx=mesh->shape()-deriv_buffer; idx < mesh->shape(); ++idx)
             {
             computeFunctional(idx,d,value_,f,vol,mesh,compute_value);
             }
@@ -68,7 +68,7 @@ void IdealGasFunctional::_compute(std::shared_ptr<State> state, bool compute_val
         #pragma omp parallel for schedule(static) default(none) firstprivate(mesh,vol) \
         shared(f,d,compute_value,deriv_buffer) reduction(+:value_)
         #endif
-        for (int idx=deriv_buffer; idx < mesh.shape()-deriv_buffer; ++idx)
+        for (int idx=deriv_buffer; idx < mesh->shape()-deriv_buffer; ++idx)
             {
             computeFunctional(idx,d,value_,f,vol,mesh,compute_value);
             }

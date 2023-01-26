@@ -1,6 +1,8 @@
 #ifndef FLYFT_MESH_H_
 #define FLYFT_MESH_H_
 
+#include <memory>
+
 namespace flyft
 {
 
@@ -36,6 +38,7 @@ class Mesh
         double asLength(int shape) const;
         
         virtual double volume(int i) const = 0;
+        virtual std::shared_ptr<Mesh> slice(int start, int end) const = 0;
     
         bool operator==(const Mesh& other) const;
         bool operator!=(const Mesh& other) const;

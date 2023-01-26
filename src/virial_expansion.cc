@@ -17,7 +17,7 @@ static void computeFunctional(int idx,
                               const Field::ConstantView& fi,
                               const Field::ConstantView& fj,
                               double Bij,
-                              const Mesh& mesh,
+                              const Mesh* mesh,
                               bool compute_value)
     {
     const double rhoi = fi(idx);
@@ -32,14 +32,14 @@ static void computeFunctional(int idx,
         }
     if (compute_value)
         {
-        value += mesh.step()*(factor*Bij*rhoi*rhoj);
+        value += mesh->step()*(factor*Bij*rhoi*rhoj);
         }
     }
 
 void VirialExpansion::_compute(std::shared_ptr<State> state, bool compute_value)
     {
     auto types = state->getTypes();
-    const auto mesh = *state->getMesh()->local();
+    const auto mesh = state->getMesh()->local().get();
 
     // reset energy and chemical potentials to zero before accumulating
     value_ = 0.0;
@@ -68,7 +68,7 @@ void VirialExpansion::_compute(std::shared_ptr<State> state, bool compute_value)
                 {
                 computeFunctional(idx,di,dj,value_,fi,fj,Bij,mesh,compute_value);
                 }
-            for (int idx=mesh.shape()-max_deriv_buffer; idx < mesh.shape(); ++idx)
+            for (int idx=mesh->shape()-max_deriv_buffer; idx < mesh->shape(); ++idx)
                 {
                 computeFunctional(idx,di,dj,value_,fi,fj,Bij,mesh,compute_value);
                 }
@@ -96,7 +96,7 @@ void VirialExpansion::_compute(std::shared_ptr<State> state, bool compute_value)
             #pragma omp parallel for schedule(static) default(none) firstprivate(Bij,mesh) \
             shared(fi,di,fj,dj,compute_value,max_deriv_buffer) reduction(+:value_)
             #endif
-            for (int idx=max_deriv_buffer; idx < mesh.shape()-max_deriv_buffer; ++idx)
+            for (int idx=max_deriv_buffer; idx < mesh->shape()-max_deriv_buffer; ++idx)
                 {
                 computeFunctional(idx,di,dj,value_,fi,fj,Bij,mesh,compute_value);
                 }

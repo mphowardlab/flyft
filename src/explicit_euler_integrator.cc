@@ -16,7 +16,7 @@ void ExplicitEulerIntegrator::step(std::shared_ptr<Flux> flux,
                                    double timestep)
     {
     // evaluate fluxes and apply to volumes
-    const auto mesh = *state->getMesh()->local();
+    const auto mesh = state->getMesh()->local().get();
     flux->compute(grand,state);
     for (const auto& t : state->getTypes())
         {
@@ -25,9 +25,9 @@ void ExplicitEulerIntegrator::step(std::shared_ptr<Flux> flux,
         #ifdef FLYFT_OPENMP
         #pragma omp parallel for schedule(static) default(none) firstprivate(timestep,mesh) shared(rho,j)
         #endif
-        for (int idx=0; idx < mesh.shape(); ++idx)
+        for (int idx=0; idx < mesh->shape(); ++idx)
             {
-            const auto rate = (j(idx)-j(idx+1))/mesh.step();
+            const auto rate = (j(idx)-j(idx+1))/mesh->step();
             rho(idx) += timestep*rate;
             }
         }

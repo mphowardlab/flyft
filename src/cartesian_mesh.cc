@@ -23,6 +23,12 @@ CartesianMesh::CartesianMesh(int shape, double step, double origin)
     {
     }
 
+std::shared_ptr<Mesh> CartesianMesh::slice(int start, int end) const
+    {
+    // TODO: fill this in
+    return std::shared_ptr<Mesh>();
+    }
+
 double CartesianMesh::volume(int /*i*/) const
     {
     return area_*step_;

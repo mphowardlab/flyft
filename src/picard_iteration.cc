@@ -14,7 +14,7 @@ PicardIteration::PicardIteration(double mix_param,
 
 bool PicardIteration::solve(std::shared_ptr<GrandPotential> grand, std::shared_ptr<State> state)
     {
-    const auto mesh = *state->getMesh()->local();
+    const auto mesh = state->getMesh()->local().get();
     const auto alpha = getMixParameter();
     const auto tol = getTolerance();
 
@@ -51,7 +51,7 @@ bool PicardIteration::solve(std::shared_ptr<GrandPotential> grand, std::shared_p
                 #ifdef FLYFT_OPENMP
                 #pragma omp parallel for schedule(static) default(none) firstprivate(mesh) shared(mu_ex,V,rho_tmp) reduction(+:sum)
                 #endif
-                for (int idx=0; idx < mesh.shape(); ++idx)
+                for (int idx=0; idx < mesh->shape(); ++idx)
                     {
                     double eff_energy = 0.0;
                     if (mu_ex)
@@ -65,7 +65,7 @@ bool PicardIteration::solve(std::shared_ptr<GrandPotential> grand, std::shared_p
                     rho_tmp(idx) = std::exp(-eff_energy);
                     sum += rho_tmp(idx);
                     }
-                sum *= mesh.step();
+                sum *= mesh->step();
                 sum = state->getCommunicator()->sum(sum);
                 norm = N/sum;
                 }
@@ -75,7 +75,7 @@ bool PicardIteration::solve(std::shared_ptr<GrandPotential> grand, std::shared_p
                 #ifdef FLYFT_OPENMP
                 #pragma omp parallel for schedule(static) default(none) firstprivate(mesh,mu_bulk) shared(mu_ex,V,rho_tmp)
                 #endif
-                for (int idx=0; idx < mesh.shape(); ++idx)
+                for (int idx=0; idx < mesh->shape(); ++idx)
                     {
                     double eff_energy = 0.0;
                     if (mu_ex)
@@ -100,7 +100,7 @@ bool PicardIteration::solve(std::shared_ptr<GrandPotential> grand, std::shared_p
             #ifdef FLYFT_OPENMP
             #pragma omp parallel for schedule(static) default(none) firstprivate(mesh,alpha,norm,tol) shared(rho,rho_tmp,converged)
             #endif
-            for (int idx=0; idx < mesh.shape(); ++idx)
+            for (int idx=0; idx < mesh->shape(); ++idx)
                 {
                 const double drho = alpha*(norm*rho_tmp(idx)-rho(idx));
                 rho(idx) += drho;

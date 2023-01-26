@@ -5,6 +5,12 @@
 namespace flyft
 {
 
+std::shared_ptr<Mesh> SphericalMesh::slice(int start, int end) const
+    {
+    // TODO: fill this in
+    return std::shared_ptr<Mesh>();
+    }
+
 double SphericalMesh::volume(int i) const
     {
     const double r_out = coordinate(i+1);

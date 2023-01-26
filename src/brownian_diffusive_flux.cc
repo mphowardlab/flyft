@@ -8,7 +8,7 @@ static double calculateFlux(int idx,
                             const Field::ConstantView& rho,
                             const Field::ConstantView& mu_ex,
                             const Field::ConstantView& V,
-                            const Mesh& mesh)
+                            const Mesh* mesh)
     {
     // handle infinite external potentials carefully, as there should be no flux in those directions
     double flux;
@@ -47,7 +47,7 @@ static double calculateFlux(int idx,
         // ideal (Fickian) term + excess term
         // the ideal term is separated out so that we don't need to take
         // low density limit explicitly
-        flux = -D*((rho(idx)-rho(idx-1))/mesh.step() + rho_avg*dmu_ex/mesh.step());
+        flux = -D*((rho(idx)-rho(idx-1))/mesh->step() + rho_avg*dmu_ex/mesh->step());
         }
     else
         {
@@ -76,7 +76,7 @@ void BrownianDiffusiveFlux::compute(std::shared_ptr<GrandPotential> grand, std::
     state->syncFields();
 
     // compute fluxes on the left edge of the volumes (exclude the first point)
-    const auto mesh = *state->getMesh()->local();
+    const auto mesh = state->getMesh()->local().get();
     for (const auto& t : state->getTypes())
         {
         const auto D = diffusivities_(t);
@@ -91,7 +91,7 @@ void BrownianDiffusiveFlux::compute(std::shared_ptr<GrandPotential> grand, std::
             {
             flux(idx) = calculateFlux(idx,D,rho,mu_ex,V,mesh);
             }
-        for (int idx=mesh.shape()-flux_buffer; idx < mesh.shape(); ++idx)
+        for (int idx=mesh->shape()-flux_buffer; idx < mesh->shape(); ++idx)
             {
             flux(idx) = calculateFlux(idx,D,rho,mu_ex,V,mesh);
             }
@@ -102,7 +102,7 @@ void BrownianDiffusiveFlux::compute(std::shared_ptr<GrandPotential> grand, std::
         #pragma omp parallel for schedule(static) default(none) firstprivate(D,mesh) \
         shared(rho,mu_ex,V,flux,flux_buffer)
         #endif
-        for (int idx=flux_buffer; idx < mesh.shape()-flux_buffer; ++idx)
+        for (int idx=flux_buffer; idx < mesh->shape()-flux_buffer; ++idx)
             {
             flux(idx) = calculateFlux(idx,D,rho,mu_ex,V,mesh);
             }
