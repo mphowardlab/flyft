@@ -37,6 +37,7 @@ class Mesh
 
         double asLength(int shape) const;
         
+        virtual double area(int i) const = 0;
         virtual double volume(int i) const = 0;
         virtual std::shared_ptr<Mesh> slice(int start, int end) const = 0;
     

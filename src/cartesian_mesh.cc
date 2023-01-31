@@ -28,6 +28,11 @@ std::shared_ptr<Mesh> CartesianMesh::slice(int start, int end) const
     return std::shared_ptr<Mesh>(new CartesianMesh(end-start,step_,origin_+asLength(start)));
     }
 
+double CartesianMesh::area(int /*i*/) const
+    {
+        return area_;
+    }
+
 double CartesianMesh::volume(int /*i*/) const
     {
     return area_*step_;

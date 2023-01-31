@@ -76,7 +76,7 @@ void GrandPotential::_compute(std::shared_ptr<State> state, bool compute_value)
                 d(idx) -= mu_bulk;
                 if (compute_value)
                     {
-                    constraint_value -= mesh->step()*mu_bulk*rho(idx);
+                    constraint_value -= mesh->volume(idx)*mu_bulk*rho(idx);
                     }
                 }
             }

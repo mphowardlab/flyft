@@ -23,7 +23,7 @@ static void computeFunctional(int idx,
         d(idx) = std::log(vol*rho);
         if (compute_value)
             {
-            energy = mesh->step()*rho*(d(idx)-1.);
+            energy = mesh->volume(idx)*rho*(d(idx)-1.);
             }
         else
             {

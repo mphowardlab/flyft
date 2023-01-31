@@ -10,6 +10,7 @@ class SphericalMesh : public Mesh
     public:
         SphericalMesh(int shape, double step,double origin);
         std::shared_ptr<Mesh> slice(int start, int end) const override;
+        double area(int i) const override;
         double volume(int i) const override;
     };
 }
