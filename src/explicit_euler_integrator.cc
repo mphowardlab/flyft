@@ -27,7 +27,7 @@ void ExplicitEulerIntegrator::step(std::shared_ptr<Flux> flux,
         #endif
         for (int idx=0; idx < mesh->shape(); ++idx)
             {
-            const auto rate = (mesh->area(idx)/mesh->volume(idx))*j(idx)-(mesh->area(idx+1)/mesh->volume(idx))*j(idx+1);
+            const auto rate = mesh->integrateSurface(idx,j(idx),j(idx+1))/mesh->volume(idx);
             rho(idx) += timestep*rate;
             }
         }

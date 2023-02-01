@@ -63,7 +63,7 @@ bool PicardIteration::solve(std::shared_ptr<GrandPotential> grand, std::shared_p
                         eff_energy += V(idx);
                         }
                     rho_tmp(idx) = std::exp(-eff_energy);
-                    sum += mesh->volume(idx)*rho_tmp(idx);
+                    sum += mesh->integrateVolume(idx, rho(idx));
                     }
                 sum = state->getCommunicator()->sum(sum);
                 norm = N/sum;

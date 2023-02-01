@@ -64,6 +64,25 @@ double Mesh::asLength(int shape) const
     {
     return shape*step_;
     }
+    
+double Mesh::integrateSurface(int idx, double j_lo, double j_hi) const
+    {
+    return area(idx)*j_lo - area(idx+1)*j_hi;
+    }
+    
+double Mesh::integrateSurface(int idx, const DataView<double>& j) const
+    {
+    return integrateSurface(idx, j(idx), j(idx+1));
+    }
+
+double Mesh::integrateVolume(int idx, double f) const
+    {
+    return volume(idx)*f;
+    }
+double Mesh::integrateVolume(int idx, const DataView<double>& f) const
+    {
+    return integrateVolume(idx, f(idx));
+    }
 
 bool Mesh::operator==(const Mesh& other) const
     {

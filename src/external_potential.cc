@@ -66,7 +66,7 @@ void ExternalPotential::_compute(std::shared_ptr<State> state, bool compute_valu
                     }
                 else if (compute_value)
                     {
-                    value_ += mesh->volume(idx)*rho*V;
+                    value_ += mesh->integrateVolume(idx, rho*V);
                     }
                 }
             }

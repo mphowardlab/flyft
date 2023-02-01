@@ -114,7 +114,7 @@ static void computeFunctionalPure(int idx,
         // compute free energy
         if (compute_value)
             {
-            energy = mesh->step()*rho*eta*(4.-3.*eta)/vf_2;
+            energy = mesh->volume(idx)*rho*eta*(4.-3.*eta)/vf_2;
             }
         else
             {

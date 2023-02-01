@@ -2,6 +2,7 @@
 #define FLYFT_MESH_H_
 
 #include <memory>
+#include "data_view.h"
 
 namespace flyft
 {
@@ -37,6 +38,14 @@ class Mesh
 
         double asLength(int shape) const;
         
+        double integrateSurface(int idx, double j_lo, double j_hi) const;
+        
+        double integrateSurface(int idx, const DataView<double>& j) const;
+        
+        double integrateVolume(int idx, double f) const;
+
+        double integrateVolume(int idx, const DataView<double>& f) const;
+ 
         virtual double area(int i) const = 0;
         virtual double volume(int i) const = 0;
         virtual std::shared_ptr<Mesh> slice(int start, int end) const = 0;

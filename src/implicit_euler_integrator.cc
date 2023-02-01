@@ -63,7 +63,7 @@ void ImplicitEulerIntegrator::step(std::shared_ptr<Flux> flux,
             #endif
             for (int idx=0; idx < mesh->shape(); ++idx)
                 {
-                const double next_rate = (mesh->area(idx)/mesh->volume(idx))*next_j(idx)-(mesh->area(idx+1)/mesh->volume(idx))*next_j(idx+1);
+                const double next_rate = mesh->integrateSurface(idx,next_j(idx),next_j(idx+1))/mesh->volume(idx);
                 double try_rho = last_rho(idx) + timestep*next_rate;
                 const double drho = alpha*(try_rho-next_rho(idx));
                 next_rho(idx) += drho;
