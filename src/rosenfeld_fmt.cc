@@ -265,7 +265,7 @@ void RosenfeldFMT::_compute(std::shared_ptr<State> state, bool compute_value)
             #endif
             for (int idx=0; idx < mesh->shape(); ++idx)
                 {
-                value_ += mesh->integrateVolume(idx, phi(idx));
+                value_ += mesh->integrateVolume(idx, phi);
                 }
             }
 

@@ -32,7 +32,7 @@ static void computeFunctional(int idx,
         }
     if (compute_value)
         {
-        value += mesh->volume(idx)*(factor*Bij*rhoi*rhoj);
+        value += mesh->integrateVolume(idx, factor*Bij*rhoi*rhoj);
         }
     }
 

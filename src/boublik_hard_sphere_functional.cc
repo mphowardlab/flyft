@@ -69,7 +69,7 @@ static void computeFunctionalMixture(int idx,
         // compute free energy
         if (compute_value)
             {
-            energy = mesh->volume(idx)*(6./M_PI)*((xi2_3/xi3_2-xi[0])*logvf + 3.*xi[1]*xi[2]/vf + xi2_3/(xi[3]*vf_2));
+            energy =  mesh->integrateVolume(idx, (6./M_PI)*((xi2_3/xi3_2-xi[0])*logvf + 3.*xi[1]*xi[2]/vf + xi2_3/(xi[3]*vf_2)));
             }
         else
             {
@@ -114,7 +114,7 @@ static void computeFunctionalPure(int idx,
         // compute free energy
         if (compute_value)
             {
-            energy = mesh->volume(idx)*rho*eta*(4.-3.*eta)/vf_2;
+            energy =  mesh->integrateVolume(idx, rho*eta*(4.-3.*eta)/vf_2);
             }
         else
             {

@@ -45,7 +45,7 @@ void CrankNicolsonIntegrator::step(std::shared_ptr<Flux> flux,
         for (int idx=0; idx < mesh->shape(); ++idx)
             {
             last_rho(idx) = rho(idx);
-            last_rate(idx) = mesh->integrateSurface(idx,j(idx),j(idx+1))/mesh->volume(idx);
+            last_rate(idx) = mesh->integrateSurface(idx,j)/mesh->volume(idx);
             }
         }
 
