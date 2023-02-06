@@ -96,6 +96,15 @@ double Mesh::integrateVolume(int idx, double f) const
     return volume(idx)*f;
     }
 
+double Mesh::gradient(int idx, const DataView<const double>& f) const
+    {
+    return gradient(idx, f(idx-1), f(idx));
+    }
+
+double Mesh::gradient(int idx, const DataView<double>& f) const
+    {
+    return gradient(idx, f(idx-1), f(idx));
+    }
 
 bool Mesh::operator==(const Mesh& other) const
     {

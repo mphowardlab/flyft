@@ -12,6 +12,7 @@ class SphericalMesh : public Mesh
         std::shared_ptr<Mesh> slice(int start, int end) const override;
         double area(int i) const override;
         double volume(int i) const override;
+        double gradient(int idx, double f_lo, double f_hi) const override;
     };
 }
 

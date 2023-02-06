@@ -47,10 +47,14 @@ class Mesh
         double integrateVolume(int idx, double f) const;
         
  
-        virtual double area(int i) const = 0;
+        virtual double area(int i) const = 0;//Crossectional area of the bin
         virtual double volume(int i) const = 0;
         virtual std::shared_ptr<Mesh> slice(int start, int end) const = 0;
-    
+        
+        double gradient(int idx, const DataView<const double>& f) const ;
+        double gradient(int idx, const DataView<double>& f) const ;
+        virtual double gradient(int idx, double f_lo, double f_hi) const = 0;
+        
         bool operator==(const Mesh& other) const;
         bool operator!=(const Mesh& other) const;
 

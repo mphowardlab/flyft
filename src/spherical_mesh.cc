@@ -24,4 +24,14 @@ double SphericalMesh::volume(int i) const
     return (4.*M_PI/3.)*(r_out*r_out*r_out - r_in*r_in*r_in);
     }
 
+double SphericalMesh::gradient(int idx, double f_lo, double f_hi) const
+    {
+    if(coordinate(idx) == 0){
+        return 3*(f_hi-f_lo)/step_;
+        }
+    else{
+        return 2*f_lo/coordinate(idx-1)+ (f_hi-f_lo)/(step_);
+        }
+    }   
+
 }

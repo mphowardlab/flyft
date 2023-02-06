@@ -30,7 +30,7 @@ std::shared_ptr<Mesh> CartesianMesh::slice(int start, int end) const
 
 double CartesianMesh::area(int /*i*/) const
     {
-        return area_;
+    return area_;
     }
 
 double CartesianMesh::volume(int /*i*/) const
@@ -38,4 +38,8 @@ double CartesianMesh::volume(int /*i*/) const
     return area_*step_;
     }
 
+double CartesianMesh::gradient(int /*i*/, double f_lo, double f_hi) const
+    {
+    return (f_hi-f_lo)/step_; 
+    }
 }

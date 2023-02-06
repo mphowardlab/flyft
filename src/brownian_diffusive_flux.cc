@@ -41,13 +41,13 @@ static double calculateFlux(int idx,
 
         // excess contribute at left edge
         auto dmu_ex = 0.0;
-        if (mu_ex) dmu_ex += (mu_ex(idx)-mu_ex(idx-1));
+        if (mu_ex) dmu_ex += mesh->gradient(idx,mu_ex);
         if (V) dmu_ex += (V(idx)-V(idx-1));
 
         // ideal (Fickian) term + excess term
         // the ideal term is separated out so that we don't need to take
         // low density limit explicitly
-        flux = -D*((rho(idx)-rho(idx-1))/mesh->step() + rho_avg*dmu_ex/mesh->step());
+        flux = -D*mesh->gradient(idx,rho) + rho_avg*dmu_ex;
         }
     else
         {
