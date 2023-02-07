@@ -38,6 +38,10 @@ class Mesh
 
         double asLength(int shape) const;
         
+        double lo_edge(int i) const;
+        double hi_edge(int i) const;
+               
+
         double integrateSurface(int idx,const DataView<const double>& j) const;
         double integrateSurface(int idx,  const DataView<double>& j) const;
         double integrateSurface(int idx, double j_lo, double j_hi) const;
@@ -45,6 +49,10 @@ class Mesh
         double integrateVolume(int idx, const DataView<const double>& f) const;
         double integrateVolume(int idx, const DataView<double>& f) const;
         double integrateVolume(int idx, double f) const;
+        
+        double linearInterpolate(int idx, const DataView<const double>& rho) const;
+        double linearInterpolate(int idx, const DataView<double>& rho) const;
+        double linearInterpolate(int idx, double rho_lo, double rho_hi) const; 
         
  
         virtual double area(int i) const = 0;//Crossectional area of the bin

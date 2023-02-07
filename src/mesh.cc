@@ -35,6 +35,16 @@ int Mesh::bin(double x) const
     return static_cast<int>((x-origin_)/step_);
     }
 
+double Mesh::lo_edge(int i) const
+    {
+    return origin_+static_cast<double>(i)*step_;
+    }
+    
+double Mesh::hi_edge(int i) const
+    {
+    return origin_+static_cast<double>(i+1)*step_;
+    }
+        
 double Mesh::L() const
     {
     return L_;
@@ -94,6 +104,21 @@ double Mesh::integrateVolume(int idx, const DataView<double>& f) const
 double Mesh::integrateVolume(int idx, double f) const
     {
     return volume(idx)*f;
+    }
+
+double Mesh::linearInterpolate(int idx, const DataView<const double>& rho) const
+    {
+    return linearInterpolate(idx,rho(idx-1),rho(idx));
+    }
+
+double Mesh::linearInterpolate(int idx, const DataView<double>& rho) const
+    {
+    return linearInterpolate(idx,rho(idx-1),rho(idx));
+    }
+
+double Mesh::linearInterpolate(int /*i*/,double rho_lo, double rho_hi) const
+    {
+    return 0.5*(rho_lo+rho_hi);
     }
 
 double Mesh::gradient(int idx, const DataView<const double>& f) const

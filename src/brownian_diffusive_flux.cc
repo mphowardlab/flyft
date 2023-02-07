@@ -37,17 +37,17 @@ static double calculateFlux(int idx,
     if (!no_flux)
         {
         // average density at left edge
-        auto rho_avg = 0.5*(rho(idx-1)+rho(idx));
+        auto rho_avg = mesh->linearInterpolate(idx,rho);
 
         // excess contribute at left edge
         auto dmu_ex = 0.0;
         if (mu_ex) dmu_ex += mesh->gradient(idx,mu_ex);
-        if (V) dmu_ex += (V(idx)-V(idx-1));
+        if (V) dmu_ex += mesh->gradient(idx,mu_ex);
 
         // ideal (Fickian) term + excess term
         // the ideal term is separated out so that we don't need to take
         // low density limit explicitly
-        flux = -D*mesh->gradient(idx,rho) + rho_avg*dmu_ex;
+        flux = -D*(mesh->gradient(idx,rho) + rho_avg*dmu_ex);
         }
     else
         {

@@ -9,10 +9,10 @@ namespace flyft
 class CartesianMesh: public Mesh
     {
     public: 
-        CartesianMesh(double L, int shape);
-        CartesianMesh(double L, int shape, double origin);
-        CartesianMesh(int shape, double step);
-        CartesianMesh(int shape, double step, double origin);
+        CartesianMesh(double L, int shape, double area);
+        CartesianMesh(double L, int shape, double area, double origin);
+        CartesianMesh(int shape, double step, double area);
+        CartesianMesh(int shape, double step, double area, double origin);
         
         std::shared_ptr<Mesh> slice(int start, int end) const override;
         

@@ -26,11 +26,11 @@ double SphericalMesh::volume(int i) const
 
 double SphericalMesh::gradient(int idx, double f_lo, double f_hi) const
     {
-    if(coordinate(idx) == 0){
-        return 3*(f_hi-f_lo)/step_;
+    if(idx == 0){
+        return 0;
         }
     else{
-        return 2*f_lo/coordinate(idx-1)+ (f_hi-f_lo)/(step_);
+        return (f_hi-f_lo)/(step_);
         }
     }   
 
