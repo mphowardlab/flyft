@@ -35,12 +35,12 @@ int Mesh::bin(double x) const
     return static_cast<int>((x-origin_)/step_);
     }
 
-double Mesh::lo_edge(int i) const
+double Mesh::lower_bound(int i) const
     {
     return origin_+static_cast<double>(i)*step_;
     }
     
-double Mesh::hi_edge(int i) const
+double Mesh::upper_bound(int i) const
     {
     return origin_+static_cast<double>(i+1)*step_;
     }
@@ -106,19 +106,19 @@ double Mesh::integrateVolume(int idx, double f) const
     return volume(idx)*f;
     }
 
-double Mesh::linearInterpolate(int idx, const DataView<const double>& rho) const
+double Mesh::interpolate(int idx, const DataView<const double>& f) const
     {
-    return linearInterpolate(idx,rho(idx-1),rho(idx));
+    return interpolate(idx,f(idx-1),f(idx));
     }
 
-double Mesh::linearInterpolate(int idx, const DataView<double>& rho) const
+double Mesh::interpolate(int idx, const DataView<double>& f) const
     {
-    return linearInterpolate(idx,rho(idx-1),rho(idx));
+    return interpolate(idx,f(idx-1),f(idx));
     }
 
-double Mesh::linearInterpolate(int /*i*/,double rho_lo, double rho_hi) const
+double Mesh::interpolate(int /*i*/,double f_lo, double f_hi) const
     {
-    return 0.5*(rho_lo+rho_hi);
+    return 0.5*(f_lo+f_hi);
     }
 
 double Mesh::gradient(int idx, const DataView<const double>& f) const

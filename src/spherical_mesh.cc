@@ -7,7 +7,7 @@ namespace flyft
 
 std::shared_ptr<Mesh> SphericalMesh::slice(int start, int end) const
     {
-    return std::shared_ptr<Mesh>(new SphericalMesh(end-start,step_,origin_+asLength(start)));
+    return std::shared_ptr<Mesh>(new SphericalMesh(end-start,step_,lower_bound(start)));
     }
 
 double SphericalMesh::area(int i) const
@@ -26,7 +26,7 @@ double SphericalMesh::volume(int i) const
 
 double SphericalMesh::gradient(int idx, double f_lo, double f_hi) const
     {
-    if(idx == 0){
+    if (idx == 0 && origin_ == 0.){
         return 0;
         }
     else{

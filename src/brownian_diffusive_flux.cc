@@ -37,7 +37,7 @@ static double calculateFlux(int idx,
     if (!no_flux)
         {
         // average density at left edge
-        auto rho_avg = mesh->linearInterpolate(idx,rho);
+        auto rho_avg = mesh->interpolate(idx,rho);
 
         // excess contribute at left edge
         auto dmu_ex = 0.0;

@@ -25,7 +25,7 @@ CartesianMesh::CartesianMesh(int shape, double step,double area, double origin)
 
 std::shared_ptr<Mesh> CartesianMesh::slice(int start, int end) const
     {
-    return std::shared_ptr<Mesh>(new CartesianMesh(end-start,step_,lo_edge(start)));
+    return std::shared_ptr<Mesh>(new CartesianMesh(end-start,step_,lower_bound(start)));
     }
 
 double CartesianMesh::area(int /*i*/) const
