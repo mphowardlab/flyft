@@ -4,6 +4,25 @@
 
 namespace flyft
 {
+SphericalMesh::SphericalMesh(double L, int shape)
+    : SphericalMesh(L,shape,0)
+    {
+    }
+
+SphericalMesh::SphericalMesh(double L,int shape, double origin)
+    : Mesh(L,shape,origin)
+    {
+    }
+
+SphericalMesh::SphericalMesh(int shape, double step)
+    :SphericalMesh(shape,step,0)
+    {
+    }
+
+SphericalMesh::SphericalMesh(int shape, double step, double origin)
+    : Mesh(shape, step, origin)
+    {
+    }
 
 std::shared_ptr<Mesh> SphericalMesh::slice(int start, int end) const
     {
