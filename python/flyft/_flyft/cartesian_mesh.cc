@@ -1,7 +1,7 @@
 #include "_flyft.h"
 #include "flyft/cartesian_mesh.h"
 
-void bindSphericalMesh(py::module_& m)
+void bindCartesianMesh(py::module_& m)
     {
     using namespace flyft;
 

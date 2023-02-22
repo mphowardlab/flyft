@@ -30,11 +30,11 @@ class TemplatedExternalPotential : public ExternalPotential
                 const auto deriv_buffer = derivatives_(t)->buffer_shape();
                 for (int idx=0; idx < deriv_buffer; ++idx)
                     {
-                    d(idx) = potential(mesh->coordinate(idx));
+                    d(idx) = potential(mesh->center(idx));
                     }
                 for (int idx=mesh->shape()-deriv_buffer; idx < mesh->shape(); ++idx)
                     {
-                    d(idx) = potential(mesh->coordinate(idx));
+                    d(idx) = potential(mesh->center(idx));
                     }
                 state->getMesh()->startSync(derivatives_(t));
 
@@ -45,7 +45,7 @@ class TemplatedExternalPotential : public ExternalPotential
                 #endif
                 for (int idx=0; idx < mesh->shape()-deriv_buffer; ++idx)
                     {
-                    d(idx) = potential(mesh->coordinate(idx));
+                    d(idx) = potential(mesh->center(idx));
                     }
                 }
 

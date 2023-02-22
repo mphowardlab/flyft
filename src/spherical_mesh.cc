@@ -4,13 +4,13 @@
 
 namespace flyft
 {
-SphericalMesh::SphericalMesh(double L, int shape)
-    : SphericalMesh(L,shape,0)
+SphericalMesh::SphericalMesh(double R, int shape)
+    : SphericalMesh(R,shape,0)
     {
     }
 
-SphericalMesh::SphericalMesh(double L,int shape, double origin)
-    : Mesh(L,shape,origin)
+SphericalMesh::SphericalMesh(double R,int shape, double origin)
+    : Mesh(R,shape,origin)
     {
     }
 
@@ -31,15 +31,15 @@ std::shared_ptr<Mesh> SphericalMesh::slice(int start, int end) const
 
 double SphericalMesh::area(int i) const
     {
-    const double r = coordinate(i);
+    const double r = center(i);
     return 4.*M_PI*r*r;
     }
 
 
 double SphericalMesh::volume(int i) const
     {
-    const double r_out = coordinate(i+1);
-    const double r_in = coordinate(i);
+    const double r_out = center(i+1);
+    const double r_in = center(i);
     return (4.*M_PI/3.)*(r_out*r_out*r_out - r_in*r_in*r_in);
     }
 

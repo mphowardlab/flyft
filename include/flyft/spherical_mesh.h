@@ -8,8 +8,8 @@ namespace flyft
 class SphericalMesh : public Mesh
     {
     public:
-        SphericalMesh(double L, int shape);
-        SphericalMesh(double L, int shape, double origin);  
+        SphericalMesh(double R, int shape);
+        SphericalMesh(double R, int shape, double origin);  
         SphericalMesh(int shape, double step);  
         SphericalMesh(int shape, double step,double origin);  
         

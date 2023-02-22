@@ -17,7 +17,7 @@ class Mesh
         Mesh(int shape, double step, double origin);
 
         //! Get position on the mesh, defined as center of bin
-        double coordinate(int i) const;
+        double center(int i) const;
 
         //! Get the bin for a coordinate
         int bin(double x) const;

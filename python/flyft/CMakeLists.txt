@@ -16,6 +16,7 @@ set(_FLYFT_CC_SOURCES
     _flyft.cc
     boublik_hard_sphere_functional.cc
     brownian_diffusive_flux.cc
+    cartesian_mesh.cc
     communicator.cc
     composite_external_potential.cc
     composite_flux.cc
@@ -43,6 +44,7 @@ set(_FLYFT_CC_SOURCES
     picard_iteration.cc
     rosenfeld_fmt.cc
     solver.cc
+    spherical_mesh.cc
     state.cc
     tracked_object.cc
     type_map.cc

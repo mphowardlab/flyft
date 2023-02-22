@@ -25,7 +25,7 @@ Mesh::Mesh(int shape, double step, double origin)
     {
     }
 
-double Mesh::coordinate(int i) const
+double Mesh::center(int i) const
     {
     return origin_+static_cast<double>(i+0.5)*step_;
     }
