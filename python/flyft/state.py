@@ -51,36 +51,50 @@ class Mesh(mirror.Mirror,mirrorclass=_flyft.Mesh):
         super().__init__(L, shape, origin)
 
     @property
-    def coordinates(self):
-        if not hasattr(self, '_coordinates'):
-            self._coordinates = np.array([self._self.coordinate(i) for i in range(self.shape)])
-        return self._coordinates
+    def center(self):
+        if not hasattr(self, '_center'):
+            self._center = np.array([self._self.center(i) for i in range(self.shape)])
+        return self._center
 
     L = mirror.Property()
     origin = mirror.Property()
     shape = mirror.Property()
     step = mirror.Property()
 
+class CartesianMesh(mirror.Mirror,mirrorclass=_flyft.CartesianMesh):
+    def __init__(self,L,shape,area = 1.):      
+        Mesh.__init__(self,L,shape) 
+
+class SphericalMesh(mirror.Mirror,mirrorclass=_flyft.SphericalMesh):
+    def __init__(self,R,shape):
+        Mesh.__init__(self,R,shape)
+
 class ParallelMesh(mirror.Mirror,mirrorclass=_flyft.ParallelMesh):
-    def __init__(self, L, shape, communicator):
-        super().__init__(Mesh(L,shape), communicator)
+    def __init__(self,mesh, communicator):
+        communicator = Communicator()
+        super().__init__(mesh, communicator)
         self._communicator = communicator
 
     full = mirror.Property()
     local = mirror.Property()
 
 class State(mirror.Mirror,mirrorclass=_flyft.State):
-    def __init__(self, L, shape, types, communicator=None):
+    def __init__(self, mesh, communicator=None):
         # cast type list into vector
+        super().__init__(mesh, communicator)
+        self._communicator = communicator
+    
         if isinstance(types, str):
             types = (types,)
+        
+        communicator = Communicator()
 
         # initialize using communicator, if specified
         if communicator is None:
-            super().__init__(L,shape,_flyft.VectorString(types))
+            super().__init__(mesh,_flyft.VectorString(types))
         else:
-            super().__init__(L,shape,_flyft.VectorString(types),communicator)
-            self._communicator = communicator
+             super().__init__(mesh,_flyft.VectorString(types),communicator)
+    
 
     communicator = mirror.Property()
     fields = mirror.WrappedProperty(Fields)
