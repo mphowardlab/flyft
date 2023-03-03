@@ -47,13 +47,11 @@ class Fields(mirror.Mapping):
         return self._cache[key]
 
 class Mesh(mirror.Mirror,mirrorclass=_flyft.Mesh):
-    def __init__(self, L, shape, origin=0.):
-        super().__init__(L, shape, origin)
 
     @property
     def centers(self):
         if not hasattr(self, '_centers'):
-            self._centers = np.array([self._self.centers(i) for i in range(self.shape)])
+            self._centers = np.array([self._self.center(i) for i in range(self.shape)])
         return self._centers
 
     L = mirror.Property()
@@ -79,11 +77,10 @@ class ParallelMesh(mirror.Mirror,mirrorclass=_flyft.ParallelMesh):
     local = mirror.Property()
 
 class State(mirror.Mirror,mirrorclass=_flyft.State):
-    def __init__(self, mesh, types):
-        super().__init__(mesh,_flyft.VectorString(types))   
+    def __init__(self, mesh, types): 
         if isinstance(types, str):
             types = (types,)
-
+        super().__init__(mesh,_flyft.VectorString(types))  
         
     communicator = mirror.Property()
     fields = mirror.WrappedProperty(Fields)
