@@ -1,6 +1,10 @@
 import pytest
 import flyft
 
+
+
+
+
 @pytest.fixture
 def ig():
     return flyft.functional.IdealGas()
@@ -15,11 +19,13 @@ def grand():
 
 @pytest.fixture
 def state():
-    return flyft.State(10.0,20,'A')
+    mesh = flyft.state.ParallelMesh(flyft.state.CartesianMesh(10.0,20,1))
+    return flyft.State(mesh,('A'))
 
 @pytest.fixture
 def binary_state():
-    return flyft.State(10.0,20,('A','B'))
+    mesh = flyft.state.ParallelMesh(flyft.state.CartesianMesh(10.0,20,1))
+    return flyft.State(mesh,('A','B'))
 
 @pytest.fixture
 def linear():

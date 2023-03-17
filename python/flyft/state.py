@@ -68,9 +68,9 @@ class SphericalMesh(mirror.Mirror,mirrorclass=_flyft.SphericalMesh):
         super().__init__(R,shape)
 
 class ParallelMesh(mirror.Mirror,mirrorclass=_flyft.ParallelMesh):
-    def __init__(self,mesh, communicator):
+    def __init__(self,mesh):
         communicator = Communicator()
-        super().__init__(mesh, communicator)
+        super().__init__(mesh)
         self._communicator = communicator
 
     full = mirror.Property()
@@ -83,8 +83,9 @@ class State(mirror.Mirror,mirrorclass=_flyft.State):
         super().__init__(mesh,_flyft.VectorString(types))  
         
     communicator = mirror.Property()
-    fields = mirror.WrappedProperty(Fields)
     mesh = mirror.Property()
+    fields = mirror.WrappedProperty(Fields)
+ 
     time = mirror.Property()
 
     def gather_field(self, type_, rank=None):
