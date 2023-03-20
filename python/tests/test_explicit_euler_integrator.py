@@ -73,8 +73,10 @@ def test_advance(state,grand,ig,linear,bd,euler):
 
 @pytest.mark.parametrize("adapt",[False,True])
 def test_sine(adapt,euler):
-    state = flyft.State(2.,100,'A')
-    x = state.mesh.local.coordinates
+    mesh = flyft.state.ParallelMesh(flyft.state.CartesianMesh(10.0,20,1))
+    state =  flyft.State(mesh,('A'))
+    # state = flyft.State(2.,100,'A')
+    x = state.mesh.local.centers
     state.fields['A'][:] = 0.5*np.sin(2*np.pi*x/state.mesh.full.L)+1.
 
     ig = flyft.functional.IdealGas()

@@ -75,7 +75,7 @@ def test_potential(linear,state):
     linear.slopes['A'] = 0.5
     state.fields['A'][:] = 2.0
 
-    x = state.mesh.local.coordinates
+    x = state.mesh.local.centers
 
     # initial state
     linear.compute(state)

@@ -47,7 +47,7 @@ def test_solve(piccard,grand,fmt,walls,state):
     grand.external = Vext
     conv = piccard.solve(grand, state)
     assert conv
-    x = state.mesh.local.coordinates
+    x = state.mesh.local.centers
     flags = np.logical_and(x > 1.0, x <= 9.0)
     assert np.allclose(state.fields['A'][flags], rho, atol=1e-5)
     assert np.allclose(state.fields['A'][~flags], 0.0, atol=1e-5)

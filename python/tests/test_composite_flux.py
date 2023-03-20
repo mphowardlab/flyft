@@ -53,7 +53,7 @@ def test_compute(comp,bd,grand,ig,state):
     grand.ideal = ig
     ig.volumes['A'] = 1.0
 
-    x = state.mesh.local.coordinates
+    x = state.mesh.local.centers
     state.fields['A'][:] = 3.0/state.mesh.full.L*x
     grand.constrain('A', state.mesh.full.L*1.5, grand.Constraint.N)
 

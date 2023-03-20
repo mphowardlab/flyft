@@ -107,7 +107,7 @@ def test_potential(ew,state):
     ew.shifts['A'] = 0.0
     state.fields['A'][:] = 2.0
 
-    x = state.mesh.local.coordinates
+    x = state.mesh.local.centers
 
     # initial state
     ew.compute(state)

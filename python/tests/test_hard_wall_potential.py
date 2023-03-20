@@ -61,7 +61,7 @@ def test_potential(hw,state):
     hw.diameters['A'] = 1.0
     state.fields['A'][:] = 2.0
 
-    x = state.mesh.local.coordinates
+    x = state.mesh.local.centers
 
     # some particles overlap, so this is infinite
     hw.compute(state)

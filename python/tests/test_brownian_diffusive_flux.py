@@ -26,7 +26,9 @@ def test_diffusivities(bd):
     assert bd._self.diffusivities['B'] == pytest.approx(2.5)
 
 def test_ideal(grand,ig,bd):
-    state = flyft.State(10.0,500,'A')
+    mesh = flyft.state.ParallelMesh(flyft.state.CartesianMesh(10.0,500))
+    state = flyft.State(mesh,('A'))
+    # state = flyft.State(10.0,500,'A')
 
     ig.volumes['A'] = 1.0
     grand.ideal = ig
@@ -47,7 +49,7 @@ def test_ideal(grand,ig,bd):
     # make linear profile and test in the middle
     # (skip first one because there is jump over PBC)
     # j = -D (drho/dx)
-    x = state.mesh.local.coordinates
+    x = state.mesh.local.centers
     state.fields['A'][:] = 3.0/state.mesh.full.L*x
     grand.constrain('A', state.mesh.full.L*1.5, grand.Constraint.N)
     bd.compute(grand,state)
@@ -62,7 +64,10 @@ def test_ideal(grand,ig,bd):
     assert np.allclose(bd.fluxes['A'], j, rtol=1e-3, atol=1e-3)
 
 def test_excess(grand,ig,bd):
-    state = flyft.State(10.0,500,'A')
+    
+    mesh = flyft.state.ParallelMesh(flyft.state.CartesianMesh(10.0,500,1))
+    state = flyft.State(mesh,('A'))
+    # state = flyft.State(10.0,500,'A')
     virial = flyft.functional.VirialExpansion()
     B = 5.0
 
@@ -85,8 +90,8 @@ def test_excess(grand,ig,bd):
     bd.compute(grand,state)
     assert np.allclose(bd.fluxes['A'], 0.)
 
-    # TODO: replace this with a local hs functional instead of fmt so the test is exact
-    x = state.mesh.local.coordinates
+    #TODO: replace this with a local hs functional instead of fmt so the test is exact
+    x = state.mesh.local.centers
     state.fields['A'][:] = 1.e-1*(np.sin(2*np.pi*x/state.mesh.full.L)+1)
     grand.constrain('A', state.mesh.full.L*1.e-1, grand.Constraint.N)
     bd.compute(grand,state)
@@ -105,7 +110,7 @@ def test_external(state,grand,ig,walls,linear,bd):
     for w in walls:
         w.diameters['A'] = 0.0
     grand.external = flyft.external.CompositeExternalPotential(walls)
-
+    print(grand.external)
     bd.diffusivities['A'] = 2.0
 
     # first check OK with all zeros
@@ -115,7 +120,7 @@ def test_external(state,grand,ig,walls,linear,bd):
     assert np.allclose(bd.fluxes['A'], 0.)
 
     # all 1s outside the walls (should give no flux into walls still)
-    x = state.mesh.local.coordinates
+    x = state.mesh.local.centers
     inside = np.logical_and(x > walls[0].origin, x < walls[1].origin)
     state.fields['A'][inside] = 1.
     grand.constrain('A', np.sum(state.fields['A'])*state.mesh.full.step, grand.Constraint.N)
