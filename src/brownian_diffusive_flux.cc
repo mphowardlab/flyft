@@ -42,7 +42,7 @@ static double calculateFlux(int idx,
         // excess contribute at left edge
         auto dmu_ex = 0.0;
         if (mu_ex) dmu_ex += mesh->gradient(idx,mu_ex);
-        if (V) dmu_ex += mesh->gradient(idx,mu_ex);
+        if (V) dmu_ex += mesh->gradient(idx,V);
 
         // ideal (Fickian) term + excess term
         // the ideal term is separated out so that we don't need to take
