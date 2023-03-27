@@ -11,7 +11,7 @@ State::State(std::shared_ptr<ParallelMesh> mesh, const std::string& type)
     {}
 
 State::State(std::shared_ptr<ParallelMesh> mesh, const std::vector<std::string>& types)
-    : mesh_(mesh),types_(types)
+    : mesh_(mesh),types_(types),time_(0)
     {
     for (const auto& t : types_)
         {

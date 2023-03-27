@@ -39,14 +39,14 @@ def test_advance(state,grand,ig,linear,bd,euler):
     euler.advance(bd, grand, state, euler.timestep)
     assert state.time == pytest.approx(1.e-3)
 
-    x = state.mesh.local.coordinates
-    flags = np.logical_and(x >= state.mesh.full.coordinates[1], x <= state.mesh.full.coordinates[-2])
+    x = state.mesh.local.centers
+    flags = np.logical_and(x >= state.mesh.full.centers[1], x <= state.mesh.full.centers[-2])
     assert np.allclose(state.fields['A'][flags], 1.0)
 
     # check everywhere using the flux computed by bd
     state.fields['A'][:] = 1.0
     bd.compute(grand,state)
-    xfull = state.mesh.full.coordinates
+    xfull = state.mesh.full.centers
     ufull = 0.25*xfull
     jfull = -2*(ufull-np.roll(ufull,1))/state.mesh.full.step
     ratefull = (jfull-np.roll(jfull,-1))
@@ -73,7 +73,7 @@ def test_advance(state,grand,ig,linear,bd,euler):
 
 @pytest.mark.parametrize("adapt",[False,True])
 def test_sine(adapt,euler):
-    mesh = flyft.state.ParallelMesh(flyft.state.CartesianMesh(10.0,20,1))
+    mesh = flyft.state.ParallelMesh(flyft.state.CartesianMesh(2.,100,1))
     state =  flyft.State(mesh,('A'))
     # state = flyft.State(2.,100,'A')
     x = state.mesh.local.centers
