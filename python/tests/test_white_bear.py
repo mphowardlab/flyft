@@ -33,10 +33,9 @@ def test_diameters():
     assert fmt._self.diameters['A'] == pytest.approx(1.5)
     assert fmt._self.diameters['B'] == pytest.approx(2.5)
 
-def test_compute(binary_state):
+def test_compute(binary_state,volumes):
     fmt = flyft.functional.WhiteBear()
     state = binary_state
-
     d = 2.0
     v = np.pi*d**3/6.
     eta = 0.1
@@ -47,7 +46,7 @@ def test_compute(binary_state):
 
     # compute with only one component present
     fmt.compute(state)
-    assert fmt.value == pytest.approx(10.*fex_cs(eta,v))
+    assert fmt.value == pytest.approx(volumes*fex_cs(eta,v))
     assert np.allclose(fmt.derivatives['A'].data,muex_cs(eta))
     assert np.allclose(fmt.derivatives['B'].data,0.0)
 
@@ -57,6 +56,6 @@ def test_compute(binary_state):
     fmt.diameters['A'] = d
     fmt.diameters['B'] = d
     fmt.compute(state)
-    assert fmt.value == pytest.approx(10.*fex_cs(eta,v))
+    assert fmt.value == pytest.approx(volumes*fex_cs(eta,v))
     assert np.allclose(fmt.derivatives['A'].data,muex_cs(eta))
     assert np.allclose(fmt.derivatives['B'].data,muex_cs(eta))

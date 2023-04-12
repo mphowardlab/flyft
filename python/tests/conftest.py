@@ -1,5 +1,6 @@
 import pytest
 import flyft
+from pytest_lazyfixture import lazy_fixture
 
 
 
@@ -18,14 +19,31 @@ def grand():
     return flyft.functional.GrandPotential()
 
 @pytest.fixture
-def state():
-    mesh = flyft.state.ParallelMesh(flyft.state.CartesianMesh(10.0,20,1))
-    return flyft.State(mesh,('A'))
+def cartesian_mesh():
+    return flyft.state.CartesianMesh(10.0,20,1)
 
 @pytest.fixture
-def binary_state():
-    mesh = flyft.state.ParallelMesh(flyft.state.CartesianMesh(10.0,20,1))
-    return flyft.State(mesh,('A','B'))
+def spherical_mesh():
+    return flyft.state.SphericalMesh(10.0,20)
+
+@pytest.fixture(params=[lazy_fixture("cartesian_mesh"), lazy_fixture("spherical_mesh")])
+def mesh(request):
+    return request.param
+
+@pytest.fixture  
+def volumes(mesh):
+    return mesh.volume()
+    
+@pytest.fixture
+def state(mesh):
+    return flyft.State(flyft.state.ParallelMesh(mesh), ("A", ))
+
+@pytest.fixture
+def binary_state(mesh):
+    return flyft.State(flyft.state.ParallelMesh(mesh), ("A", "B"))
+
+
+
 
 @pytest.fixture
 def linear():

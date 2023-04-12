@@ -31,15 +31,19 @@ std::shared_ptr<Mesh> SphericalMesh::slice(int start, int end) const
 
 double SphericalMesh::area(int i) const
     {
-    const double r = center(i);
+    const double r = lower_bound(i);
     return 4.*M_PI*r*r;
     }
 
-
+double SphericalMesh::volume() const
+    {
+    return (4.*M_PI/3.)*(L_*L_*L_);
+    }
+    
 double SphericalMesh::volume(int i) const
     {
-    const double r_out = center(i+1);
-    const double r_in = center(i);
+    const double r_out = upper_bound(i);
+    const double r_in = lower_bound(i);
     return (4.*M_PI/3.)*(r_out*r_out*r_out - r_in*r_in*r_in);
     }
 

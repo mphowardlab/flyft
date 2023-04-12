@@ -56,6 +56,7 @@ class Mesh
         
  
         virtual double area(int i) const = 0;//Crossectional area of the bin
+        virtual double volume() const = 0;
         virtual double volume(int i) const = 0;
         virtual std::shared_ptr<Mesh> slice(int start, int end) const = 0;
         

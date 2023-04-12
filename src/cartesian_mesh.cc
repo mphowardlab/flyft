@@ -33,6 +33,11 @@ double CartesianMesh::area(int /*i*/) const
     return area_;
     }
 
+double CartesianMesh::volume() const
+    {
+    return area_*L_;
+    }
+
 double CartesianMesh::volume(int /*i*/) const
     {
     return area_*step_;

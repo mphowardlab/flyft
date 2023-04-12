@@ -38,9 +38,8 @@ def test_volumes(ig):
     assert ig._self.volumes['A'] == pytest.approx(1.5)
     assert ig._self.volumes['B'] == pytest.approx(2.5)
 
-def test_compute(ig,binary_state):
+def test_compute(ig,binary_state,volumes):
     state = binary_state
-
     state.fields['A'][:] = 1.0
     state.fields['B'][:] = 0.0
     ig.volumes['A'] = 1.0
@@ -48,13 +47,13 @@ def test_compute(ig,binary_state):
 
     # compute with only one component present
     ig.compute(state)
-    assert ig.value == pytest.approx(10.0*f_ig(1.0,1.0))
+    assert ig.value == pytest.approx(volumes*f_ig(1.0,1.0))
     assert np.allclose(ig.derivatives['A'].data,mu_ig(1.0,1.0))
     assert np.all(ig.derivatives['B'].data == mu_ig(0.0,2.0))
 
     # compute with both present
     state.fields['B'][:] = 0.5
     ig.compute(state)
-    assert ig.value == pytest.approx(10.0*(f_ig(1.0,1.0)+f_ig(0.5,2.0)))
+    assert ig.value == pytest.approx(volumes*(f_ig(1.0,1.0)+f_ig(0.5,2.0)))
     assert np.allclose(ig.derivatives['A'].data,mu_ig(1.0,1.0))
     assert np.allclose(ig.derivatives['B'].data,mu_ig(0.5,2.0))
