@@ -17,12 +17,12 @@ class MeshTrampoline : public Mesh
         
         double volume() const override 
         {
-        PYBIND11_OVERLOAD_PURE_NAME(double, Mesh, "total_volume", volume, );
+        PYBIND11_OVERLOAD_PURE(double, Mesh, volume);
         }
      
         double volume(int i) const override
         {
-        PYBIND11_OVERLOAD_PURE_NAME(double, Mesh, "bin_volume", volume, i);
+        PYBIND11_OVERLOAD_PURE_NAME(double, Mesh, "bin_volume",volume, i);
         }
 
         std::shared_ptr<Mesh> slice(int start, int end) const override
@@ -55,7 +55,7 @@ void bindMesh(py::module_& m)
         .def("bin", &Mesh::bin)
         .def("lower_bound",&Mesh::lower_bound)
         .def("upper_bound",&Mesh::upper_bound)
-        .def("total_volume",py::overload_cast<>(&Mesh::volume, py::const_))
+        .def_property_readonly("volume",py::overload_cast<>(&Mesh::volume, py::const_))
         .def("bin_volume",py::overload_cast<int>(&Mesh::volume, py::const_))
         ;
     }

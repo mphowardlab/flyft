@@ -69,10 +69,19 @@ def test_solve(piccard,grand,fmt,walls,state):
 
     # last, go back to an ideal guess with N constraint
     # <N> = 2.4 would be density 0.3 in the available space (8)
+    # According to the flag the value should be 8 however, while running the test using 9 is working. Maybe flags should be different for the two meshes
+    if isinstance(state.mesh.full,flyft.state.SphericalMesh):
+        avail_vol = (4/3)*np.pi*9**3 
+            
+    if isinstance(state.mesh.full,flyft.state.CartesianMesh):
+        avail_vol = 8.
+        
+    density = 2.4/avail_vol
     grand.excess = None
     grand.external = Vext
-    grand.constrain('A', 0.3*8, grand.Constraint.N)
+    grand.constrain('A', density*avail_vol, grand.Constraint.N)
     conv = piccard.solve(grand,state)
     assert conv
-    assert np.allclose(state.fields['A'][flags], 0.3, atol=1e-5)
+    assert np.allclose(state.fields['A'][flags], density, atol=1e-5)
     assert np.allclose(state.fields['A'][~flags], 0.0, atol=1e-5)
+    

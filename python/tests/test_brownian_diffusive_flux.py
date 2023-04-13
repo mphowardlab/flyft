@@ -3,6 +3,7 @@ import pytest
 
 import flyft
 
+
 def test_diffusivities(bd):
     assert len(bd.diffusivities) == 0
 
@@ -25,11 +26,10 @@ def test_diffusivities(bd):
     assert bd._self.diffusivities['A'] == pytest.approx(1.5)
     assert bd._self.diffusivities['B'] == pytest.approx(2.5)
 
-def test_ideal(grand,ig,bd):
-    mesh = flyft.state.ParallelMesh(flyft.state.CartesianMesh(10.0,500))
-    state = flyft.State(mesh,('A'))
+def test_ideal(grand,ig,bd,state_grand,mesh_grand):
+    state = state_grand
+    volume = mesh_grand.volume()
     # state = flyft.State(10.0,500,'A')
-
     ig.volumes['A'] = 1.0
     grand.ideal = ig
     bd.diffusivities['A'] = 2.0
@@ -42,35 +42,57 @@ def test_ideal(grand,ig,bd):
 
     # same thing with all ones
     state.fields['A'][:] = 1.
-    grand.constrain('A', state.mesh.full.L*1.0, grand.Constraint.N)
+    grand.constrain('A', volume, grand.Constraint.N)
     bd.compute(grand,state)
     assert np.allclose(bd.fluxes['A'], 0.)
 
     # make linear profile and test in the middle
     # (skip first one because there is jump over PBC)
     # j = -D (drho/dx)
-    x = state.mesh.local.centers
-    state.fields['A'][:] = 3.0/state.mesh.full.L*x
-    grand.constrain('A', state.mesh.full.L*1.5, grand.Constraint.N)
-    bd.compute(grand,state)
-    assert np.allclose(bd.fluxes['A'][1:], -2.0*3.0/state.mesh.full.L)
+    if isinstance(state.mesh.full,flyft.state.CartesianMesh):
+        x = state.mesh.local.centers
+        state.fields['A'][:] = 3.0/state.mesh.full.L*x
+        grand.constrain('A', state.mesh.full.L*1.5, grand.Constraint.N)
+        bd.compute(grand,state)
+        assert np.allclose(bd.fluxes['A'][1:], -2.0*3.0/state.mesh.full.L)
 
-    # make sinusoidal profile and test with looser tolerance due to finite diff
-    state.fields['A'][:] = (np.sin(2*np.pi*x/state.mesh.full.L)+1)
-    grand.constrain('A', state.mesh.full.L*1., grand.Constraint.N)
-    bd.compute(grand,state)
-    # flux is computed at the left edge
-    j = -2.0*(2.*np.pi/state.mesh.full.L)*np.cos(2*np.pi*(x-0.5*state.mesh.full.step)/state.mesh.full.L)
-    assert np.allclose(bd.fluxes['A'], j, rtol=1e-3, atol=1e-3)
+        # make sinusoidal profile and test with looser tolerance due to finite diff
+        state.fields['A'][:] = (np.sin(2*np.pi*x/state.mesh.full.L)+1)
+        grand.constrain('A', volume, grand.Constraint.N)
+        bd.compute(grand,state)
+        # flux is computed at the left edge
+        j = -2.0*(2.*np.pi/state.mesh.full.L)*np.cos(2*np.pi*(x-0.5*state.mesh.full.step)/state.mesh.full.L)
+        
+        k = bd.fluxes['A']
+        
+        assert np.allclose(bd.fluxes['A'], j, rtol=1e-3, atol=1e-3)
+        
+    elif isinstance(state.mesh.full,flyft.state.SphericalMesh):
+        pytest.skip("Not configured for spherical mesh in test_ideal")
+        x = state.mesh.local.centers
+        state.fields['A'][:] = 3.0/state.mesh.full.L*x
+        grand.constrain('A', state.mesh.full.L*1.5, grand.Constraint.N)
+        bd.compute(grand,state)
+        assert np.allclose(bd.fluxes['A'][1:], -2.0*3.0/state.mesh.full.L)
 
-def test_excess(grand,ig,bd):
-    
-    mesh = flyft.state.ParallelMesh(flyft.state.CartesianMesh(10.0,500,1))
-    state = flyft.State(mesh,('A'))
-    # state = flyft.State(10.0,500,'A')
+        # make sinusoidal profile and test with looser tolerance due to finite diff
+        state.fields['A'][:] = (np.sin(2*np.pi*x/state.mesh.full.L)+1)
+        grand.constrain('A', volume, grand.Constraint.N)
+        bd.compute(grand,state)
+        # flux is computed at the left edge
+        j = -2.0*(2.*np.pi/state.mesh.full.L)*np.cos(2*np.pi*(x-0.5*state.mesh.full.step)/state.mesh.full.L)
+        
+        k = bd.fluxes['A']
+        
+        assert np.allclose(bd.fluxes['A'], j, rtol=1e-3, atol=1e-3)
+    else:
+        raise Exception("Mesh not defined")
+
+def test_excess(grand,state_grand,ig,bd):
+    state = state_grand
     virial = flyft.functional.VirialExpansion()
     B = 5.0
-
+    
     ig.volumes['A'] = 1.0
     virial.coefficients['A','A'] = B
     grand.ideal = ig
@@ -89,21 +111,37 @@ def test_excess(grand,ig,bd):
     grand.constrain('A', state.mesh.full.L*1.e-2, grand.Constraint.N)
     bd.compute(grand,state)
     assert np.allclose(bd.fluxes['A'], 0.)
-
-    #TODO: replace this with a local hs functional instead of fmt so the test is exact
     x = state.mesh.local.centers
-    state.fields['A'][:] = 1.e-1*(np.sin(2*np.pi*x/state.mesh.full.L)+1)
-    grand.constrain('A', state.mesh.full.L*1.e-1, grand.Constraint.N)
-    bd.compute(grand,state)
-    # flux is computed at the left edge
-    rho = 1.e-1*(np.sin(2*np.pi*(x-0.5*state.mesh.full.step)/state.mesh.full.L)+1)
-    drho_dx = 1.e-1*(2.*np.pi/state.mesh.full.L)*np.cos(2*np.pi*(x-0.5*state.mesh.full.step)/state.mesh.full.L)
-    dmuex_drho = 2*B
-    jid = -2.0*drho_dx
-    jex = -2.0*rho*dmuex_drho*drho_dx
-    j = jid + jex
-    assert np.allclose(bd.fluxes['A'], j, rtol=1e-3, atol=1e-3)
-
+    #TODO: replace this with a local hs functional instead of fmt so the test is exact
+    if isinstance(state_grand.mesh.full,flyft.state.CartesianMesh):
+        state.fields['A'][:] = 1.e-1*(np.sin(2*np.pi*x/state.mesh.full.L)+1)
+        grand.constrain('A', state.mesh.full.L*1.e-1, grand.Constraint.N)
+        bd.compute(grand,state)
+        # flux is computed at the left edge
+        rho = 1.e-1*(np.sin(2*np.pi*(x-0.5*state.mesh.full.step)/state.mesh.full.L)+1)
+        drho_dx = 1.e-1*(2.*np.pi/state.mesh.full.L)*np.cos(2*np.pi*(x-0.5*state.mesh.full.step)/state.mesh.full.L)
+        dmuex_drho = 2*B
+        jid = -2.0*drho_dx
+        jex = -2.0*rho*dmuex_drho*drho_dx
+        j = jid + jex
+        assert np.allclose(bd.fluxes['A'], j, rtol=1e-3, atol=1e-3)
+        
+    elif isinstance(state_grand.mesh.full,flyft.state.SphericalMesh):
+        pytest.skip("Not configured for spherical mesh in test_excess")
+        state.fields['A'][:] = 1.e-1*(np.sin(2*np.pi*x/state.mesh.full.L)+1)
+        grand.constrain('A', state.mesh.full.L*1.e-1, grand.Constraint.N)
+        bd.compute(grand,state)
+        # flux is computed at the left edge
+        rho = 1.e-1*(np.sin(2*np.pi*(x-0.5*state.mesh.full.step)/state.mesh.full.L)+1)
+        drho_dx = 1.e-1*(2.*np.pi/state.mesh.full.L)*np.cos(2*np.pi*(x-0.5*state.mesh.full.step)/state.mesh.full.L)
+        dmuex_drho = 2*B
+        jid = -2.0*drho_dx
+        jex = -2.0*rho*dmuex_drho*drho_dx
+        j = jid + jex
+        assert np.allclose(bd.fluxes['A'], j, rtol=1e-3, atol=1e-3)
+    else: 
+        raise Exception("Mesh not defined")
+        
 def test_external(state,grand,ig,walls,linear,bd):
     ig.volumes['A'] = 1.0
     grand.ideal = ig

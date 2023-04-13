@@ -32,9 +32,9 @@ def test_diameters(fmt):
     assert fmt._self.diameters['A'] == pytest.approx(1.5)
     assert fmt._self.diameters['B'] == pytest.approx(2.5)
 
-def test_compute(fmt,binary_state,volumes):
+def test_compute(fmt,binary_state,mesh):
     state = binary_state
-
+    volume = mesh.volume()
     d = 2.0
     v = np.pi*d**3/6.
     eta = 0.1
@@ -44,7 +44,7 @@ def test_compute(fmt,binary_state,volumes):
     fmt.diameters['B'] = 0.0
     # compute with only one component present
     fmt.compute(state)
-    assert fmt.value == pytest.approx(volumes*fex_py(eta,v))
+    assert fmt.value == pytest.approx(volume*fex_py(eta,v))
     assert np.allclose(fmt.derivatives['A'].data,muex_py(eta))
     assert np.allclose(fmt.derivatives['B'].data,0.0)
 
@@ -54,6 +54,6 @@ def test_compute(fmt,binary_state,volumes):
     fmt.diameters['A'] = d
     fmt.diameters['B'] = d
     fmt.compute(state)
-    assert fmt.value == pytest.approx(volumes*fex_py(eta,v))
+    assert fmt.value == pytest.approx(volume*fex_py(eta,v))
     assert np.allclose(fmt.derivatives['A'].data,muex_py(eta))
     assert np.allclose(fmt.derivatives['B'].data,muex_py(eta))

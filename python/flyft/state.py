@@ -54,14 +54,15 @@ class Mesh(mirror.Mirror,mirrorclass=_flyft.Mesh):
             self._centers = np.array([self._self.center(i) for i in range(self.shape)])
         return self._centers
     
-        
+
     def volume(self, bin = None):
         if bin is None:
-            v = self._self.total_volume()
+            v = self._self.volume
         else: 
             v = self._self.bin_volume(bin) 
         return v   
 
+    
     L = mirror.Property()
     origin = mirror.Property()
     shape = mirror.Property()

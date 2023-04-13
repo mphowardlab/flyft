@@ -37,7 +37,9 @@ double SphericalMesh::area(int i) const
 
 double SphericalMesh::volume() const
     {
-    return (4.*M_PI/3.)*(L_*L_*L_);
+    const double rlo = lower_bound(0);
+    const double rhi = upper_bound(shape_-1);
+    return (4.*M_PI/3.)*(rhi*rhi*rhi - rlo*rlo*rlo);
     }
     
 double SphericalMesh::volume(int i) const

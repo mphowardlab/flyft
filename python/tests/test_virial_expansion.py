@@ -61,15 +61,16 @@ def test_coefficients(virial):
     assert virial._self.coefficients['A','B'] == pytest.approx(3.5)
     assert virial._self.coefficients['B','B'] == pytest.approx(4.0)
 
-def test_compute(virial,binary_state,volumes):
+def test_compute(virial,binary_state,mesh):
     state = binary_state
+    volume = mesh.volume()
     # compute with only one component present
     virial.coefficients = {('A','A'): 1, ('A','B'): 1, ('B','B'): 1}
     rho = {'A': 1.0, 'B': 0.0}
     state.fields['A'][:] = rho['A']
     state.fields['B'][:] = rho['B']
     virial.compute(state)
-    assert virial.value == pytest.approx(volumes*f_ex(virial.coefficients,rho))
+    assert virial.value == pytest.approx(volume*f_ex(virial.coefficients,rho))
     assert np.allclose(virial.derivatives['A'].data,mu_ex(virial.coefficients,rho,'A'))
     assert np.allclose(virial.derivatives['B'].data,mu_ex(virial.coefficients,rho,'B'))
 
@@ -79,7 +80,7 @@ def test_compute(virial,binary_state,volumes):
     state.fields['A'][:] = rho['A']
     state.fields['B'][:] = rho['B']
     virial.compute(state)
-    assert virial.value == pytest.approx(volumes*f_ex(virial.coefficients,rho))
+    assert virial.value == pytest.approx(volume*f_ex(virial.coefficients,rho))
     assert np.allclose(virial.derivatives['A'].data,mu_ex(virial.coefficients,rho,'A'))
     assert np.allclose(virial.derivatives['B'].data,mu_ex(virial.coefficients,rho,'B'))
 
@@ -89,6 +90,6 @@ def test_compute(virial,binary_state,volumes):
     state.fields['A'][:] = rho['A']
     state.fields['B'][:] = rho['B']
     virial.compute(state)
-    assert virial.value == pytest.approx(volumes*f_ex(virial.coefficients,rho))
+    assert virial.value == pytest.approx(volume*f_ex(virial.coefficients,rho))
     assert np.allclose(virial.derivatives['A'].data,mu_ex(virial.coefficients,rho,'A'))
     assert np.allclose(virial.derivatives['B'].data,mu_ex(virial.coefficients,rho,'B'))

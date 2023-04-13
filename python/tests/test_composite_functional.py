@@ -49,14 +49,15 @@ def test_append_extend_remove(comp,ig):
     assert len(comp.objects) == 2
     assert len(comp._self.objects) == 2
 
-def test_compute(comp,ig,state,volumes):
+def test_compute(comp,ig,state,mesh):
+    volume = mesh.volume()
+    
     state.fields['A'][:] = 1.0
-
     comp.append(ig)
     ig.volumes['A'] = 1.0
 
     comp.compute(state)
-    assert comp.value == pytest.approx(-volumes)
+    assert comp.value == pytest.approx(-volume)
     assert np.allclose(comp.derivatives['A'].data,0.0)
 
     ig2 = flyft.functional.IdealGas()
@@ -64,5 +65,5 @@ def test_compute(comp,ig,state,volumes):
     comp.append(ig2)
 
     comp.compute(state)
-    assert comp.value == pytest.approx((-13.068528194400546/10)*volumes)
+    assert comp.value == pytest.approx((-13.068528194400546/10)*volume)
     assert np.allclose(comp.derivatives['A'].data,0.6931471805599453)
