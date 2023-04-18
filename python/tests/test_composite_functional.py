@@ -49,8 +49,8 @@ def test_append_extend_remove(comp,ig):
     assert len(comp.objects) == 2
     assert len(comp._self.objects) == 2
 
-def test_compute(comp,ig,state,mesh):
-    volume = mesh.volume()
+def test_compute(comp,ig,state):
+    volume = state.mesh.full.volume()
     
     state.fields['A'][:] = 1.0
     comp.append(ig)
@@ -65,5 +65,5 @@ def test_compute(comp,ig,state,mesh):
     comp.append(ig2)
 
     comp.compute(state)
-    assert comp.value == pytest.approx((-13.068528194400546/10)*volume)
+    assert comp.value == pytest.approx((-13.068528194400546/10)*volume)# 10 defines the volume for cartesian mesh
     assert np.allclose(comp.derivatives['A'].data,0.6931471805599453)

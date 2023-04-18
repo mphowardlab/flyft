@@ -61,9 +61,9 @@ def test_coefficients(virial):
     assert virial._self.coefficients['A','B'] == pytest.approx(3.5)
     assert virial._self.coefficients['B','B'] == pytest.approx(4.0)
 
-def test_compute(virial,binary_state,mesh):
+def test_compute(virial,binary_state):
     state = binary_state
-    volume = mesh.volume()
+    volume = state.mesh.full.volume()
     # compute with only one component present
     virial.coefficients = {('A','A'): 1, ('A','B'): 1, ('B','B'): 1}
     rho = {'A': 1.0, 'B': 0.0}

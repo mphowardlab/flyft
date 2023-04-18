@@ -2,7 +2,23 @@ import numpy as np
 import pytest
 
 import flyft
+from pytest_lazyfixture import lazy_fixture
 
+@pytest.fixture
+def cartesian_mesh_grand():
+    return flyft.state.CartesianMesh(10.,500,1)
+
+@pytest.fixture
+def spherical_mesh_grand():
+    return flyft.state.SphericalMesh(10.,500)
+
+@pytest.fixture(params=[lazy_fixture("cartesian_mesh_grand"), lazy_fixture("spherical_mesh_grand")])
+def mesh_grand(request):
+    return request.param
+
+@pytest.fixture
+def state_grand(mesh_grand):
+    return flyft.State(flyft.state.ParallelMesh(mesh_grand), ("A", ))
 
 def test_diffusivities(bd):
     assert len(bd.diffusivities) == 0
@@ -26,9 +42,9 @@ def test_diffusivities(bd):
     assert bd._self.diffusivities['A'] == pytest.approx(1.5)
     assert bd._self.diffusivities['B'] == pytest.approx(2.5)
 
-def test_ideal(grand,ig,bd,state_grand,mesh_grand):
+def test_ideal(grand,ig,bd,state_grand):
     state = state_grand
-    volume = mesh_grand.volume()
+    volume = state_grand.mesh.full.volume()
     # state = flyft.State(10.0,500,'A')
     ig.volumes['A'] = 1.0
     grand.ideal = ig
@@ -45,16 +61,15 @@ def test_ideal(grand,ig,bd,state_grand,mesh_grand):
     grand.constrain('A', volume, grand.Constraint.N)
     bd.compute(grand,state)
     assert np.allclose(bd.fluxes['A'], 0.)
-
+    x = state.mesh.local.centers
+    state.fields['A'][:] = 3.0/state.mesh.full.L*x
+    grand.constrain('A', state.mesh.full.L*1.5, grand.Constraint.N)
+    bd.compute(grand,state)
+    assert np.allclose(bd.fluxes['A'][1:], -2.0*3.0/state.mesh.full.L)
     # make linear profile and test in the middle
     # (skip first one because there is jump over PBC)
     # j = -D (drho/dx)
     if isinstance(state.mesh.full,flyft.state.CartesianMesh):
-        x = state.mesh.local.centers
-        state.fields['A'][:] = 3.0/state.mesh.full.L*x
-        grand.constrain('A', state.mesh.full.L*1.5, grand.Constraint.N)
-        bd.compute(grand,state)
-        assert np.allclose(bd.fluxes['A'][1:], -2.0*3.0/state.mesh.full.L)
 
         # make sinusoidal profile and test with looser tolerance due to finite diff
         state.fields['A'][:] = (np.sin(2*np.pi*x/state.mesh.full.L)+1)
@@ -62,31 +77,9 @@ def test_ideal(grand,ig,bd,state_grand,mesh_grand):
         bd.compute(grand,state)
         # flux is computed at the left edge
         j = -2.0*(2.*np.pi/state.mesh.full.L)*np.cos(2*np.pi*(x-0.5*state.mesh.full.step)/state.mesh.full.L)
-        
-        k = bd.fluxes['A']
-        
         assert np.allclose(bd.fluxes['A'], j, rtol=1e-3, atol=1e-3)
-        
-    elif isinstance(state.mesh.full,flyft.state.SphericalMesh):
-        pytest.skip("Not configured for spherical mesh in test_ideal")
-        x = state.mesh.local.centers
-        state.fields['A'][:] = 3.0/state.mesh.full.L*x
-        grand.constrain('A', state.mesh.full.L*1.5, grand.Constraint.N)
-        bd.compute(grand,state)
-        assert np.allclose(bd.fluxes['A'][1:], -2.0*3.0/state.mesh.full.L)
+             
 
-        # make sinusoidal profile and test with looser tolerance due to finite diff
-        state.fields['A'][:] = (np.sin(2*np.pi*x/state.mesh.full.L)+1)
-        grand.constrain('A', volume, grand.Constraint.N)
-        bd.compute(grand,state)
-        # flux is computed at the left edge
-        j = -2.0*(2.*np.pi/state.mesh.full.L)*np.cos(2*np.pi*(x-0.5*state.mesh.full.step)/state.mesh.full.L)
-        
-        k = bd.fluxes['A']
-        
-        assert np.allclose(bd.fluxes['A'], j, rtol=1e-3, atol=1e-3)
-    else:
-        raise Exception("Mesh not defined")
 
 def test_excess(grand,state_grand,ig,bd):
     state = state_grand
@@ -111,9 +104,9 @@ def test_excess(grand,state_grand,ig,bd):
     grand.constrain('A', state.mesh.full.L*1.e-2, grand.Constraint.N)
     bd.compute(grand,state)
     assert np.allclose(bd.fluxes['A'], 0.)
-    x = state.mesh.local.centers
     #TODO: replace this with a local hs functional instead of fmt so the test is exact
     if isinstance(state_grand.mesh.full,flyft.state.CartesianMesh):
+        x = state.mesh.local.centers
         state.fields['A'][:] = 1.e-1*(np.sin(2*np.pi*x/state.mesh.full.L)+1)
         grand.constrain('A', state.mesh.full.L*1.e-1, grand.Constraint.N)
         bd.compute(grand,state)

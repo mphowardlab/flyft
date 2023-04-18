@@ -33,10 +33,10 @@ def test_diameters():
     assert fmt._self.diameters['A'] == pytest.approx(1.5)
     assert fmt._self.diameters['B'] == pytest.approx(2.5)
 
-def test_compute(binary_state,mesh):
+def test_compute(binary_state):
     fmt = flyft.functional.WhiteBearMarkII()
     state = binary_state
-    volume = mesh.volume()
+    volume = state.mesh.full.volume()
     d = 2.0
     v = np.pi*d**3/6.
     eta = 0.1

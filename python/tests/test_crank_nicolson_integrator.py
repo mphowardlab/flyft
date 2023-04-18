@@ -56,16 +56,6 @@ def test_advance(state,grand,ig,linear,bd,cn):
         cn.advance(bd, grand, state, cn.timestep)
         assert state.time == pytest.approx(1.e-3)
         assert np.allclose(state.fields['A'][1:-1], 1.0, atol=1e-4)
-    
-    elif isinstance(state.mesh.full,flyft.state.SphericalMesh):
-        pytest.skip("Not configured for spherical mesh in test_advance")
-        # add a linear field flux, but this is bulk so there should still be no change
-        # except near the edges where the potential seems discontinuous by finite difference
-        linear.set_line('A', x=0., y=0., slope=0.25)
-        grand.external = linear
-        cn.advance(bd, grand, state, cn.timestep)
-        assert state.time == pytest.approx(1.e-3)
-        assert np.allclose(state.fields['A'][1:-1], 1.0, atol=1e-4)
 
     # run forwards multiple steps
     state.time = 0.
@@ -109,11 +99,3 @@ def test_sine(adapt,cn,state_sine):
     if isinstance(state_sine.mesh.full,flyft.state.CartesianMesh):
         sol = 0.5*np.exp(-t/tau)*np.sin(2*np.pi*x/state.mesh.full.L)+1
         assert np.allclose(state.fields['A'],sol,atol=1.e-4)
-        
-    elif isinstance(state_sine.mesh.full,flyft.state.SphericalMesh):
-        pytest.skip("Not configured for spherical mesh in test_sine")
-        sol = 0.5*np.exp(-t/tau)*np.sin(2*np.pi*x/state.mesh.full.L)+1
-        assert np.allclose(state.fields['A'],sol,atol=1.e-4)
-    
-    else:
-        raise Exception("Mesh not defined")

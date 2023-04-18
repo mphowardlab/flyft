@@ -24,8 +24,11 @@ def test_immutable(mesh):
     with pytest.raises(AttributeError):
         mesh.step = 1.0
 
-def test_volumes(spherical_mesh,cartesian_mesh):
+def test_volume_cartesian(cartesian_mesh):
     assert cartesian_mesh.volume() == pytest.approx(10.)
     assert cartesian_mesh.volume(0) == pytest.approx(0.5)
+
+
+def test_volume_spherical(spherical_mesh):
     assert spherical_mesh.volume() == pytest.approx(4188.790204786391)
     assert spherical_mesh.volume(0) == pytest.approx(0.523598775598299)

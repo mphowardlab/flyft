@@ -33,7 +33,7 @@ def test_init(euler):
     assert euler.tolerance == pytest.approx(1.e-7)
     assert euler._self.tolerance == pytest.approx(1.e-7)
 
-def test_advance(state,mesh,cartesian_mesh,spherical_mesh,grand,ig,linear,bd,euler):
+def test_advance(state,grand,ig,linear,bd,euler):
     ig.volumes['A'] = 1.0
     grand.ideal = ig
     bd.diffusivities['A'] = 2.0
@@ -57,16 +57,7 @@ def test_advance(state,mesh,cartesian_mesh,spherical_mesh,grand,ig,linear,bd,eul
         euler.advance(bd, grand, state, euler.timestep)
         assert state.time == pytest.approx(1.e-3)
         assert np.allclose(state.fields['A'][1:-1], 1.0, atol=1e-3)
-    if isinstance(state.mesh.full,flyft.state.SphericalMesh):
-        # add a linear field flux, but this is bulk so there should still be no change
-        # except near the edges where the potential seems discontinuous by finite difference
-        pytest.skip("Not configured for spherical mesh in test_advance")
-        linear.set_line('A', x=0., y=0., slope=0.25)
-        grand.external = linear
-        euler.advance(bd, grand, state, euler.timestep)
-        assert state.time == pytest.approx(1.e-3)
-        assert np.allclose(state.fields['A'][1:-1], 1.0, atol=1e-3)
-        
+
     # run forwards multiple steps
     state.time = 0.
     state.fields['A'][:] = 1.0
@@ -112,10 +103,4 @@ def test_sine(adapt,state_sine,euler):
     if isinstance(state_sine.mesh.full,flyft.state.CartesianMesh):
         sol = 0.5*np.exp(-t/tau)*np.sin(2*np.pi*x/state.mesh.full.L)+1
         assert np.allclose(state.fields['A'],sol,atol=1.e-4)
-    
-    elif isinstance(state_sine.mesh.full,flyft.state.SphericalMesh):
-        pytest.skip("Not configured for spherical mesh in test_sine") 
-        sol = 0.5*np.exp(-t/tau)*np.sin(2*np.pi*x/state.mesh.full.L)+1
-        assert np.allclose(state.fields['A'],sol,atol=1.e-4)
-    else:
-        raise Exception("Mesh not defined")    
+     

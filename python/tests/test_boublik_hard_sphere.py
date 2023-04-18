@@ -39,12 +39,12 @@ def test_diameters(bmcsl):
     assert bmcsl._self.diameters['A'] == pytest.approx(1.5)
     assert bmcsl._self.diameters['B'] == pytest.approx(2.5)
 
-def test_compute(bmcsl,mesh,binary_state):
+def test_compute(bmcsl,binary_state):
     state = binary_state
     d = 2.0
     v = np.pi*d**3/6.
     eta = 0.1
-    volume = mesh.volume()
+    volume = state.mesh.full.volume()
     state.fields['A'][:] = eta/v
     state.fields['B'][:] = 0.0
     bmcsl.diameters['A'] = d
@@ -76,11 +76,11 @@ def test_compute(bmcsl,mesh,binary_state):
     assert np.allclose(bmcsl.derivatives['A'].data,1.2912644301468292)
     assert np.allclose(bmcsl.derivatives['B'].data,4.4254142781874695)
 
-def test_compute_one_type(bmcsl,mesh,state):
+def test_compute_one_type(bmcsl,state):
     d = 2.0
     v = np.pi*d**3/6.
     eta = 0.1
-    volume = mesh.volume()
+    volume = state.mesh.full.volume()
     state.fields['A'][:] = eta/v
     bmcsl.diameters['A'] = d
     # compute with only one component present, other acts like ideal gas
