@@ -1,5 +1,8 @@
 #include "flyft/rosenfeld_fmt.h"
 
+#include "flyft/cartesian_mesh.h"
+#include "flyft/spherical_mesh.h"
+
 #include <algorithm>
 #include <cmath>
 #include <complex>
@@ -18,6 +21,21 @@ void RosenfeldFMT::_compute(std::shared_ptr<State> state, bool compute_value)
     // compute n weights in fourier space (requires communication before fourier transform)
     state->syncFields();
     const auto mesh = state->getMesh()->local().get();
+    
+    ConvolutionType conv_type;
+    if (dynamic_cast<const CartesianMesh*>(mesh) != nullptr)
+        {
+        conv_type = ConvolutionType::cartesian;
+        }
+    else if(dynamic_cast<const SphericalMesh*>(mesh) != nullptr)
+        {
+        conv_type = ConvolutionType::spherical;
+        }
+    else
+        {
+        // TODO: throw error
+        }
+
     const auto kmesh = ft_->getWavevectors();
         {
         // zero the weights before accumulating by type
@@ -39,7 +57,14 @@ void RosenfeldFMT::_compute(std::shared_ptr<State> state, bool compute_value)
                 }
 
             // fft the density
-            ft_->setRealData(state->getField(t)->const_full_view());
+            if (conv_type == ConvolutionType::spherical)
+                {
+                // copy to temporary array & multiply by r, then setRealData from temporary array
+                }
+            else
+                {
+                ft_->setRealData(state->getField(t)->const_full_view());
+                }
             ft_->transform();
             auto rhok = ft_->const_view_reciprocal();
 
@@ -99,6 +124,11 @@ void RosenfeldFMT::_compute(std::shared_ptr<State> state, bool compute_value)
         std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),nv2_->full_view().begin());
         }
 
+    // do the integral for the r values that are close to the origin
+
+    // fix up the vector weights that also have a contribution from n3
+
+    /////// Don't work below here
     // evaluate phi and partial derivatives in real space using n
         {
         auto n0 = n0_->const_view();
