@@ -12,7 +12,6 @@ def muex_cs(eta):
     """Carnahan-Starling excess chemical potential of hard spheres"""
     return (8*eta-9*eta**2+3*eta**3)/(1-eta)**3
 
-
 @pytest.fixture
 def bmcsl():
     return flyft.functional.BoublikHardSphere()
@@ -41,6 +40,7 @@ def test_diameters(bmcsl):
 
 def test_compute(bmcsl,binary_state):
     state = binary_state
+
     d = 2.0
     v = np.pi*d**3/6.
     eta = 0.1

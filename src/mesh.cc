@@ -74,31 +74,20 @@ double Mesh::asLength(int shape) const
     {
     return shape*step_;
     }
-    
-    
-double Mesh::integrateSurface(int idx,const DataView<const double>& j) const
-    {
-    return integrateSurface(idx,j(idx),j(idx+1));
-    }
-    
-double Mesh::integrateSurface(int idx,const DataView<double>& j) const
-    {
-    return integrateSurface(idx,j(idx),j(idx+1));
-    }
-    
+
 double Mesh::integrateSurface(int idx, double j_lo, double j_hi) const
     {
     return area(idx)*j_lo - area(idx+1)*j_hi;
     }
 
-double Mesh::integrateVolume(int idx, const DataView<const double>& f) const
+double Mesh::integrateSurface(int idx,const DataView<double>& j) const
     {
-    return integrateVolume(idx, f(idx));
+    return integrateSurface(idx,j(idx),j(idx+1));
     }
 
-double Mesh::integrateVolume(int idx, const DataView<double>& f) const
+double Mesh::integrateSurface(int idx,const DataView<const double>& j) const
     {
-    return integrateVolume(idx, f(idx));
+    return integrateSurface(idx,j(idx),j(idx+1));
     }
 
 double Mesh::integrateVolume(int idx, double f) const
@@ -106,14 +95,14 @@ double Mesh::integrateVolume(int idx, double f) const
     return volume(idx)*f;
     }
 
-double Mesh::interpolate(int idx, const DataView<const double>& f) const
+double Mesh::integrateVolume(int idx, const DataView<double>& f) const
     {
-    return interpolate(idx,f(idx-1),f(idx));
+    return integrateVolume(idx, f(idx));
     }
 
-double Mesh::interpolate(int idx, const DataView<double>& f) const
+double Mesh::integrateVolume(int idx, const DataView<const double>& f) const
     {
-    return interpolate(idx,f(idx-1),f(idx));
+    return integrateVolume(idx, f(idx));
     }
 
 double Mesh::interpolate(int /*i*/,double f_lo, double f_hi) const
@@ -121,12 +110,22 @@ double Mesh::interpolate(int /*i*/,double f_lo, double f_hi) const
     return 0.5*(f_lo+f_hi);
     }
 
-double Mesh::gradient(int idx, const DataView<const double>& f) const
+double Mesh::interpolate(int idx, const DataView<double>& f) const
+    {
+    return interpolate(idx,f(idx-1),f(idx));
+    }
+
+double Mesh::interpolate(int idx, const DataView<const double>& f) const
+    {
+    return interpolate(idx,f(idx-1),f(idx));
+    }
+
+double Mesh::gradient(int idx, const DataView<double>& f) const
     {
     return gradient(idx, f(idx-1), f(idx));
     }
 
-double Mesh::gradient(int idx, const DataView<double>& f) const
+double Mesh::gradient(int idx, const DataView<const double>& f) const
     {
     return gradient(idx, f(idx-1), f(idx));
     }

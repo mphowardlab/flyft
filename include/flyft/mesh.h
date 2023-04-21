@@ -16,8 +16,25 @@ class Mesh
         Mesh(int shape, double step);
         Mesh(int shape, double step, double origin);
 
+        virtual std::shared_ptr<Mesh> slice(int start, int end) const = 0;
+
         //! Get position on the mesh, defined as center of bin
         double center(int i) const;
+
+        //! Get lower bound of bin
+        double lower_bound(int i) const;
+
+        //! Get upper bound of bin
+        double upper_bound(int i) const;
+
+        //! Get surface area of lower edge of bin
+        virtual double area(int i) const = 0;
+
+        //! Get volume of mesh
+        virtual double volume() const = 0;
+
+        //! Get volume of bin
+        virtual double volume(int i) const = 0;
 
         //! Get the bin for a coordinate
         int bin(double x) const;
@@ -37,32 +54,22 @@ class Mesh
         int asShape(double dx) const;
 
         double asLength(int shape) const;
-        
-        double lower_bound(int i) const;
-        double upper_bound(int i) const;
-               
 
-        double integrateSurface(int idx,const DataView<const double>& j) const;
-        double integrateSurface(int idx,  const DataView<double>& j) const;
         double integrateSurface(int idx, double j_lo, double j_hi) const;
-        
-        double integrateVolume(int idx, const DataView<const double>& f) const;
-        double integrateVolume(int idx, const DataView<double>& f) const;
+        double integrateSurface(int idx, const DataView<double>& j) const;
+        double integrateSurface(int idx, const DataView<const double>& j) const;
+
         double integrateVolume(int idx, double f) const;
+        double integrateVolume(int idx, const DataView<double>& f) const;
+        double integrateVolume(int idx, const DataView<const double>& f) const;
+
+        double interpolate(int idx, double f_lo, double f_hi) const;
+        double interpolate(int idx, const DataView<double>& f) const;  
+        double interpolate(int idx, const DataView<const double>& f) const;      
         
-        double interpolate(int idx, const DataView<const double>& f) const;
-        double interpolate(int idx, const DataView<double>& f) const;
-        double interpolate(int idx, double f_lo, double f_hi) const; 
-        
- 
-        virtual double area(int i) const = 0;//Crossectional area of the bin
-        virtual double volume() const = 0;
-        virtual double volume(int i) const = 0;
-        virtual std::shared_ptr<Mesh> slice(int start, int end) const = 0;
-        
+        virtual double gradient(int idx, double f_lo, double f_hi) const = 0;
         double gradient(int idx, const DataView<const double>& f) const ;
         double gradient(int idx, const DataView<double>& f) const ;
-        virtual double gradient(int idx, double f_lo, double f_hi) const = 0;
         
         bool operator==(const Mesh& other) const;
         bool operator!=(const Mesh& other) const;
@@ -73,6 +80,7 @@ class Mesh
         double step_;   //!< Spacing between mesh points
         double origin_; //!< Origin of the mesh
     };
+
 }
 
 #endif // FLYFT_MESH_H_

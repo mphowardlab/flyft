@@ -2,10 +2,6 @@ import pytest
 import flyft
 from pytest_lazyfixture import lazy_fixture
 
-
-
-
-
 @pytest.fixture
 def ig():
     return flyft.functional.IdealGas()
@@ -53,9 +49,6 @@ def state(mesh):
 @pytest.fixture
 def binary_state(mesh):
     return flyft.State(flyft.state.ParallelMesh(mesh), ("A", "B"))
-
-
-
 
 @pytest.fixture
 def linear():

@@ -4,6 +4,7 @@
 
 namespace flyft
 {
+
 SphericalMesh::SphericalMesh(double R, int shape)
     : SphericalMesh(R,shape,0)
     {

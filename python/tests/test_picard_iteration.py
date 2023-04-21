@@ -71,10 +71,11 @@ def test_solve(piccard,grand,fmt,walls,state):
     # <N> = 2.4 would be density 0.3 in the available space (8)
     # According to the flag the value should be 8 however, while running the test using 9 is working. Maybe flags should be different for the two meshes
     if isinstance(state.mesh.full,flyft.state.SphericalMesh):
-        avail_vol = (4/3)*np.pi*(9**3 - 1**3)
-            
-    if isinstance(state.mesh.full,flyft.state.CartesianMesh):
+        avail_vol = (4/3)*np.pi*(9**3 - 1**3)      
+    elif isinstance(state.mesh.full,flyft.state.CartesianMesh):
         avail_vol = 8.
+    else:
+        pytest.skip("Mesh type not supported")
         
     density = 2.4/avail_vol
     grand.excess = None
@@ -84,4 +85,3 @@ def test_solve(piccard,grand,fmt,walls,state):
     assert conv
     assert np.allclose(state.fields['A'][flags], density, atol=1e-5)
     assert np.allclose(state.fields['A'][~flags], 0.0, atol=1e-5)
-    

@@ -47,4 +47,5 @@ double CartesianMesh::gradient(int /*i*/, double f_lo, double f_hi) const
     {
     return (f_hi-f_lo)/step_; 
     }
+
 }

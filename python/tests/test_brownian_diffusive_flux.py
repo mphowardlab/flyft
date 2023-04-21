@@ -44,8 +44,8 @@ def test_diffusivities(bd):
 
 def test_ideal(grand,ig,bd,state_grand):
     state = state_grand
-    volume = state_grand.mesh.full.volume()
-    # state = flyft.State(10.0,500,'A')
+
+    volume = state.mesh.full.volume()
     ig.volumes['A'] = 1.0
     grand.ideal = ig
     bd.diffusivities['A'] = 2.0
@@ -70,7 +70,6 @@ def test_ideal(grand,ig,bd,state_grand):
     # (skip first one because there is jump over PBC)
     # j = -D (drho/dx)
     if isinstance(state.mesh.full,flyft.state.CartesianMesh):
-
         # make sinusoidal profile and test with looser tolerance due to finite diff
         state.fields['A'][:] = (np.sin(2*np.pi*x/state.mesh.full.L)+1)
         grand.constrain('A', volume, grand.Constraint.N)
@@ -78,14 +77,13 @@ def test_ideal(grand,ig,bd,state_grand):
         # flux is computed at the left edge
         j = -2.0*(2.*np.pi/state.mesh.full.L)*np.cos(2*np.pi*(x-0.5*state.mesh.full.step)/state.mesh.full.L)
         assert np.allclose(bd.fluxes['A'], j, rtol=1e-3, atol=1e-3)
-             
-
 
 def test_excess(grand,state_grand,ig,bd):
     state = state_grand
+
     virial = flyft.functional.VirialExpansion()
     B = 5.0
-    
+
     ig.volumes['A'] = 1.0
     virial.coefficients['A','A'] = B
     grand.ideal = ig
@@ -105,7 +103,7 @@ def test_excess(grand,state_grand,ig,bd):
     bd.compute(grand,state)
     assert np.allclose(bd.fluxes['A'], 0.)
     #TODO: replace this with a local hs functional instead of fmt so the test is exact
-    if isinstance(state_grand.mesh.full,flyft.state.CartesianMesh):
+    if isinstance(state.mesh.full,flyft.state.CartesianMesh):
         x = state.mesh.local.centers
         state.fields['A'][:] = 1.e-1*(np.sin(2*np.pi*x/state.mesh.full.L)+1)
         grand.constrain('A', state.mesh.full.L*1.e-1, grand.Constraint.N)
@@ -119,29 +117,12 @@ def test_excess(grand,state_grand,ig,bd):
         j = jid + jex
         assert np.allclose(bd.fluxes['A'], j, rtol=1e-3, atol=1e-3)
         
-    elif isinstance(state_grand.mesh.full,flyft.state.SphericalMesh):
-        pytest.skip("Not configured for spherical mesh in test_excess")
-        state.fields['A'][:] = 1.e-1*(np.sin(2*np.pi*x/state.mesh.full.L)+1)
-        grand.constrain('A', state.mesh.full.L*1.e-1, grand.Constraint.N)
-        bd.compute(grand,state)
-        # flux is computed at the left edge
-        rho = 1.e-1*(np.sin(2*np.pi*(x-0.5*state.mesh.full.step)/state.mesh.full.L)+1)
-        drho_dx = 1.e-1*(2.*np.pi/state.mesh.full.L)*np.cos(2*np.pi*(x-0.5*state.mesh.full.step)/state.mesh.full.L)
-        dmuex_drho = 2*B
-        jid = -2.0*drho_dx
-        jex = -2.0*rho*dmuex_drho*drho_dx
-        j = jid + jex
-        assert np.allclose(bd.fluxes['A'], j, rtol=1e-3, atol=1e-3)
-    else: 
-        raise Exception("Mesh not defined")
-        
 def test_external(state,grand,ig,walls,linear,bd):
     ig.volumes['A'] = 1.0
     grand.ideal = ig
     for w in walls:
         w.diameters['A'] = 0.0
     grand.external = flyft.external.CompositeExternalPotential(walls)
-    print(grand.external)
     bd.diffusivities['A'] = 2.0
 
     # first check OK with all zeros

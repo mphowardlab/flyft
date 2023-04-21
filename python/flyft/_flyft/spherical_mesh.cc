@@ -12,4 +12,3 @@ void bindSphericalMesh(py::module_& m)
         .def(py::init<int,double,double>())
         ;
     }
-

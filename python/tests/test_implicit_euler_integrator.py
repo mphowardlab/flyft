@@ -3,7 +3,6 @@ import pytest
 
 import flyft
 
-
 @pytest.fixture
 def euler():
     return flyft.dynamics.ImplicitEulerIntegrator(1.e-3,1.,2,1.e-6)
@@ -72,11 +71,7 @@ def test_advance(state,grand,ig,linear,bd,euler):
     assert state.time == pytest.approx(1.5e-4)
     euler.advance(bd, grand, state, -1.5e-4)
     assert state.time == pytest.approx(0.)
-        
-  
-
-       
-        
+    
 @pytest.mark.parametrize("adapt",[False,True])
 def test_sine(adapt,state_sine,euler):
     state =  state_sine
@@ -103,4 +98,3 @@ def test_sine(adapt,state_sine,euler):
     if isinstance(state_sine.mesh.full,flyft.state.CartesianMesh):
         sol = 0.5*np.exp(-t/tau)*np.sin(2*np.pi*x/state.mesh.full.L)+1
         assert np.allclose(state.fields['A'],sol,atol=1.e-4)
-     

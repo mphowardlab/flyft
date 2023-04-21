@@ -47,29 +47,23 @@ class Fields(mirror.Mapping):
         return self._cache[key]
 
 class Mesh(mirror.Mirror,mirrorclass=_flyft.Mesh):
-
     @property
     def centers(self):
         if not hasattr(self, '_centers'):
             self._centers = np.array([self._self.center(i) for i in range(self.shape)])
         return self._centers
-    
 
     def volume(self, bin = None):
         if bin is None:
             v = self._self.volume
-        else: 
-            v = self._self.bin_volume(bin) 
-        return v   
+        else:
+            v = self._self.bin_volume(bin)
+        return v
 
-    
     L = mirror.Property()
     origin = mirror.Property()
     shape = mirror.Property()
     step = mirror.Property()
-
- 
-    
 
 class CartesianMesh(Mesh,mirrorclass=_flyft.CartesianMesh):
     def __init__(self,L,shape,area = 1.):      
@@ -78,7 +72,6 @@ class CartesianMesh(Mesh,mirrorclass=_flyft.CartesianMesh):
 class SphericalMesh(Mesh,mirrorclass=_flyft.SphericalMesh):
     def __init__(self,R,shape):
         super().__init__(R,shape)
-
 
 class ParallelMesh(mirror.Mirror,mirrorclass=_flyft.ParallelMesh):
     def __init__(self,mesh):

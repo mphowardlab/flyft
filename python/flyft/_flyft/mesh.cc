@@ -1,41 +1,41 @@
 #include "_flyft.h"
 #include "flyft/mesh.h"
 
-
-
 namespace flyft
 {
+
 class MeshTrampoline : public Mesh
     {
     public:
         using Mesh::Mesh;
-        
-        double area(int i) const override
-        {
-        PYBIND11_OVERRIDE_PURE(double, Mesh, area, i);
-        }
-        
-        double volume() const override 
-        {
-        PYBIND11_OVERLOAD_PURE(double, Mesh, volume);
-        }
-     
-        double volume(int i) const override
-        {
-        PYBIND11_OVERLOAD_PURE_NAME(double, Mesh, "bin_volume",volume, i);
-        }
 
         std::shared_ptr<Mesh> slice(int start, int end) const override
-        {
-        PYBIND11_OVERRIDE_PURE(std::shared_ptr<Mesh>, Mesh, slice, start, end);
-        }
+            {
+            PYBIND11_OVERRIDE_PURE(std::shared_ptr<Mesh>, Mesh, slice, start, end);
+            }
+        
+        double area(int i) const override
+            {
+            PYBIND11_OVERRIDE_PURE(double, Mesh, area, i);
+            }
+        
+        double volume() const override 
+            {
+            PYBIND11_OVERRIDE_PURE(double, Mesh, volume);
+            }
+     
+        double volume(int i) const override
+            {
+            PYBIND11_OVERRIDE_PURE_NAME(double, Mesh, "bin_volume",volume, i);
+            }
 
         double gradient(int idx, double f_lo, double f_hi) const override
-        {
-        PYBIND11_OVERRIDE_PURE(double, Mesh, gradient, idx, f_lo, f_hi);
-        }
+            {
+            PYBIND11_OVERRIDE_PURE(double, Mesh, gradient, idx, f_lo, f_hi);
+            }
 
     };
+
 }
 
 void bindMesh(py::module_& m)

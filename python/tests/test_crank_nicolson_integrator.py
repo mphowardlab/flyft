@@ -70,8 +70,7 @@ def test_advance(state,grand,ig,linear,bd,cn):
     cn.advance(bd, grand, state, 1.5e-4)
     assert state.time == pytest.approx(1.5e-4)
     cn.advance(bd, grand, state, -1.5e-4)
-    assert state.time == pytest.approx(0.)    
-
+    assert state.time == pytest.approx(0.)
 
 @pytest.mark.parametrize("adapt",[False,True])
 def test_sine(adapt,cn,state_sine):
@@ -96,6 +95,6 @@ def test_sine(adapt,cn,state_sine):
     tau = state.mesh.full.L**2/(4*np.pi**2*bd.diffusivities['A'])
     t = 1.5*tau
     cn.advance(bd, grand, state, t)    
-    if isinstance(state_sine.mesh.full,flyft.state.CartesianMesh):
+    if isinstance(state.mesh.full,flyft.state.CartesianMesh):
         sol = 0.5*np.exp(-t/tau)*np.sin(2*np.pi*x/state.mesh.full.L)+1
         assert np.allclose(state.fields['A'],sol,atol=1.e-4)
