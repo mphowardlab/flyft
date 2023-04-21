@@ -1,6 +1,7 @@
 add_library(flyft SHARED
     boublik_hard_sphere_functional.cc
     brownian_diffusive_flux.cc
+    cartesian_mesh.cc
     composite_external_potential.cc
     composite_flux.cc
     composite_functional.cc
@@ -27,6 +28,7 @@ add_library(flyft SHARED
     picard_iteration.cc
     rosenfeld_fmt.cc
     solver.cc
+    spherical_mesh.cc
     state.cc
     tracked_object.cc
     virial_expansion.cc

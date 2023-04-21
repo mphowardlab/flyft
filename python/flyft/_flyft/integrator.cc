@@ -15,12 +15,12 @@ class IntegratorTrampoline : public Integrator
                      std::shared_ptr<State> state,
                      double timestep) override
             {
-            PYBIND11_OVERRIDE_PURE(void, Integrator, advance, flux, grand, state, timestep);
+            PYBIND11_OVERRIDE_PURE(void, Integrator, step, flux, grand, state, timestep);
             }
 
         int getLocalErrorExponent() const override
             {
-            PYBIND11_OVERRIDE_PURE(int, Integrator, localErrorExponent);
+            PYBIND11_OVERRIDE_PURE(int, Integrator, getlocalErrorExponent);
             }
     };
 }

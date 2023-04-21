@@ -10,6 +10,8 @@ void bindDoubleParameters(py::module_&);
 void bindCommunicator(py::module_&);
 void bindField(py::module_&);
 void bindMesh(py::module_&);
+void bindSphericalMesh(py::module_&);
+void bindCartesianMesh(py::module_&);
 void bindParallelMesh(py::module_&);
 void bindState(py::module_&);
 
@@ -69,6 +71,8 @@ PYBIND11_MODULE(_flyft, m)
     bindCommunicator(m);
     bindField(m);
     bindMesh(m);
+    bindCartesianMesh(m);
+    bindSphericalMesh(m);
     bindParallelMesh(m);
     bindState(m);
 

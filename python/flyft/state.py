@@ -47,44 +47,51 @@ class Fields(mirror.Mapping):
         return self._cache[key]
 
 class Mesh(mirror.Mirror,mirrorclass=_flyft.Mesh):
-    def __init__(self, L, shape, origin=0.):
-        super().__init__(L, shape, origin)
-
     @property
-    def coordinates(self):
-        if not hasattr(self, '_coordinates'):
-            self._coordinates = np.array([self._self.coordinate(i) for i in range(self.shape)])
-        return self._coordinates
+    def centers(self):
+        if not hasattr(self, '_centers'):
+            self._centers = np.array([self._self.center(i) for i in range(self.shape)])
+        return self._centers
+
+    def volume(self, bin = None):
+        if bin is None:
+            v = self._self.volume
+        else:
+            v = self._self.bin_volume(bin)
+        return v
 
     L = mirror.Property()
     origin = mirror.Property()
     shape = mirror.Property()
     step = mirror.Property()
 
+class CartesianMesh(Mesh,mirrorclass=_flyft.CartesianMesh):
+    def __init__(self,L,shape,area = 1.):      
+        super().__init__(L,shape,area) 
+
+class SphericalMesh(Mesh,mirrorclass=_flyft.SphericalMesh):
+    def __init__(self,R,shape):
+        super().__init__(R,shape)
+
 class ParallelMesh(mirror.Mirror,mirrorclass=_flyft.ParallelMesh):
-    def __init__(self, L, shape, communicator):
-        super().__init__(Mesh(L,shape), communicator)
+    def __init__(self,mesh):
+        communicator = Communicator()
+        super().__init__(mesh,communicator)
         self._communicator = communicator
 
     full = mirror.Property()
     local = mirror.Property()
 
 class State(mirror.Mirror,mirrorclass=_flyft.State):
-    def __init__(self, L, shape, types, communicator=None):
-        # cast type list into vector
+    def __init__(self, mesh, types): 
         if isinstance(types, str):
             types = (types,)
-
-        # initialize using communicator, if specified
-        if communicator is None:
-            super().__init__(L,shape,_flyft.VectorString(types))
-        else:
-            super().__init__(L,shape,_flyft.VectorString(types),communicator)
-            self._communicator = communicator
-
+        super().__init__(mesh,_flyft.VectorString(types))  
+        
     communicator = mirror.Property()
-    fields = mirror.WrappedProperty(Fields)
     mesh = mirror.Property()
+    fields = mirror.WrappedProperty(Fields)
+ 
     time = mirror.Property()
 
     def gather_field(self, type_, rank=None):

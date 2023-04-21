@@ -48,14 +48,14 @@ def test_advance(state,grand,ig,linear,bd,cn):
     cn.advance(bd, grand, state, -cn.timestep)
     assert state.time == pytest.approx(0.)
     assert np.allclose(state.fields['A'], 1.0)
-
-    # add a linear field flux, but this is bulk so there should still be no change
-    # except near the edges where the potential seems discontinuous by finite difference
-    linear.set_line('A', x=0., y=0., slope=0.25)
-    grand.external = linear
-    cn.advance(bd, grand, state, cn.timestep)
-    assert state.time == pytest.approx(1.e-3)
-    assert np.allclose(state.fields['A'][1:-1], 1.0, atol=1e-4)
+    if isinstance(state.mesh.full,flyft.state.CartesianMesh):   
+        # add a linear field flux, but this is bulk so there should still be no change
+        # except near the edges where the potential seems discontinuous by finite difference
+        linear.set_line('A', x=0., y=0., slope=0.25)
+        grand.external = linear
+        cn.advance(bd, grand, state, cn.timestep)
+        assert state.time == pytest.approx(1.e-3)
+        assert np.allclose(state.fields['A'][1:-1], 1.0, atol=1e-4)
 
     # run forwards multiple steps
     state.time = 0.
@@ -73,9 +73,9 @@ def test_advance(state,grand,ig,linear,bd,cn):
     assert state.time == pytest.approx(0.)
 
 @pytest.mark.parametrize("adapt",[False,True])
-def test_sine(adapt,cn):
-    state = flyft.State(2.,100,'A')
-    x = state.mesh.local.coordinates
+def test_sine(adapt,cn,state_sine):
+    state = state_sine
+    x = state.mesh.local.centers
     state.fields['A'][:] = 0.5*np.sin(2*np.pi*x/state.mesh.full.L)+1.
 
     ig = flyft.functional.IdealGas()
@@ -94,7 +94,7 @@ def test_sine(adapt,cn):
 
     tau = state.mesh.full.L**2/(4*np.pi**2*bd.diffusivities['A'])
     t = 1.5*tau
-    cn.advance(bd, grand, state, t)
-
-    sol = 0.5*np.exp(-t/tau)*np.sin(2*np.pi*x/state.mesh.full.L)+1
-    assert np.allclose(state.fields['A'],sol,atol=1.e-4)
+    cn.advance(bd, grand, state, t)    
+    if isinstance(state.mesh.full,flyft.state.CartesianMesh):
+        sol = 0.5*np.exp(-t/tau)*np.sin(2*np.pi*x/state.mesh.full.L)+1
+        assert np.allclose(state.fields['A'],sol,atol=1.e-4)

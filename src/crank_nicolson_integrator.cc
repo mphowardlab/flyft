@@ -29,7 +29,7 @@ void CrankNicolsonIntegrator::step(std::shared_ptr<Flux> flux,
                                    double timestep)
     {
     // evaluate initial fluxes at the **current** timestep
-    const auto mesh = *state->getMesh()->local();
+    const auto mesh = state->getMesh()->local().get();
     flux->compute(grand,state);
     for (const auto& t : state->getTypes())
         {
@@ -42,10 +42,10 @@ void CrankNicolsonIntegrator::step(std::shared_ptr<Flux> flux,
         #pragma omp parallel for schedule(static) default(none) firstprivate(mesh) \
             shared(rho,j,last_rho,last_rate)
         #endif
-        for (int idx=0; idx < mesh.shape(); ++idx)
+        for (int idx=0; idx < mesh->shape(); ++idx)
             {
             last_rho(idx) = rho(idx);
-            last_rate(idx) = (j(idx)-j(idx+1))/mesh.step();
+            last_rate(idx) = mesh->integrateSurface(idx,j)/mesh->volume(idx);
             }
         }
 
@@ -76,9 +76,9 @@ void CrankNicolsonIntegrator::step(std::shared_ptr<Flux> flux,
             #pragma omp parallel for schedule(static) default(none) firstprivate(timestep,mesh,alpha,tol) \
                 shared(next_rho,next_j,last_rho,last_rate,converged)
             #endif
-            for (int idx=0; idx < mesh.shape(); ++idx)
+            for (int idx=0; idx < mesh->shape(); ++idx)
                 {
-                const double next_rate = (next_j(idx)-next_j(idx+1))/mesh.step();
+                const double next_rate = mesh->integrateSurface(idx,next_j)/mesh->volume(idx);
                 const double try_rho = last_rho(idx) + 0.5*timestep*(last_rate(idx)+next_rate);
                 const double drho = alpha*(try_rho-next_rho(idx));
                 next_rho(idx) += drho;

@@ -24,7 +24,7 @@ class ExternalPotential : public Functional
 
     private:
         bool compute_potentials_;
-        Mesh compute_potentials_mesh_;
+        std::weak_ptr<const Mesh> compute_potentials_mesh_;
     };
 
 }

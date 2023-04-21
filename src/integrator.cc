@@ -55,7 +55,7 @@ bool Integrator::advance(std::shared_ptr<Flux> flux,
             2.*timestep_ < time_remain)
             {
             adaptive_last_remain = time_remain;
-            const auto mesh = *state->getMesh()->local();
+            const auto mesh = state->getMesh()->local().get();
 
             *adaptive_cur_state_ = *state;
 
@@ -89,7 +89,7 @@ bool Integrator::advance(std::shared_ptr<Flux> flux,
                     #pragma omp parallel for schedule(static) default(none) firstprivate(mesh,rho,rho_err) \
                         reduction(max:type_max_err)
                     #endif
-                    for (int idx=0; idx < mesh.shape(); ++idx)
+                    for (int idx=0; idx < mesh->shape(); ++idx)
                         {
                         const double err = std::abs(rho_err(idx)-rho(idx));
                         if (err > type_max_err)

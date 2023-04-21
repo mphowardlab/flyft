@@ -30,7 +30,7 @@ bool GrandPotential::setup(std::shared_ptr<State> state, bool compute_value)
 
 void GrandPotential::_compute(std::shared_ptr<State> state, bool compute_value)
     {
-    const auto mesh = *state->getMesh()->local();
+    const auto mesh = state->getMesh()->local().get();
 
     // sum up contributions to derivatives for each type
     double constraint_value = 0.0;
@@ -71,12 +71,12 @@ void GrandPotential::_compute(std::shared_ptr<State> state, bool compute_value)
             #pragma omp parallel for schedule(static) default(none) firstprivate(mesh,mu_bulk) \
             shared(rho,d,compute_value) reduction(-:constraint_value)
             #endif
-            for (int idx=0; idx < mesh.shape(); ++idx)
+            for (int idx=0; idx < mesh->shape(); ++idx)
                 {
                 d(idx) -= mu_bulk;
                 if (compute_value)
                     {
-                    constraint_value -= mesh.step()*mu_bulk*rho(idx);
+                    constraint_value -= mu_bulk*mesh->integrateVolume(idx,rho);
                     }
                 }
             }

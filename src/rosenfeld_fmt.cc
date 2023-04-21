@@ -17,7 +17,7 @@ void RosenfeldFMT::_compute(std::shared_ptr<State> state, bool compute_value)
     {
     // compute n weights in fourier space (requires communication before fourier transform)
     state->syncFields();
-    const auto mesh = *state->getMesh()->local();
+    const auto mesh = state->getMesh()->local().get();
     const auto kmesh = ft_->getWavevectors();
         {
         // zero the weights before accumulating by type
@@ -128,7 +128,7 @@ void RosenfeldFMT::_compute(std::shared_ptr<State> state, bool compute_value)
                                          phi,dphi_dn0,dphi_dn1,dphi_dn2,dphi_dn3,dphi_dnv1,dphi_dnv2,
                                          n0,n1,n2,n3,nv1,nv2,
                                          compute_value);
-                computePhiAndDerivatives(mesh.shape()-buffer_shape_+idx,
+                computePhiAndDerivatives(mesh->shape()-buffer_shape_+idx,
                                          phi,dphi_dn0,dphi_dn1,dphi_dn2,dphi_dn3,dphi_dnv1,dphi_dnv2,
                                          n0,n1,n2,n3,nv1,nv2,
                                          compute_value);
@@ -148,7 +148,7 @@ void RosenfeldFMT::_compute(std::shared_ptr<State> state, bool compute_value)
         #pragma omp parallel for schedule(static) default(none) firstprivate(mesh) \
         shared(n0,n1,n2,n3,nv1,nv2,phi,dphi_dn0,dphi_dn1,dphi_dn2,dphi_dn3,dphi_dnv1,dphi_dnv2,compute_value)
         #endif
-        for (int idx=buffer_shape_; idx < mesh.shape()-buffer_shape_; ++idx)
+        for (int idx=buffer_shape_; idx < mesh->shape()-buffer_shape_; ++idx)
             {
             computePhiAndDerivatives(idx,
                                      phi,dphi_dn0,dphi_dn1,dphi_dn2,dphi_dn3,dphi_dnv1,dphi_dnv2,
@@ -241,12 +241,12 @@ void RosenfeldFMT::_compute(std::shared_ptr<State> state, bool compute_value)
             Field::ConstantView din(ft_->const_view_real().begin().get(),
                                     DataLayout(ft_->getMesh().shape()),
                                     buffer_shape_,
-                                    buffer_shape_+mesh.shape());
+                                    buffer_shape_+mesh->shape());
             auto dout = derivatives_(t)->view();
             #ifdef FLYFT_OPENMP
             #pragma omp parallel for schedule(static) default(none) firstprivate(mesh) shared(din,dout)
             #endif
-            for (int idx=0; idx < mesh.shape(); ++idx)
+            for (int idx=0; idx < mesh->shape(); ++idx)
                 {
                 dout(idx) = din(idx);
                 }
@@ -263,9 +263,9 @@ void RosenfeldFMT::_compute(std::shared_ptr<State> state, bool compute_value)
             #ifdef FLYFT_OPENMP
             #pragma omp parallel for schedule(static) default(none) firstprivate(mesh) shared(phi) reduction(+:value_)
             #endif
-            for (int idx=0; idx < mesh.shape(); ++idx)
+            for (int idx=0; idx < mesh->shape(); ++idx)
                 {
-                value_ += mesh.step()*phi(idx);
+                value_ += mesh->integrateVolume(idx, phi);
                 }
             }
 
@@ -401,9 +401,9 @@ bool RosenfeldFMT::setup(std::shared_ptr<State> state, bool compute_value)
     bool compute = Functional::setup(state,compute_value);
 
     // update Fourier transform to mesh shape + buffer
-    const auto mesh = *state->getMesh()->local();
-    const int buffered_shape = mesh.shape()+2*buffer_shape_;
-    Mesh ft_mesh(mesh.asLength(buffered_shape),buffered_shape,-0.5*mesh.step());
+    const auto mesh = state->getMesh()->local().get();
+    const int buffered_shape = mesh->shape()+2*buffer_shape_;
+    CartesianMesh ft_mesh(mesh->asLength(buffered_shape),buffered_shape,-0.5*mesh->step());
     if (!ft_ || ft_mesh != ft_->getMesh())
         {
         ft_ = std::make_unique<FourierTransform>(ft_mesh.L(),ft_mesh.shape());

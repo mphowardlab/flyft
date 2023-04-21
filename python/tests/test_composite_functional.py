@@ -50,13 +50,14 @@ def test_append_extend_remove(comp,ig):
     assert len(comp._self.objects) == 2
 
 def test_compute(comp,ig,state):
-    state.fields['A'][:] = 1.0
+    volume = state.mesh.full.volume()
 
+    state.fields['A'][:] = 1.0
     comp.append(ig)
     ig.volumes['A'] = 1.0
 
     comp.compute(state)
-    assert comp.value == pytest.approx(-10.0)
+    assert comp.value == pytest.approx(-volume)
     assert np.allclose(comp.derivatives['A'].data,0.0)
 
     ig2 = flyft.functional.IdealGas()
@@ -64,5 +65,6 @@ def test_compute(comp,ig,state):
     comp.append(ig2)
 
     comp.compute(state)
-    assert comp.value == pytest.approx(-13.068528194400546)
+    # scale by 10 defines the volume for cartesian mesh, which was used here
+    assert comp.value == pytest.approx((-13.068528194400546/10)*volume)
     assert np.allclose(comp.derivatives['A'].data,0.6931471805599453)

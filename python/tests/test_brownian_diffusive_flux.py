@@ -2,6 +2,23 @@ import numpy as np
 import pytest
 
 import flyft
+from pytest_lazyfixture import lazy_fixture
+
+@pytest.fixture
+def cartesian_mesh_grand():
+    return flyft.state.CartesianMesh(10.,500,1)
+
+@pytest.fixture
+def spherical_mesh_grand():
+    return flyft.state.SphericalMesh(10.,500)
+
+@pytest.fixture(params=[lazy_fixture("cartesian_mesh_grand"), lazy_fixture("spherical_mesh_grand")])
+def mesh_grand(request):
+    return request.param
+
+@pytest.fixture
+def state_grand(mesh_grand):
+    return flyft.State(flyft.state.ParallelMesh(mesh_grand), ("A", ))
 
 def test_diffusivities(bd):
     assert len(bd.diffusivities) == 0
@@ -25,9 +42,10 @@ def test_diffusivities(bd):
     assert bd._self.diffusivities['A'] == pytest.approx(1.5)
     assert bd._self.diffusivities['B'] == pytest.approx(2.5)
 
-def test_ideal(grand,ig,bd):
-    state = flyft.State(10.0,500,'A')
+def test_ideal(grand,ig,bd,state_grand):
+    state = state_grand
 
+    volume = state.mesh.full.volume()
     ig.volumes['A'] = 1.0
     grand.ideal = ig
     bd.diffusivities['A'] = 2.0
@@ -40,29 +58,29 @@ def test_ideal(grand,ig,bd):
 
     # same thing with all ones
     state.fields['A'][:] = 1.
-    grand.constrain('A', state.mesh.full.L*1.0, grand.Constraint.N)
+    grand.constrain('A', volume, grand.Constraint.N)
     bd.compute(grand,state)
     assert np.allclose(bd.fluxes['A'], 0.)
-
-    # make linear profile and test in the middle
-    # (skip first one because there is jump over PBC)
-    # j = -D (drho/dx)
-    x = state.mesh.local.coordinates
+    x = state.mesh.local.centers
     state.fields['A'][:] = 3.0/state.mesh.full.L*x
     grand.constrain('A', state.mesh.full.L*1.5, grand.Constraint.N)
     bd.compute(grand,state)
     assert np.allclose(bd.fluxes['A'][1:], -2.0*3.0/state.mesh.full.L)
+    # make linear profile and test in the middle
+    # (skip first one because there is jump over PBC)
+    # j = -D (drho/dx)
+    if isinstance(state.mesh.full,flyft.state.CartesianMesh):
+        # make sinusoidal profile and test with looser tolerance due to finite diff
+        state.fields['A'][:] = (np.sin(2*np.pi*x/state.mesh.full.L)+1)
+        grand.constrain('A', volume, grand.Constraint.N)
+        bd.compute(grand,state)
+        # flux is computed at the left edge
+        j = -2.0*(2.*np.pi/state.mesh.full.L)*np.cos(2*np.pi*(x-0.5*state.mesh.full.step)/state.mesh.full.L)
+        assert np.allclose(bd.fluxes['A'], j, rtol=1e-3, atol=1e-3)
 
-    # make sinusoidal profile and test with looser tolerance due to finite diff
-    state.fields['A'][:] = (np.sin(2*np.pi*x/state.mesh.full.L)+1)
-    grand.constrain('A', state.mesh.full.L*1., grand.Constraint.N)
-    bd.compute(grand,state)
-    # flux is computed at the left edge
-    j = -2.0*(2.*np.pi/state.mesh.full.L)*np.cos(2*np.pi*(x-0.5*state.mesh.full.step)/state.mesh.full.L)
-    assert np.allclose(bd.fluxes['A'], j, rtol=1e-3, atol=1e-3)
+def test_excess(grand,state_grand,ig,bd):
+    state = state_grand
 
-def test_excess(grand,ig,bd):
-    state = flyft.State(10.0,500,'A')
     virial = flyft.functional.VirialExpansion()
     B = 5.0
 
@@ -84,28 +102,27 @@ def test_excess(grand,ig,bd):
     grand.constrain('A', state.mesh.full.L*1.e-2, grand.Constraint.N)
     bd.compute(grand,state)
     assert np.allclose(bd.fluxes['A'], 0.)
-
-    # TODO: replace this with a local hs functional instead of fmt so the test is exact
-    x = state.mesh.local.coordinates
-    state.fields['A'][:] = 1.e-1*(np.sin(2*np.pi*x/state.mesh.full.L)+1)
-    grand.constrain('A', state.mesh.full.L*1.e-1, grand.Constraint.N)
-    bd.compute(grand,state)
-    # flux is computed at the left edge
-    rho = 1.e-1*(np.sin(2*np.pi*(x-0.5*state.mesh.full.step)/state.mesh.full.L)+1)
-    drho_dx = 1.e-1*(2.*np.pi/state.mesh.full.L)*np.cos(2*np.pi*(x-0.5*state.mesh.full.step)/state.mesh.full.L)
-    dmuex_drho = 2*B
-    jid = -2.0*drho_dx
-    jex = -2.0*rho*dmuex_drho*drho_dx
-    j = jid + jex
-    assert np.allclose(bd.fluxes['A'], j, rtol=1e-3, atol=1e-3)
-
+    #TODO: replace this with a local hs functional instead of fmt so the test is exact
+    if isinstance(state.mesh.full,flyft.state.CartesianMesh):
+        x = state.mesh.local.centers
+        state.fields['A'][:] = 1.e-1*(np.sin(2*np.pi*x/state.mesh.full.L)+1)
+        grand.constrain('A', state.mesh.full.L*1.e-1, grand.Constraint.N)
+        bd.compute(grand,state)
+        # flux is computed at the left edge
+        rho = 1.e-1*(np.sin(2*np.pi*(x-0.5*state.mesh.full.step)/state.mesh.full.L)+1)
+        drho_dx = 1.e-1*(2.*np.pi/state.mesh.full.L)*np.cos(2*np.pi*(x-0.5*state.mesh.full.step)/state.mesh.full.L)
+        dmuex_drho = 2*B
+        jid = -2.0*drho_dx
+        jex = -2.0*rho*dmuex_drho*drho_dx
+        j = jid + jex
+        assert np.allclose(bd.fluxes['A'], j, rtol=1e-3, atol=1e-3)
+        
 def test_external(state,grand,ig,walls,linear,bd):
     ig.volumes['A'] = 1.0
     grand.ideal = ig
     for w in walls:
         w.diameters['A'] = 0.0
     grand.external = flyft.external.CompositeExternalPotential(walls)
-
     bd.diffusivities['A'] = 2.0
 
     # first check OK with all zeros
@@ -115,7 +132,7 @@ def test_external(state,grand,ig,walls,linear,bd):
     assert np.allclose(bd.fluxes['A'], 0.)
 
     # all 1s outside the walls (should give no flux into walls still)
-    x = state.mesh.local.coordinates
+    x = state.mesh.local.centers
     inside = np.logical_and(x > walls[0].origin, x < walls[1].origin)
     state.fields['A'][inside] = 1.
     grand.constrain('A', np.sum(state.fields['A'])*state.mesh.full.step, grand.Constraint.N)

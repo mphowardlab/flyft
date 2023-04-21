@@ -39,7 +39,7 @@ void ImplicitEulerIntegrator::step(std::shared_ptr<Flux> flux,
     state->advanceTime(timestep);
 
     // solve nonlinear equation for **next** timestep by fixed-point iteration
-    const auto mesh = *state->getMesh()->local();
+    const auto mesh = state->getMesh()->local().get();
     const auto alpha = getMixParameter();
     const auto tol = getTolerance();
     bool converged = false;
@@ -61,9 +61,9 @@ void ImplicitEulerIntegrator::step(std::shared_ptr<Flux> flux,
             #ifdef FLYFT_OPENMP
             #pragma omp parallel for schedule(static) default(none) firstprivate(timestep,mesh,alpha,tol) shared(next_rho,next_j,last_rho,converged)
             #endif
-            for (int idx=0; idx < mesh.shape(); ++idx)
+            for (int idx=0; idx < mesh->shape(); ++idx)
                 {
-                const double next_rate = (next_j(idx)-next_j(idx+1))/mesh.step();
+                const double next_rate = mesh->integrateSurface(idx,next_j)/mesh->volume(idx);
                 double try_rho = last_rho(idx) + timestep*next_rate;
                 const double drho = alpha*(try_rho-next_rho(idx));
                 next_rho(idx) += drho;

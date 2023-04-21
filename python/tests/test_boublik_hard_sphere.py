@@ -3,6 +3,7 @@ import pytest
 
 import flyft
 
+
 def fex_cs(eta,d):
     """Carnahan-Starling free-energy density of hard spheres"""
     rho = 6*eta/(np.pi*d**3)
@@ -43,6 +44,7 @@ def test_compute(bmcsl,binary_state):
     d = 2.0
     v = np.pi*d**3/6.
     eta = 0.1
+    volume = state.mesh.full.volume()
     state.fields['A'][:] = eta/v
     state.fields['B'][:] = 0.0
     bmcsl.diameters['A'] = d
@@ -50,7 +52,7 @@ def test_compute(bmcsl,binary_state):
 
     # compute with only one component present, other acts like ideal gas
     bmcsl.compute(state)
-    assert bmcsl.value == pytest.approx(10.*fex_cs(eta,d))
+    assert bmcsl.value == pytest.approx(volume*fex_cs(eta,d))
     assert np.allclose(bmcsl.derivatives['A'].data,muex_cs(eta))
     assert np.allclose(bmcsl.derivatives['B'].data,-np.log(1.-eta))
 
@@ -60,7 +62,7 @@ def test_compute(bmcsl,binary_state):
     bmcsl.diameters['A'] = d
     bmcsl.diameters['B'] = d
     bmcsl.compute(state)
-    assert bmcsl.value == pytest.approx(10.*fex_cs(eta,d))
+    assert bmcsl.value == pytest.approx(volume*fex_cs(eta,d))
     assert np.allclose(bmcsl.derivatives['A'].data,muex_cs(eta))
     assert np.allclose(bmcsl.derivatives['B'].data,muex_cs(eta))
 
@@ -70,7 +72,7 @@ def test_compute(bmcsl,binary_state):
     bmcsl.diameters['A'] = 1.0
     bmcsl.diameters['B'] = 2.0
     bmcsl.compute(state)
-    assert bmcsl.value == pytest.approx(10.*0.13146765540861702)
+    assert bmcsl.value == pytest.approx(volume*0.13146765540861702)
     assert np.allclose(bmcsl.derivatives['A'].data,1.2912644301468292)
     assert np.allclose(bmcsl.derivatives['B'].data,4.4254142781874695)
 
@@ -78,10 +80,10 @@ def test_compute_one_type(bmcsl,state):
     d = 2.0
     v = np.pi*d**3/6.
     eta = 0.1
+    volume = state.mesh.full.volume()
     state.fields['A'][:] = eta/v
     bmcsl.diameters['A'] = d
-
     # compute with only one component present, other acts like ideal gas
     bmcsl.compute(state)
-    assert bmcsl.value == pytest.approx(10.*fex_cs(eta,d))
+    assert bmcsl.value == pytest.approx(volume*fex_cs(eta,d))
     assert np.allclose(bmcsl.derivatives['A'].data,muex_cs(eta))

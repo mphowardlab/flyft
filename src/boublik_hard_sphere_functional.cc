@@ -16,7 +16,7 @@ static void computeFunctionalMixture(int idx,
                                      double& value,
                                      const std::vector<Field::ConstantView>& fields,
                                      const std::vector<double>& diams,
-                                     const Mesh& mesh,
+                                     const Mesh* mesh,
                                      bool compute_value)
     {
     const auto num_types = derivs.size();
@@ -69,7 +69,7 @@ static void computeFunctionalMixture(int idx,
         // compute free energy
         if (compute_value)
             {
-            energy = mesh.step()*(6./M_PI)*((xi2_3/xi3_2-xi[0])*logvf + 3.*xi[1]*xi[2]/vf + xi2_3/(xi[3]*vf_2));
+            energy =  mesh->integrateVolume(idx, (6./M_PI)*((xi2_3/xi3_2-xi[0])*logvf + 3.*xi[1]*xi[2]/vf + xi2_3/(xi[3]*vf_2)));
             }
         else
             {
@@ -92,7 +92,7 @@ static void computeFunctionalPure(int idx,
                                   double& value,
                                   const std::vector<Field::ConstantView>& fields,
                                   const std::vector<double>& diams,
-                                  const Mesh& mesh,
+                                  const Mesh* mesh,
                                   bool compute_value)
     {
     const auto rho = fields[0](idx);
@@ -114,7 +114,7 @@ static void computeFunctionalPure(int idx,
         // compute free energy
         if (compute_value)
             {
-            energy = mesh.step()*rho*eta*(4.-3.*eta)/vf_2;
+            energy =  mesh->integrateVolume(idx, rho*eta*(4.-3.*eta)/vf_2);
             }
         else
             {
@@ -132,7 +132,7 @@ static void computeFunctionalPure(int idx,
 void BoublikHardSphereFunctional::_compute(std::shared_ptr<State> state, bool compute_value)
     {
     auto types = state->getTypes();
-    const auto mesh = *state->getMesh()->local();
+    const auto mesh = state->getMesh()->local().get();
 
     // process maps into indexed arrays for quicker access inside loop
     const auto num_types = types.size();
@@ -161,7 +161,7 @@ void BoublikHardSphereFunctional::_compute(std::shared_ptr<State> state, bool co
         {
         functional(idx,derivs,value_,fields,diams,mesh,compute_value);
         }
-    for (int idx=mesh.shape()-max_deriv_buffer; idx < mesh.shape(); ++idx)
+    for (int idx=mesh->shape()-max_deriv_buffer; idx < mesh->shape(); ++idx)
         {
         functional(idx,derivs,value_,fields,diams,mesh,compute_value);
         }
@@ -172,7 +172,7 @@ void BoublikHardSphereFunctional::_compute(std::shared_ptr<State> state, bool co
     #pragma omp parallel for schedule(static) default(none) firstprivate(num_types,mesh) \
     shared(fields,derivs,diams,compute_value,max_deriv_buffer,functional) reduction(+:value_)
     #endif
-    for (int idx=max_deriv_buffer; idx < mesh.shape()-max_deriv_buffer; ++idx)
+    for (int idx=max_deriv_buffer; idx < mesh->shape()-max_deriv_buffer; ++idx)
         {
         functional(idx,derivs,value_,fields,diams,mesh,compute_value);
         }

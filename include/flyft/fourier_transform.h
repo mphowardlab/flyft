@@ -3,7 +3,7 @@
 
 #include "flyft/data_layout.h"
 #include "flyft/data_view.h"
-#include "flyft/mesh.h"
+#include "flyft/cartesian_mesh.h"
 
 // need to include <complex> before <fftw3.h>
 #include <complex>
@@ -69,7 +69,7 @@ class FourierTransform
         const Wavevectors& getWavevectors() const;
 
     private:
-        Mesh mesh_;
+        CartesianMesh mesh_;
         Wavevectors kmesh_;
         Space space_;
         double* data_;
