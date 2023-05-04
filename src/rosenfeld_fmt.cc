@@ -21,8 +21,7 @@ void RosenfeldFMT::_compute(std::shared_ptr<State> state, bool compute_value)
     // compute n weights in fourier space (requires communication before fourier transform)
     state->syncFields();
     const auto mesh = state->getMesh()->local().get();
-    
-    ConvolutionType conv_type;
+      
     if (dynamic_cast<const CartesianMesh*>(mesh) != nullptr)
         {
         conv_type = ConvolutionType::cartesian;
@@ -59,6 +58,17 @@ void RosenfeldFMT::_compute(std::shared_ptr<State> state, bool compute_value)
             // fft the density
             if (conv_type == ConvolutionType::spherical)
                 {
+                auto density = state->getField(t)->const_full_view();
+                
+                std::shared_ptr<Field>temp;
+                setupField(temp);
+                auto temp_view = temp->view();
+                for (int idx=0; idx < mesh->shape(); ++idx)
+                   { 
+                    temp_view(idx) = density(idx)*mesh->bin(idx);
+                   }
+                   
+                ft_->setRealData(temp_view);
                 // copy to temporary array & multiply by r, then setRealData from temporary array
                 }
             else
@@ -123,10 +133,123 @@ void RosenfeldFMT::_compute(std::shared_ptr<State> state, bool compute_value)
         ft_->transform();
         std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),nv2_->full_view().begin());
         }
-
+                
+        if(conv_type == ConvolutionType::spherical)
+        {
+        auto n3 = n3_->view();
+        auto n2 = n2_->view();
+        auto n1 = n1_->view();
+        auto n0 = n0_->view();
+            for(int idx = 0; idx<mesh->shape(); idx++)
+            {           
+                const auto r = mesh->center(idx);
+                n3(idx) /= r;
+                n2(idx) /= r;
+                n1(idx) /= r;
+                n0(idx) /= r;
+            }
+        }
+    
+    
     // do the integral for the r values that are close to the origin
-
+    if (conv_type == ConvolutionType::spherical)
+    {
+    
+    //Declaring weighted densities and variables
+    auto n3 = n3_->view();
+    auto n2 = n2_->view();
+    auto n1 = n1_->view();
+    auto n0 = n0_->view();
+    auto nv1 = nv1_->view();
+    auto nv2 = nv2_->view();
+    
+    double n3_1;
+    double n3_2;
+    double n2_2;
+    double nv2_2;
+    
+    for (const auto& t : state->getTypes())
+    {
+    for (int idx = 0; idx<mesh->shape(); ++idx)
+        {
+            double const R = 0.5*diameters_(t);
+            const auto r = mesh->center(idx);
+            auto const dr = mesh->step();
+            auto const density = state->getField(t)->const_full_view();
+            int counter = 0;
+            double sq_R = R*R;
+            
+            if(r<R)
+                {
+                n3(idx) = 0;
+                n2(idx) = 0;
+                n1(idx) = 0;
+                n0(idx) = 0;
+                nv1(idx) = 0;
+                nv2(idx) = 0;
+                
+                n3_1 = 0;
+                n3_2 = 0;
+                n2_2 = 0;
+                nv2_2 = 0;
+                
+                double sq_r = r*r;
+                for(double i = 0; i<R; i = i+dr)
+                {   
+                counter = 0;
+                    if (i<=R-r)
+                    {  
+                    n3_1 += density(counter)*i*i*dr;  
+                    }
+                    else if(i>R-r && i<=R+r)
+                    {
+                    n3_2 += density(counter)*i*(sq_R-(r-i)*(r-i))*dr;
+                    n2_2 += density(counter)*i*dr;
+                    nv2_2 += density(counter)*i*(sq_R+r*r-i*i)*dr;
+                    }
+                    else
+                    {
+                        //TODO:Error
+                    }
+                counter += 1;
+                }
+                
+                n3(idx) = 4*M_PI*n3_1+M_PI/r*n3_2;
+                n2(idx) = (2*M_PI*R/r)*n2_2;
+                n1(idx) = n3_2/(4*M_PI*R);
+                n0(idx) = n3_2/(4*M_PI*sq_R);
+                nv2(idx) = (M_PI/(sq_r))*nv2_2;
+                nv1(idx) = nv2_2/(4*R*sq_r);            
+                }
+        }
+    }
+    }
     // fix up the vector weights that also have a contribution from n3
+    // Still not working 
+    if (conv_type == ConvolutionType::spherical)
+    {
+    auto n3 = n3_->const_view();
+    auto nv2 = nv2_->view();
+    auto nv1 = nv1_->view();
+    for (const auto& t : state->getTypes())
+    {
+    double const R = 0.5*diameters_(t);
+         for (int idx = 0; idx<mesh->shape();idx++)
+            {
+            const auto r = mesh->center(idx);
+                if (r>=R)
+                {
+                    nv1(idx) = (1/r)*(n3(idx)-nv1(idx)); 
+                    nv2(idx) = (1/r)*(n3(idx)-nv2(idx));   
+                } 
+                else 
+                {
+                    break;
+                }
+            std::cout<<" "<<0.5*diameters_(t)<<" ";
+            }            
+         }
+     }
 
     /////// Don't work below here
     // evaluate phi and partial derivatives in real space using n

@@ -101,6 +101,8 @@ class RosenfeldFMT : public Functional
             {
             cartesian, spherical  
             };
+        
+        ConvolutionType conv_type;
     };
 
 }
