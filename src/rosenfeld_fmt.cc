@@ -372,9 +372,8 @@ void RosenfeldFMT::computeSphericalWeightedDensities(std::shared_ptr<State> stat
                 const double k = kmesh(idx);
 
                 // compute weights at this k, using limiting values for k = 0
-                std::complex<double> w0,w1,w2,w3,wv1,wv2;
+                std::complex<double> w2,w3,wv2;
                 computeWeights(w2,w3,wv2,k,R);
-                computeProportionalByWeight(w0, w1, wv1, w2, wv2, R);
 
                 n2k(idx) = w2*rhok(idx);
                 n3k(idx) = w3*rhok(idx);
