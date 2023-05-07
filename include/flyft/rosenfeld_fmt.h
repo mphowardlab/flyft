@@ -90,14 +90,13 @@ class RosenfeldFMT : public Functional
                                                double& df2dn3,
                                                double& df4dn3,
                                                double n3) const;
-        void computeWeights(std::complex<double>& w0,
-                            std::complex<double>& w1,
-                            std::complex<double>& w2,
+        void computeWeights(std::complex<double>& w2,
                             std::complex<double>& w3,
-                            std::complex<double>& wv1,
                             std::complex<double>& wv2,
                             double k,
                             double R) const;
+        template<typename T>
+        void computeProportionalByWeight(T& w0, T& w1, T& wv1, const T& w2, const T& wv2, const double R) const;
 
         void setupField(std::shared_ptr<Field>& field);
         void setupComplexField(std::unique_ptr<ComplexField>& kfield);
@@ -108,6 +107,15 @@ class RosenfeldFMT : public Functional
             };
         ConvolutionType getConvolutionType(std::shared_ptr<const Mesh> mesh) const;
     };
+
+template<typename T>
+void RosenfeldFMT::computeProportionalByWeight(T& w0, T& w1, T& wv1, const T& w2, const T& wv2, const double R) const
+    {
+    const double factor = 1./(4.*M_PI*R);
+    w1 = w2 * factor;
+    w0 = w1 / R;
+    wv1 = wv2 * factor;
+    }
 
 }
 

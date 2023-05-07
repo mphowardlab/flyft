@@ -167,7 +167,8 @@ void RosenfeldFMT::_compute(std::shared_ptr<State> state, bool compute_value)
 
                 // get weights
                 std::complex<double> w0,w1,w2,w3,wv1,wv2;
-                computeWeights(w0,w1,w2,w3,wv1,wv2,k,R);
+                computeWeights(w2,w3,wv2,k,R);
+                computeProportionalByWeight(w0, w1, wv1, w2, wv2, R);
 
                 // convolution (note opposite sign for vector weights due to change of order in convolution)
                 derivativek(idx) = (dphi_dn0k(idx)*w0+dphi_dn1k(idx)*w1+dphi_dn2k(idx)*w2+dphi_dn3k(idx)*w3
@@ -266,8 +267,8 @@ void RosenfeldFMT::computeCartesianWeightedDensities(std::shared_ptr<State> stat
 
             // compute weights at this k, using limiting values for k = 0
             std::complex<double> w0,w1,w2,w3,wv1,wv2;
-            // TODO: we should optimize out the weights that are just different by a constant factor!
-            computeWeights(w0,w1,w2,w3,wv1,wv2,k,R);
+            computeWeights(w2,w3,wv2,k,R);
+            computeProportionalByWeight(w0, w1, wv1, w2, wv2, R);
 
             n0k(idx) += w0*rhok(idx);
             n1k(idx) += w1*rhok(idx);
@@ -309,6 +310,14 @@ void RosenfeldFMT::computeSphericalWeightedDensities(std::shared_ptr<State> stat
     {
     const auto mesh = state->getMesh()->local().get();
     const auto kmesh = ft_->getWavevectors();
+
+    // zero the real space weighted densities for accumulation later
+    std::fill(n0_->view().begin(), n0_->view().end(), 0.);
+    std::fill(n1_->view().begin(), n1_->view().end(), 0.);
+    std::fill(n2_->view().begin(), n2_->view().end(), 0.);
+    std::fill(n3_->view().begin(), n3_->view().end(), 0.);
+    std::fill(nv1_->view().begin(), nv1_->view().end(), 0.);
+    std::fill(nv2_->view().begin(), nv2_->view().end(), 0.);
 
     // transformed density for convolution
     // TODO: we should only be alloc'ing this one, will fix later
@@ -352,11 +361,8 @@ void RosenfeldFMT::computeSphericalWeightedDensities(std::shared_ptr<State> stat
         // get the fourier transformed weighted densities for this type
             {
             auto rhok = ft_->const_view_reciprocal();
-            auto n0k = n0k_->view();
-            auto n1k = n1k_->view();
             auto n2k = n2k_->view();
             auto n3k = n3k_->view();
-            auto nv1k = nv1k_->view();
             auto nv2k = nv2k_->view();
             #ifdef FLYFT_OPENMP
             #pragma omp parallel for schedule(static) default(none) firstprivate(R,kmesh) shared(rhok,n0k,n1k,n2k,n3k,nv1k,nv2k)
@@ -367,27 +373,17 @@ void RosenfeldFMT::computeSphericalWeightedDensities(std::shared_ptr<State> stat
 
                 // compute weights at this k, using limiting values for k = 0
                 std::complex<double> w0,w1,w2,w3,wv1,wv2;
-                computeWeights(w0,w1,w2,w3,wv1,wv2,k,R);
+                computeWeights(w2,w3,wv2,k,R);
+                computeProportionalByWeight(w0, w1, wv1, w2, wv2, R);
 
-                n0k(idx) = w0*rhok(idx);
-                n1k(idx) = w1*rhok(idx);
                 n2k(idx) = w2*rhok(idx);
                 n3k(idx) = w3*rhok(idx);
-                nv1k(idx) = wv1*rhok(idx);
                 nv2k(idx) = wv2*rhok(idx);
                 }
             }
 
         // transform n weights to real space to finish convolution
         // no need for a factor of mesh.step() here because w is analytical
-        ft_->setReciprocalData(n0k_->const_view());
-        ft_->transform();
-        std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),tmp_n0->full_view().begin());
-
-        ft_->setReciprocalData(n1k_->const_view());
-        ft_->transform();
-        std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),tmp_n1->full_view().begin());
-
         ft_->setReciprocalData(n2k_->const_view());
         ft_->transform();
         std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),tmp_n2->full_view().begin());
@@ -396,32 +392,22 @@ void RosenfeldFMT::computeSphericalWeightedDensities(std::shared_ptr<State> stat
         ft_->transform();
         std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),tmp_n3->full_view().begin());
 
-        ft_->setReciprocalData(nv1k_->const_view());
-        ft_->transform();
-        std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),tmp_nv1->full_view().begin());
-
         ft_->setReciprocalData(nv2k_->const_view());
         ft_->transform();
         std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),tmp_nv2->full_view().begin());
 
         // divide through by r
             {
-            auto n0i = tmp_n0->view();
-            auto n1i = tmp_n1->view();
             auto n2i = tmp_n2->view();
             auto n3i = tmp_n3->view();
-            auto nv1i = tmp_nv1->view();
             auto nv2i = tmp_nv2->view();
             for(int idx = 0; idx < mesh->shape(); ++idx)
                 {           
                 const auto r = mesh->center(idx);
-                n0i(idx) /= r;
-                n1i(idx) /= r;
                 n2i(idx) /= r;
                 n3i(idx) /= r;
-
-                nv2i(idx) = (n3i(idx)/r + nv1i(idx)/r);
-                nv1i(idx) = /* TODO: fill this in */0.;
+                // nv2 also needs to have n3/r added, not just scale by r
+                nv2i(idx) = nv2i(idx)/r + n3i(idx)/r;
                 }
             }
 
@@ -431,21 +417,15 @@ void RosenfeldFMT::computeSphericalWeightedDensities(std::shared_ptr<State> stat
             const auto r_rho = tmp_density->view();
             const auto dr = mesh->step();
 
-            auto n0i = tmp_n0->view();
-            auto n1i = tmp_n1->view();
             auto n2i = tmp_n2->view();
             auto n3i = tmp_n3->view();
-            auto nv1i = tmp_nv1->view();
             auto nv2i = tmp_nv2->view();
 
             for (int idx=0; idx < std::min(mesh->bin(R), mesh->shape()); ++idx)
                 {
                 // reset n for this bin
-                n0i(idx) = 0.;
-                n1i(idx) = 0.;
                 n2i(idx) = 0.;
                 n3i(idx) = 0.;
-                nv1i(idx) = 0.;
                 nv2i(idx) = 0.;
 
                 // take integrals using quadrature
@@ -462,11 +442,35 @@ void RosenfeldFMT::computeSphericalWeightedDensities(std::shared_ptr<State> stat
                     const auto rig = mesh->center(ig_idx);
                     n3i(idx) += (M_PI/r) * r_rho(ig_idx) * (R*R - (r-rig)*(r-rig)) * dr;
                     n2i(idx) += (2.*M_PI*R/r) * r_rho(ig_idx) * dr;
-                    n1i(idx) += /* TODO: fill this in*/0.;
-                    n0i(idx) += /* TODO: fill this in*/0.;
                     nv2i(idx) += (M_PI/(r*r)) * r_rho(ig_idx) * (R*R + r*r - rig*rig) * dr;
-                    nv1i(idx) += /* TODO: fill this in*/0.;
                     }
+                }
+            }
+
+        // accumulate the weighted densities for the type into the total
+            {
+            auto n0 = n0_->view();
+            auto n1 = n1_->view();
+            auto n2 = n2_->view();
+            auto n3 = n3_->view();
+            auto nv1 = nv1_->view();
+            auto nv2 = nv2_->view();
+
+            auto n2i = tmp_n2->const_view();
+            auto n3i = tmp_n3->const_view();
+            auto nv2i = tmp_nv2->const_view();
+            
+            for (int idx=0; idx < mesh->shape(); ++idx)
+                {
+                double n0i, n1i, nv1i;
+                computeProportionalByWeight(n0i, n1i, nv1i, n2i(idx), nv2i(idx), R);
+
+                n0(idx) += n0i;
+                n1(idx) += n1i;
+                n2(idx) += n2i(idx);
+                n3(idx) += n3i(idx);
+                nv1(idx) += nv1i;
+                nv2(idx) += nv2i(idx);
                 }
             }
         }
@@ -537,11 +541,8 @@ void RosenfeldFMT::computePrefactorFunctions(double& f1,
     df4dn3 = 2.*f4*vfinv;
     }
 
-void RosenfeldFMT::computeWeights(std::complex<double>& w0,
-                                  std::complex<double>& w1,
-                                  std::complex<double>& w2,
+void RosenfeldFMT::computeWeights(std::complex<double>& w2,
                                   std::complex<double>& w3,
-                                  std::complex<double>& wv1,
                                   std::complex<double>& wv2,
                                   double k,
                                   double R) const
@@ -552,22 +553,14 @@ void RosenfeldFMT::computeWeights(std::complex<double>& w0,
         const double kR = k*R;
         const double sinkR = std::sin(kR);
         const double coskR = std::cos(kR);
-
-        w0 = sinkR/kR;
-        w1 = R*w0;
-        w2 = (4.*M_PI)*R*w1;
+        w2 = (4.*M_PI*R)*(sinkR/k);
         w3 = (4.*M_PI)*(sinkR-kR*coskR)/(k*k*k);
-        // do these in opposite order because wv2 follows easily from w3
         wv2 = std::complex<double>(0.,-k)*w3;
-        wv1 = wv2/(4.*M_PI*R);
         }
     else
         {
-        w0 = 1.0;
-        w1 = R;
-        w2 = (4.*M_PI)*R*w1;
+        w2 = 4.*M_PI*R*R;
         w3 = w2*(R/3.);
-        wv1 = 0.0;
         wv2 = 0.0;
         }
     }
