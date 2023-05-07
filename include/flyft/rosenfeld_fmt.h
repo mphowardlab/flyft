@@ -4,6 +4,7 @@
 #include "flyft/field.h"
 #include "flyft/fourier_transform.h"
 #include "flyft/functional.h"
+#include "flyft/mesh.h"
 #include "flyft/state.h"
 #include "flyft/type_map.h"
 
@@ -63,6 +64,10 @@ class RosenfeldFMT : public Functional
 
         bool setup(std::shared_ptr<State> state, bool compute_value) override;
         void _compute(std::shared_ptr<State> state, bool compute_value) override;
+
+        void computeCartesianWeightedDensities(std::shared_ptr<State> state);
+        void computeSphericalWeightedDensities(std::shared_ptr<State> state);
+
         void computePhiAndDerivatives(int idx,
                                       Field::View& phi,
                                       Field::View& dphi_dn0,
@@ -99,10 +104,9 @@ class RosenfeldFMT : public Functional
 
         enum struct ConvolutionType
             {
-            cartesian, spherical  
+            cartesian, spherical
             };
-        
-        ConvolutionType conv_type;
+        ConvolutionType getConvolutionType(std::shared_ptr<const Mesh> mesh) const;
     };
 
 }

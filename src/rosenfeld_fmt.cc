@@ -21,235 +21,21 @@ void RosenfeldFMT::_compute(std::shared_ptr<State> state, bool compute_value)
     // compute n weights in fourier space (requires communication before fourier transform)
     state->syncFields();
     const auto mesh = state->getMesh()->local().get();
-      
-    if (dynamic_cast<const CartesianMesh*>(mesh) != nullptr)
+    const auto kmesh = ft_->getWavevectors();
+
+    const auto conv_type = getConvolutionType(state->getMesh()->local());
+    if (conv_type == ConvolutionType::cartesian)
         {
-        conv_type = ConvolutionType::cartesian;
+        computeCartesianWeightedDensities(state);
         }
-    else if(dynamic_cast<const SphericalMesh*>(mesh) != nullptr)
+    else if (conv_type == ConvolutionType::spherical)
         {
-        conv_type = ConvolutionType::spherical;
+        computeSphericalWeightedDensities(state);
         }
     else
         {
         // TODO: throw error
         }
-
-    const auto kmesh = ft_->getWavevectors();
-        {
-        // zero the weights before accumulating by type
-        std::fill(n0k_->view().begin(), n0k_->view().end(), 0.);
-        std::fill(n1k_->view().begin(), n1k_->view().end(), 0.);
-        std::fill(n2k_->view().begin(), n2k_->view().end(), 0.);
-        std::fill(n3k_->view().begin(), n3k_->view().end(), 0.);
-        std::fill(nv1k_->view().begin(), nv1k_->view().end(), 0.);
-        std::fill(nv2k_->view().begin(), nv2k_->view().end(), 0.);
-
-        for (const auto& t : state->getTypes())
-            {
-            // hard-sphere radius
-            const double R = 0.5*diameters_(t);
-            if (R == 0.)
-                {
-                // no radius, no weights contribute (skip)
-                continue;
-                }
-
-            // fft the density
-            if (conv_type == ConvolutionType::spherical)
-                {
-                auto density = state->getField(t)->const_full_view();
-                
-                std::shared_ptr<Field>temp;
-                setupField(temp);
-                auto temp_view = temp->view();
-                for (int idx=0; idx < mesh->shape(); ++idx)
-                   { 
-                    temp_view(idx) = density(idx)*mesh->bin(idx);
-                   }
-                   
-                ft_->setRealData(temp_view);
-                // copy to temporary array & multiply by r, then setRealData from temporary array
-                }
-            else
-                {
-                ft_->setRealData(state->getField(t)->const_full_view());
-                }
-            ft_->transform();
-            auto rhok = ft_->const_view_reciprocal();
-
-            // accumulate the fourier transformed densities into n
-            auto n0k = n0k_->view();
-            auto n1k = n1k_->view();
-            auto n2k = n2k_->view();
-            auto n3k = n3k_->view();
-            auto nv1k = nv1k_->view();
-            auto nv2k = nv2k_->view();
-            #ifdef FLYFT_OPENMP
-            #pragma omp parallel for schedule(static) default(none) firstprivate(R,kmesh) shared(rhok,n0k,n1k,n2k,n3k,nv1k,nv2k)
-            #endif
-            for (int idx=0; idx < kmesh.shape(); ++idx)
-                {
-                const double k = kmesh(idx);
-
-                // compute weights at this k, using limiting values for k = 0
-                std::complex<double> w0,w1,w2,w3,wv1,wv2;
-                computeWeights(w0,w1,w2,w3,wv1,wv2,k,R);
-
-                n0k(idx) += w0*rhok(idx);
-                n1k(idx) += w1*rhok(idx);
-                n2k(idx) += w2*rhok(idx);
-                n3k(idx) += w3*rhok(idx);
-                nv1k(idx) += wv1*rhok(idx);
-                nv2k(idx) += wv2*rhok(idx);
-                }
-            }
-        }
-
-    // transform n weights to real space to finish convolution
-    // no need for a factor of mesh.step() here because w is analytical
-        {
-        ft_->setReciprocalData(n0k_->const_view());
-        ft_->transform();
-        std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),n0_->full_view().begin());
-
-        ft_->setReciprocalData(n1k_->const_view());
-        ft_->transform();
-        std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),n1_->full_view().begin());
-
-        ft_->setReciprocalData(n2k_->const_view());
-        ft_->transform();
-        std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),n2_->full_view().begin());
-
-        ft_->setReciprocalData(n3k_->const_view());
-        ft_->transform();
-        std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),n3_->full_view().begin());
-
-        ft_->setReciprocalData(nv1k_->const_view());
-        ft_->transform();
-        std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),nv1_->full_view().begin());
-
-        ft_->setReciprocalData(nv2k_->const_view());
-        ft_->transform();
-        std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),nv2_->full_view().begin());
-        }
-                
-        if(conv_type == ConvolutionType::spherical)
-        {
-        auto n3 = n3_->view();
-        auto n2 = n2_->view();
-        auto n1 = n1_->view();
-        auto n0 = n0_->view();
-            for(int idx = 0; idx<mesh->shape(); idx++)
-            {           
-                const auto r = mesh->center(idx);
-                n3(idx) /= r;
-                n2(idx) /= r;
-                n1(idx) /= r;
-                n0(idx) /= r;
-            }
-        }
-    
-    
-    // do the integral for the r values that are close to the origin
-    if (conv_type == ConvolutionType::spherical)
-    {
-    
-    //Declaring weighted densities and variables
-    auto n3 = n3_->view();
-    auto n2 = n2_->view();
-    auto n1 = n1_->view();
-    auto n0 = n0_->view();
-    auto nv1 = nv1_->view();
-    auto nv2 = nv2_->view();
-    
-    double n3_1;
-    double n3_2;
-    double n2_2;
-    double nv2_2;
-    
-    for (const auto& t : state->getTypes())
-    {
-    for (int idx = 0; idx<mesh->shape(); ++idx)
-        {
-            double const R = 0.5*diameters_(t);
-            const auto r = mesh->center(idx);
-            auto const dr = mesh->step();
-            auto const density = state->getField(t)->const_full_view();
-            int counter = 0;
-            double sq_R = R*R;
-            
-            if(r<R)
-                {
-                n3(idx) = 0;
-                n2(idx) = 0;
-                n1(idx) = 0;
-                n0(idx) = 0;
-                nv1(idx) = 0;
-                nv2(idx) = 0;
-                
-                n3_1 = 0;
-                n3_2 = 0;
-                n2_2 = 0;
-                nv2_2 = 0;
-                
-                double sq_r = r*r;
-                for(double i = 0; i<R; i = i+dr)
-                {   
-                counter = 0;
-                    if (i<=R-r)
-                    {  
-                    n3_1 += density(counter)*i*i*dr;  
-                    }
-                    else if(i>R-r && i<=R+r)
-                    {
-                    n3_2 += density(counter)*i*(sq_R-(r-i)*(r-i))*dr;
-                    n2_2 += density(counter)*i*dr;
-                    nv2_2 += density(counter)*i*(sq_R+r*r-i*i)*dr;
-                    }
-                    else
-                    {
-                        //TODO:Error
-                    }
-                counter += 1;
-                }
-                
-                n3(idx) = 4*M_PI*n3_1+M_PI/r*n3_2;
-                n2(idx) = (2*M_PI*R/r)*n2_2;
-                n1(idx) = n3_2/(4*M_PI*R);
-                n0(idx) = n3_2/(4*M_PI*sq_R);
-                nv2(idx) = (M_PI/(sq_r))*nv2_2;
-                nv1(idx) = nv2_2/(4*R*sq_r);            
-                }
-        }
-    }
-    }
-    // fix up the vector weights that also have a contribution from n3
-    // Still not working 
-    if (conv_type == ConvolutionType::spherical)
-    {
-    auto n3 = n3_->const_view();
-    auto nv2 = nv2_->view();
-    auto nv1 = nv1_->view();
-    for (const auto& t : state->getTypes())
-    {
-    double const R = 0.5*diameters_(t);
-         for (int idx = 0; idx<mesh->shape();idx++)
-            {
-            const auto r = mesh->center(idx);
-                if (r>=R)
-                {
-                    nv1(idx) = (1/r)*(n3(idx)-nv1(idx)); 
-                    nv2(idx) = (1/r)*(n3(idx)-nv2(idx));   
-                } 
-                else 
-                {
-                    break;
-                }
-            std::cout<<" "<<0.5*diameters_(t)<<" ";
-            }            
-         }
-     }
 
     /////// Don't work below here
     // evaluate phi and partial derivatives in real space using n
@@ -436,6 +222,256 @@ void RosenfeldFMT::_compute(std::shared_ptr<State> state, bool compute_value)
         }
     }
 
+
+void RosenfeldFMT::computeCartesianWeightedDensities(std::shared_ptr<State> state)
+    {
+    const auto kmesh = ft_->getWavevectors();
+
+    // zero the weights before accumulating by type
+    std::fill(n0k_->view().begin(), n0k_->view().end(), 0.);
+    std::fill(n1k_->view().begin(), n1k_->view().end(), 0.);
+    std::fill(n2k_->view().begin(), n2k_->view().end(), 0.);
+    std::fill(n3k_->view().begin(), n3k_->view().end(), 0.);
+    std::fill(nv1k_->view().begin(), nv1k_->view().end(), 0.);
+    std::fill(nv2k_->view().begin(), nv2k_->view().end(), 0.);
+
+    for (const auto& t : state->getTypes())
+        {
+        // hard-sphere radius
+        const double R = 0.5*diameters_(t);
+        if (R == 0.)
+            {
+            // no radius, no weights contribute (skip)
+            continue;
+            }
+
+        // fft the density
+        ft_->setRealData(state->getField(t)->const_full_view());
+        ft_->transform();
+        auto rhok = ft_->const_view_reciprocal();
+
+        // accumulate the fourier transformed densities into n
+        auto n0k = n0k_->view();
+        auto n1k = n1k_->view();
+        auto n2k = n2k_->view();
+        auto n3k = n3k_->view();
+        auto nv1k = nv1k_->view();
+        auto nv2k = nv2k_->view();
+        #ifdef FLYFT_OPENMP
+        #pragma omp parallel for schedule(static) default(none) firstprivate(R,kmesh) shared(rhok,n0k,n1k,n2k,n3k,nv1k,nv2k)
+        #endif
+        for (int idx=0; idx < kmesh.shape(); ++idx)
+            {
+            const double k = kmesh(idx);
+
+            // compute weights at this k, using limiting values for k = 0
+            std::complex<double> w0,w1,w2,w3,wv1,wv2;
+            // TODO: we should optimize out the weights that are just different by a constant factor!
+            computeWeights(w0,w1,w2,w3,wv1,wv2,k,R);
+
+            n0k(idx) += w0*rhok(idx);
+            n1k(idx) += w1*rhok(idx);
+            n2k(idx) += w2*rhok(idx);
+            n3k(idx) += w3*rhok(idx);
+            nv1k(idx) += wv1*rhok(idx);
+            nv2k(idx) += wv2*rhok(idx);
+            }
+        }
+
+    // transform n weights to real space to finish convolution
+    // no need for a factor of mesh.step() here because w is analytical
+    ft_->setReciprocalData(n0k_->const_view());
+    ft_->transform();
+    std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),n0_->full_view().begin());
+
+    ft_->setReciprocalData(n1k_->const_view());
+    ft_->transform();
+    std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),n1_->full_view().begin());
+
+    ft_->setReciprocalData(n2k_->const_view());
+    ft_->transform();
+    std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),n2_->full_view().begin());
+
+    ft_->setReciprocalData(n3k_->const_view());
+    ft_->transform();
+    std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),n3_->full_view().begin());
+
+    ft_->setReciprocalData(nv1k_->const_view());
+    ft_->transform();
+    std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),nv1_->full_view().begin());
+
+    ft_->setReciprocalData(nv2k_->const_view());
+    ft_->transform();
+    std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),nv2_->full_view().begin());
+    }
+
+void RosenfeldFMT::computeSphericalWeightedDensities(std::shared_ptr<State> state)
+    {
+    const auto mesh = state->getMesh()->local().get();
+    const auto kmesh = ft_->getWavevectors();
+
+    // transformed density for convolution
+    // TODO: we should only be alloc'ing this one, will fix later
+    std::shared_ptr<Field> tmp_density;
+    setupField(tmp_density);
+
+    // weighted densities by type
+    // TODO: we should only be alloc'ing these once, will fix later
+    std::shared_ptr<Field> tmp_n0, tmp_n1, tmp_n2, tmp_n3, tmp_nv1, tmp_nv2;
+    setupField(tmp_n0);
+    setupField(tmp_n1);
+    setupField(tmp_n2);
+    setupField(tmp_n3);
+    setupField(tmp_nv1);
+    setupField(tmp_nv2);
+
+    for (const auto& t : state->getTypes())
+        {
+        // hard-sphere radius
+        const double R = 0.5*diameters_(t);
+        if (R == 0.)
+            {
+            // no radius, no weights contribute (skip)
+            continue;
+            }
+
+        // fft the density
+            {
+            auto density = state->getField(t)->const_full_view();
+            auto r_density = tmp_density->full_view();
+            for (int idx=0; idx < mesh->shape() + 2*buffer_shape_; ++idx)
+                { 
+                // r can't be negative, setting it to zero effectively throws this term out, as it should
+                const auto r = std::max(mesh->center(idx-buffer_shape_), 0.);
+                r_density(idx) = r * density(idx);
+                }
+            ft_->setRealData(r_density);
+            ft_->transform();
+            }
+
+        // get the fourier transformed weighted densities for this type
+            {
+            auto rhok = ft_->const_view_reciprocal();
+            auto n0k = n0k_->view();
+            auto n1k = n1k_->view();
+            auto n2k = n2k_->view();
+            auto n3k = n3k_->view();
+            auto nv1k = nv1k_->view();
+            auto nv2k = nv2k_->view();
+            #ifdef FLYFT_OPENMP
+            #pragma omp parallel for schedule(static) default(none) firstprivate(R,kmesh) shared(rhok,n0k,n1k,n2k,n3k,nv1k,nv2k)
+            #endif
+            for (int idx=0; idx < kmesh.shape(); ++idx)
+                {
+                const double k = kmesh(idx);
+
+                // compute weights at this k, using limiting values for k = 0
+                std::complex<double> w0,w1,w2,w3,wv1,wv2;
+                computeWeights(w0,w1,w2,w3,wv1,wv2,k,R);
+
+                n0k(idx) = w0*rhok(idx);
+                n1k(idx) = w1*rhok(idx);
+                n2k(idx) = w2*rhok(idx);
+                n3k(idx) = w3*rhok(idx);
+                nv1k(idx) = wv1*rhok(idx);
+                nv2k(idx) = wv2*rhok(idx);
+                }
+            }
+
+        // transform n weights to real space to finish convolution
+        // no need for a factor of mesh.step() here because w is analytical
+        ft_->setReciprocalData(n0k_->const_view());
+        ft_->transform();
+        std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),tmp_n0->full_view().begin());
+
+        ft_->setReciprocalData(n1k_->const_view());
+        ft_->transform();
+        std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),tmp_n1->full_view().begin());
+
+        ft_->setReciprocalData(n2k_->const_view());
+        ft_->transform();
+        std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),tmp_n2->full_view().begin());
+
+        ft_->setReciprocalData(n3k_->const_view());
+        ft_->transform();
+        std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),tmp_n3->full_view().begin());
+
+        ft_->setReciprocalData(nv1k_->const_view());
+        ft_->transform();
+        std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),tmp_nv1->full_view().begin());
+
+        ft_->setReciprocalData(nv2k_->const_view());
+        ft_->transform();
+        std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),tmp_nv2->full_view().begin());
+
+        // divide through by r
+            {
+            auto n0i = tmp_n0->view();
+            auto n1i = tmp_n1->view();
+            auto n2i = tmp_n2->view();
+            auto n3i = tmp_n3->view();
+            auto nv1i = tmp_nv1->view();
+            auto nv2i = tmp_nv2->view();
+            for(int idx = 0; idx < mesh->shape(); ++idx)
+                {           
+                const auto r = mesh->center(idx);
+                n0i(idx) /= r;
+                n1i(idx) /= r;
+                n2i(idx) /= r;
+                n3i(idx) /= r;
+
+                nv2i(idx) = (n3i(idx)/r + nv1i(idx)/r);
+                nv1i(idx) = /* TODO: fill this in */0.;
+                }
+            }
+
+        // fix up n for the r values that are close to the origin
+        if (mesh->lower_bound(0) < R)
+            {
+            const auto r_rho = tmp_density->view();
+            const auto dr = mesh->step();
+
+            auto n0i = tmp_n0->view();
+            auto n1i = tmp_n1->view();
+            auto n2i = tmp_n2->view();
+            auto n3i = tmp_n3->view();
+            auto nv1i = tmp_nv1->view();
+            auto nv2i = tmp_nv2->view();
+
+            for (int idx=0; idx < std::min(mesh->bin(R), mesh->shape()); ++idx)
+                {
+                // reset n for this bin
+                n0i(idx) = 0.;
+                n1i(idx) = 0.;
+                n2i(idx) = 0.;
+                n3i(idx) = 0.;
+                nv1i(idx) = 0.;
+                nv2i(idx) = 0.;
+
+                // take integrals using quadrature
+                const auto r = mesh->center(idx);
+                const auto lower_bin = mesh->bin(0.);
+                const auto split_bin = mesh->bin(R-r);
+                const auto upper_bin = mesh->bin(r+R);
+                for (int ig_idx=lower_bin; ig_idx < split_bin; ++ig_idx)
+                    {
+                    n3i(idx) += 4. * M_PI * r_rho(ig_idx) * mesh->center(ig_idx) * dr;
+                    }
+                for (int ig_idx=split_bin; ig_idx < upper_bin; ++ig_idx)
+                    {
+                    const auto rig = mesh->center(ig_idx);
+                    n3i(idx) += (M_PI/r) * r_rho(ig_idx) * (R*R - (r-rig)*(r-rig)) * dr;
+                    n2i(idx) += (2.*M_PI*R/r) * r_rho(ig_idx) * dr;
+                    n1i(idx) += /* TODO: fill this in*/0.;
+                    n0i(idx) += /* TODO: fill this in*/0.;
+                    nv2i(idx) += (M_PI/(r*r)) * r_rho(ig_idx) * (R*R + r*r - rig*rig) * dr;
+                    nv1i(idx) += /* TODO: fill this in*/0.;
+                    }
+                }
+            }
+        }
+    }
+
 void RosenfeldFMT::computePhiAndDerivatives(int idx,
                                             Field::View& phi,
                                             Field::View& dphi_dn0,
@@ -599,6 +635,25 @@ void RosenfeldFMT::setupComplexField(std::unique_ptr<ComplexField>& kfield)
         {
         kfield->reshape(ft_->getWavevectors().shape(),0);
         }
+    }
+
+RosenfeldFMT::ConvolutionType RosenfeldFMT::getConvolutionType(std::shared_ptr<const Mesh> mesh) const
+    {
+    const Mesh* mesh_raw = mesh.get();
+    ConvolutionType conv_type;
+    if (dynamic_cast<const CartesianMesh*>(mesh_raw) != nullptr)
+        {
+        conv_type = ConvolutionType::cartesian;
+        }
+    else if(dynamic_cast<const SphericalMesh*>(mesh_raw) != nullptr)
+        {
+        conv_type = ConvolutionType::spherical;
+        }
+    else
+        {
+        throw std::runtime_error("Failed to deduce type");
+        }
+    return conv_type;
     }
 
 TypeMap<double>& RosenfeldFMT::getDiameters()

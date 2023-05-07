@@ -102,7 +102,9 @@
         "__functional_base_03": "cpp",
         "codecvt": "cpp",
         "fstream": "cpp",
-        "iomanip": "cpp"
+        "iomanip": "cpp",
+        "__bits": "cpp",
+        "__verbose_abort": "cpp"
     },
     "cmake.configureOnOpen": true
 }
