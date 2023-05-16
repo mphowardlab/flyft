@@ -21,7 +21,6 @@ void RosenfeldFMT::_compute(std::shared_ptr<State> state, bool compute_value)
     // compute n weights in fourier space (requires communication before fourier transform)
     state->syncFields();
     const auto mesh = state->getMesh()->local().get();
-    const auto kmesh = ft_->getWavevectors();
 
     const auto conv_type = getConvolutionType(state->getMesh()->local());
     if (conv_type == ConvolutionType::cartesian)
@@ -54,7 +53,8 @@ void RosenfeldFMT::_compute(std::shared_ptr<State> state, bool compute_value)
         auto dphi_dn3 = dphi_dn3_->view();
         auto dphi_dnv1 = dphi_dnv1_->view();
         auto dphi_dnv2 = dphi_dnv2_->view();
-
+        
+        
         // do points near edges first and start sending them
             {
             #ifdef FLYFT_OPENMP
@@ -105,8 +105,53 @@ void RosenfeldFMT::_compute(std::shared_ptr<State> state, bool compute_value)
             state->getMesh()->endSync(dphi_dnv2_);
             }
         }
+        if (conv_type == ConvolutionType::cartesian)
+            {
+            computeCartesianDerivative(state);   
+            }
+        else if (conv_type == ConvolutionType::spherical)
+            {
+            computeSphericalDerivative(state);   
+            }
+        else
+            {
+            //TODO 
+            }
+        {
+        // reduce the value of the functional
+        if (compute_value)
+            {
+            auto phi = phi_->const_view();
+            value_ = 0.0;
+            #ifdef FLYFT_OPENMP
+            #pragma omp parallel for schedule(static) default(none) firstprivate(mesh) shared(phi) reduction(+:value_)
+            #endif
+            for (int idx=0; idx < mesh->shape(); ++idx)
+                {
+                value_ += mesh->integrateVolume(idx, phi);
+                }
+            }
 
-    // convert phi derivatives to Fourier space
+        // finish up communication of all types
+        for (const auto& t : state->getTypes())
+            {
+            state->getMesh()->endSync(derivatives_(t));
+            }
+        }
+
+    // reduce value across ranks
+    if (compute_value)
+        {
+        value_ = state->getCommunicator()->sum(value_);
+        }
+    }
+
+
+void RosenfeldFMT::computeCartesianDerivative(std::shared_ptr<State> state)
+    {
+    const auto mesh = state->getMesh()->local().get();
+    const auto kmesh = ft_->getWavevectors();
+        // convert phi derivatives to Fourier space
         {
         ft_->setRealData(dphi_dn0_->const_full_view());
         ft_->transform();
@@ -194,35 +239,129 @@ void RosenfeldFMT::_compute(std::shared_ptr<State> state, bool compute_value)
             // start communicating this type
             state->getMesh()->startSync(derivatives_(t));
             }
-
-        // reduce the value of the functional
-        if (compute_value)
-            {
-            auto phi = phi_->const_view();
-            value_ = 0.0;
-            #ifdef FLYFT_OPENMP
-            #pragma omp parallel for schedule(static) default(none) firstprivate(mesh) shared(phi) reduction(+:value_)
-            #endif
-            for (int idx=0; idx < mesh->shape(); ++idx)
-                {
-                value_ += mesh->integrateVolume(idx, phi);
-                }
-            }
-
-        // finish up communication of all types
-        for (const auto& t : state->getTypes())
-            {
-            state->getMesh()->endSync(derivatives_(t));
-            }
-        }
-
-    // reduce value across ranks
-    if (compute_value)
-        {
-        value_ = state->getCommunicator()->sum(value_);
         }
     }
 
+void RosenfeldFMT::computeSphericalDerivative(std::shared_ptr<State> state)
+    {
+    const auto mesh = state->getMesh()->local().get();
+    const auto kmesh = ft_->getWavevectors();    
+
+    std::fill(dphi_dn0k_->view().begin(), dphi_dn0k_->view().end(), 0.);
+    std::fill(dphi_dn1k_->view().begin(), dphi_dn1k_->view().end(), 0.);
+    std::fill(dphi_dn2k_->view().begin(), dphi_dn2k_->view().end(), 0.);
+    std::fill(dphi_dn3k_->view().begin(), dphi_dn3k_->view().end(), 0.);
+    std::fill(dphi_dnv1k_->view().begin(),dphi_dnv1k_->view().end(), 0.);
+    std::fill(dphi_dnv2k_->view().begin(), dphi_dnv2k_->view().end(), 0.);
+        // convert phi derivatives to Fourier space
+        {
+        ft_->setRealData(dphi_dn0_->const_full_view());
+        ft_->transform();
+        std::copy(ft_->const_view_reciprocal().begin(),ft_->const_view_reciprocal().end(),dphi_dn0k_->view().begin());
+
+        ft_->setRealData(dphi_dn1_->const_full_view());
+        ft_->transform();
+        std::copy(ft_->const_view_reciprocal().begin(),ft_->const_view_reciprocal().end(),dphi_dn1k_->view().begin());
+
+        ft_->setRealData(dphi_dn2_->const_full_view());
+        ft_->transform();
+        std::copy(ft_->const_view_reciprocal().begin(),ft_->const_view_reciprocal().end(),dphi_dn2k_->view().begin());
+
+        ft_->setRealData(dphi_dn3_->const_full_view());
+        ft_->transform();
+        std::copy(ft_->const_view_reciprocal().begin(),ft_->const_view_reciprocal().end(),dphi_dn3k_->view().begin());
+
+        ft_->setRealData(dphi_dnv1_->const_full_view());
+        ft_->transform();
+        std::copy(ft_->const_view_reciprocal().begin(),ft_->const_view_reciprocal().end(),dphi_dnv1k_->view().begin());
+
+        ft_->setRealData(dphi_dnv2_->const_full_view());
+        ft_->transform();
+        std::copy(ft_->const_view_reciprocal().begin(),ft_->const_view_reciprocal().end(),dphi_dnv2k_->view().begin());
+        }
+
+    // convolve phi derivatives with weights to get functional derivatives
+    // again, no need for a factor of mesh.step() here because w is analytical
+        {        
+        auto dphi_dn0k = dphi_dn0k_->view();
+        auto dphi_dn1k = dphi_dn1k_->view();
+        auto dphi_dn2k = dphi_dn2k_->view();
+        auto dphi_dn3k = dphi_dn3k_->view();
+        auto dphi_dnv1k = dphi_dnv1k_->view();
+        auto dphi_dnv2k = dphi_dnv2k_->view();
+        
+        auto derivativek = derivativek_->view();
+        
+        // std::shared_ptr<Field> tmp_derivative;
+        // setupField(tmp_derivative);
+        // std::fill(tmp_derivative->full_view().begin(), tmp_derivative->full_view().end(), 0.);
+        
+        for (const auto& t : state->getTypes())
+            {
+            // hard-sphere radius
+            const double R = 0.5*diameters_(t);
+            auto derivative = derivatives_(t)->view();
+            std::fill(derivative.begin(), derivative.end(),0.0);
+            if (R == 0.)
+                {
+                // no radius, no contribution to energy
+                // need to set here as we are not prefilling the array with zeros
+                auto derivative = derivatives_(t)->view();
+                std::fill(derivative.begin(), derivative.end(),0.0);
+                continue;
+                }
+
+            #ifdef FLYFT_OPENMP
+            #pragma omp parallel for schedule(static) default(none) firstprivate(kmesh,R) \
+            shared(derivativek,dphi_dn0k,dphi_dn1k,dphi_dn2k,dphi_dn3k,dphi_dnv1k,dphi_dnv2k)
+            #endif
+            for (int idx=0; idx < kmesh.shape(); ++idx)
+                {
+                const double k = kmesh(idx);
+                std::complex<double> w0,w1,w2,w3,wv1,wv2;
+                computeWeights(w2,w3,wv2,k,R);
+                computeProportionalByWeight(w0, w1, wv1, w2, wv2, R);
+                derivativek(idx) = (dphi_dn0k(idx)*w0+dphi_dn1k(idx)*w1+dphi_dn2k(idx)*w2+dphi_dn3k(idx)*w3
+                                        -dphi_dnv1k(idx)*wv1-dphi_dnv2k(idx)*wv2);
+                }
+                
+            std::shared_ptr<Field>tmp_derivative;
+            setupField(tmp_derivative);
+            
+            ft_->setReciprocalData(derivativek);
+            ft_->transform();
+            std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),tmp_derivative->full_view().begin());
+            
+            // copy the valid values
+            Field::ConstantView din(tmp_derivative->full_view().begin().get(),
+                                    DataLayout(ft_->getMesh().shape()),
+                                    buffer_shape_,
+                                    buffer_shape_+mesh->shape());
+            auto dout = derivatives_(t)->view();
+            #ifdef FLYFT_OPENMP
+            #pragma omp parallel for schedule(static) default(none) firstprivate(mesh) shared(din,dout)
+            #endif
+            for (int idx=0; idx < mesh->shape(); ++idx)
+                {
+                const auto r = mesh->center(idx);
+                if(mesh->bin(idx)<R)
+                    {
+                    dout(idx) = 0; //Need to figure out
+                    }
+                else if(mesh->bin(idx)>R)
+                    {
+                    dout(idx) += din(idx)/r;
+                    }
+                else
+                    {
+                     //Error   
+                    }
+                }
+            // start communicating this type
+            state->getMesh()->startSync(derivatives_(t));
+            }
+        }
+    }
 
 void RosenfeldFMT::computeCartesianWeightedDensities(std::shared_ptr<State> state)
     {

@@ -23,7 +23,6 @@ class RosenfeldFMT : public Functional
 
         TypeMap<double>& getDiameters();
         const TypeMap<double>& getDiameters() const;
-
         int determineBufferShape(std::shared_ptr<State> state, const std::string& type) override;
 
     protected:
@@ -81,8 +80,11 @@ class RosenfeldFMT : public Functional
                                       const Field::ConstantView& n2,
                                       const Field::ConstantView& n3,
                                       const Field::ConstantView& nv1,
-                                      const Field::ConstantView& nv2,
-                                      bool compute_value) const;
+                                      const Field::ConstantView& nv2, bool compute_value) const;
+        
+        void computeCartesianDerivative(std::shared_ptr<State> state);
+        void computeSphericalDerivative(std::shared_ptr<State> state);
+        
         virtual void computePrefactorFunctions(double& f1,
                                                double& f2,
                                                double& f4,
