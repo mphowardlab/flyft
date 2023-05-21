@@ -18,11 +18,13 @@ RosenfeldFMT::RosenfeldFMT()
 
 void RosenfeldFMT::_compute(std::shared_ptr<State> state, bool compute_value)
     {
-    // compute n weights in fourier space (requires communication before fourier transform)
+    // ensure fields are sync'd before starting
     state->syncFields();
-    const auto mesh = state->getMesh()->local().get();
 
+    const auto mesh = state->getMesh()->local().get();
     const auto conv_type = getConvolutionType(state->getMesh()->local());
+
+    // compute weighted densities
     if (conv_type == ConvolutionType::cartesian)
         {
         computeCartesianWeightedDensities(state);
@@ -36,7 +38,6 @@ void RosenfeldFMT::_compute(std::shared_ptr<State> state, bool compute_value)
         // TODO: throw error
         }
 
-    /////// Don't work below here
     // evaluate phi and partial derivatives in real space using n
         {
         auto n0 = n0_->const_view();
@@ -53,7 +54,6 @@ void RosenfeldFMT::_compute(std::shared_ptr<State> state, bool compute_value)
         auto dphi_dn3 = dphi_dn3_->view();
         auto dphi_dnv1 = dphi_dnv1_->view();
         auto dphi_dnv2 = dphi_dnv2_->view();
-        
         
         // do points near edges first and start sending them
             {
@@ -105,53 +105,43 @@ void RosenfeldFMT::_compute(std::shared_ptr<State> state, bool compute_value)
             state->getMesh()->endSync(dphi_dnv2_);
             }
         }
-        if (conv_type == ConvolutionType::cartesian)
-            {
-            computeCartesianDerivative(state);   
-            }
-        else if (conv_type == ConvolutionType::spherical)
-            {
-            computeSphericalDerivative(state);   
-            }
-        else
-            {
-            //TODO 
-            }
-        {
-        // reduce the value of the functional
-        if (compute_value)
-            {
-            auto phi = phi_->const_view();
-            value_ = 0.0;
-            #ifdef FLYFT_OPENMP
-            #pragma omp parallel for schedule(static) default(none) firstprivate(mesh) shared(phi) reduction(+:value_)
-            #endif
-            for (int idx=0; idx < mesh->shape(); ++idx)
-                {
-                value_ += mesh->integrateVolume(idx, phi);
-                }
-            }
 
-        // finish up communication of all types
-        for (const auto& t : state->getTypes())
-            {
-            state->getMesh()->endSync(derivatives_(t));
-            }
+    // compute functional derivatives
+    if (conv_type == ConvolutionType::cartesian)
+        {
+        computeCartesianDerivative(state);
+        }
+    else if (conv_type == ConvolutionType::spherical)
+        {
+        computeSphericalDerivative(state);
+        }
+    else
+        {
+        // TODO: throw error
         }
 
-    // reduce value across ranks
+    // reduce the value of the functional if requested
     if (compute_value)
         {
+        auto phi = phi_->const_view();
+        value_ = 0.0;
+        #ifdef FLYFT_OPENMP
+        #pragma omp parallel for schedule(static) default(none) firstprivate(mesh) shared(phi) reduction(+:value_)
+        #endif
+        for (int idx=0; idx < mesh->shape(); ++idx)
+            {
+            value_ += mesh->integrateVolume(idx, phi);
+            }
         value_ = state->getCommunicator()->sum(value_);
         }
     }
-
 
 void RosenfeldFMT::computeCartesianDerivative(std::shared_ptr<State> state)
     {
     const auto mesh = state->getMesh()->local().get();
     const auto kmesh = ft_->getWavevectors();
-        // convert phi derivatives to Fourier space
+
+    // convert phi derivatives to Fourier space
         {
         ft_->setRealData(dphi_dn0_->const_full_view());
         ft_->transform();
@@ -239,6 +229,12 @@ void RosenfeldFMT::computeCartesianDerivative(std::shared_ptr<State> state)
             // start communicating this type
             state->getMesh()->startSync(derivatives_(t));
             }
+        }
+
+    // finish up communication of all types
+    for (const auto& t : state->getTypes())
+        {
+        state->getMesh()->endSync(derivatives_(t));
         }
     }
 
