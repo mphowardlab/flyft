@@ -24,6 +24,12 @@ void RosenfeldFMT::_compute(std::shared_ptr<State> state, bool compute_value)
     const auto mesh = state->getMesh()->local().get();
     const auto conv_type = getConvolutionType(state->getMesh()->local());
 
+    // temporary storage for spherical convolutions
+    if (conv_type == ConvolutionType::spherical)
+        {
+        setupField(tmp_r_field_);
+        }
+
     // compute weighted densities
     if (conv_type == ConvolutionType::cartesian)
         {
@@ -242,202 +248,221 @@ void RosenfeldFMT::computeSphericalDerivative(std::shared_ptr<State> state)
     {
     const auto mesh = state->getMesh()->local().get();
     const auto kmesh = ft_->getWavevectors();  
-      
-    std::shared_ptr<Field> tmp_dphi_dn0, tmp_dphi_dn1, tmp_dphi_dn2, tmp_dphi_dn3, tmp_dphi_dnv1, tmp_dphi_dnv2, dphi_dnv2_2;
-    setupField(tmp_dphi_dn0);
-    setupField(tmp_dphi_dn1);
-    setupField(tmp_dphi_dn2);
-    setupField(tmp_dphi_dn3);
-    setupField(tmp_dphi_dnv1);
-    setupField(tmp_dphi_dnv2);
-    setupField(dphi_dnv2_2);
+
+    // these temporary variables will be used for convolutions of each derivative per type
+    // TODO: cache allocation
+    std::shared_ptr<Field> tmp_dF_dn0, tmp_dF_dn1, tmp_dF_dn2, tmp_dF_dn3, tmp_dF_dnv1, tmp_dF_dnv2;
+    setupField(tmp_dF_dn0);
+    setupField(tmp_dF_dn1);
+    setupField(tmp_dF_dn2);
+    setupField(tmp_dF_dn3);
+    setupField(tmp_dF_dnv1);
+    setupField(tmp_dF_dnv2);
+    std::unique_ptr<ComplexField> tmp_dphi_dn0k_w0k, tmp_dphi_dn1k_w1k, tmp_dphi_dn2k_w2k, tmp_dphi_dn3k_w3k, tmp_dphi_dnv1k_wv1k, tmp_dphi_dnv2k_w2k;
+    setupComplexField(tmp_dphi_dn0k_w0k);
+    setupComplexField(tmp_dphi_dn1k_w1k);
+    setupComplexField(tmp_dphi_dn2k_w2k);
+    setupComplexField(tmp_dphi_dn3k_w3k);
+    setupComplexField(tmp_dphi_dnv1k_wv1k);
+    setupComplexField(tmp_dphi_dnv2k_w2k);
     
-    std::unique_ptr<ComplexField> dphi_dnv2k_2_;
-    setupComplexField(dphi_dnv2k_2_);
-    
-    std::fill(dphi_dn0k_->view().begin(), dphi_dn0k_->view().end(), 0.);
-    std::fill(dphi_dn1k_->view().begin(), dphi_dn1k_->view().end(), 0.);
-    std::fill(dphi_dn2k_->view().begin(), dphi_dn2k_->view().end(), 0.);
-    std::fill(dphi_dn3k_->view().begin(), dphi_dn3k_->view().end(), 0.);
-    std::fill(dphi_dnv1k_->view().begin(),dphi_dnv1k_->view().end(), 0.);
-    std::fill(dphi_dnv2k_->view().begin(), dphi_dnv2k_->view().end(), 0.);
-    std::fill(dphi_dnv2k_2_->view().begin(), dphi_dnv2k_2_->view().end(), 0.);
-    
-        // convert phi derivatives to Fourier space
+    // convert phi derivatives to Fourier space for convolution, accounting for factor of r
+    // these can be reused by all of the types, so we compute them first outside the type loop
         {
-        ft_->setRealData(dphi_dn0_->const_full_view());
-        ft_->transform();
-        std::copy(ft_->const_view_reciprocal().begin(),ft_->const_view_reciprocal().end(),dphi_dn0k_->full_view().begin());
-        
+        // dphi_dn0
+        fourierTransformFieldSpherical(dphi_dn0_->const_full_view(), state->getMesh()->local());
+        std::copy(ft_->const_view_reciprocal().begin(), ft_->const_view_reciprocal().end(), dphi_dn0k_->full_view().begin());
 
-        ft_->setRealData(dphi_dn1_->const_full_view());
-        ft_->transform();
-        std::copy(ft_->const_view_reciprocal().begin(),ft_->const_view_reciprocal().end(),dphi_dn1k_->full_view().begin());
+        // dphi_dn1
+        fourierTransformFieldSpherical(dphi_dn1_->const_full_view(), state->getMesh()->local());
+        std::copy(ft_->const_view_reciprocal().begin(), ft_->const_view_reciprocal().end(), dphi_dn1k_->full_view().begin());
 
-        ft_->setRealData(dphi_dn2_->const_full_view());
-        ft_->transform();
-        std::copy(ft_->const_view_reciprocal().begin(),ft_->const_view_reciprocal().end(),dphi_dn2k_->full_view().begin());
+        // dphi_dn2
+        fourierTransformFieldSpherical(dphi_dn2_->const_full_view(), state->getMesh()->local());
+        std::copy(ft_->const_view_reciprocal().begin(), ft_->const_view_reciprocal().end(), dphi_dn2k_->full_view().begin());
 
-        ft_->setRealData(dphi_dn3_->const_full_view());
-        ft_->transform();
-        std::copy(ft_->const_view_reciprocal().begin(),ft_->const_view_reciprocal().end(),dphi_dn3k_->full_view().begin());
+        // dphi_dn3
+        fourierTransformFieldSpherical(dphi_dn3_->const_full_view(), state->getMesh()->local());
+        std::copy(ft_->const_view_reciprocal().begin(), ft_->const_view_reciprocal().end(), dphi_dn3k_->full_view().begin());
 
-        ft_->setRealData(dphi_dnv1_->const_full_view());
-        ft_->transform();
-        std::copy(ft_->const_view_reciprocal().begin(),ft_->const_view_reciprocal().end(),dphi_dnv1k_->full_view().begin());
+        // dphi_dnv1
+        fourierTransformFieldSpherical(dphi_dnv1_->const_full_view(), state->getMesh()->local());
+        std::copy(ft_->const_view_reciprocal().begin(), ft_->const_view_reciprocal().end(), dphi_dnv1k_->full_view().begin());
 
-        ft_->setRealData(dphi_dnv2_->const_full_view());
-        ft_->transform();
-        std::copy(ft_->const_view_reciprocal().begin(),ft_->const_view_reciprocal().end(),dphi_dnv2k_->full_view().begin());
+        // dphi_dnv2
+        fourierTransformFieldSpherical(dphi_dnv2_->const_full_view(), state->getMesh()->local());
+        std::copy(ft_->const_view_reciprocal().begin(), ft_->const_view_reciprocal().end(), dphi_dnv2k_->full_view().begin());
         }
     
-        for (const auto& t : state->getTypes())
+    for (const auto& t : state->getTypes())
+        {
+        // hard-sphere radius
+        const double R = 0.5*diameters_(t);
+        if (R == 0.)
             {
-            // hard-sphere radius
-            const double R = 0.5*diameters_(t);
-            for(int idx = 0; idx < kmesh.shape(); ++idx)
-                {   
-                const double k = kmesh(idx);     
-                auto dphi_dn0k = dphi_dn0k_->view();
-                auto dphi_dn1k = dphi_dn1k_->view();
-                auto dphi_dn2k = dphi_dn2k_->view();
-                auto dphi_dn3k = dphi_dn3k_->view();
-                auto dphi_dnv1k = dphi_dnv1k_->view();
-                auto dphi_dnv2k = dphi_dnv2k_->view();     
-                auto dphi_dnv2k_2 = dphi_dnv2k_2_->view(); 
-                
+            // no radius, no contribution to energy
+            // need to set here as we are not prefilling the array with zeros
+            auto derivative = derivatives_(t)->view();
+            std::fill(derivative.begin(), derivative.end(), 0.0);
+            continue;
+            }
+
+        // convolve phi derivatives with weight function
+            {
+            auto dphi_dn0k = dphi_dn0k_->const_view();
+            auto dphi_dn1k = dphi_dn1k_->const_view();
+            auto dphi_dn2k = dphi_dn2k_->const_view();
+            auto dphi_dn3k = dphi_dn3k_->const_view();
+            auto dphi_dnv1k = dphi_dnv1k_->const_view();
+            auto dphi_dnv2k = dphi_dnv2k_->const_view();
+            auto dphi_dn0k_w0k = tmp_dphi_dn0k_w0k->view();
+            auto dphi_dn1k_w1k = tmp_dphi_dn1k_w1k->view();
+            auto dphi_dn2k_w2k = tmp_dphi_dn2k_w2k->view();
+            auto dphi_dn3k_w3k = tmp_dphi_dn3k_w3k->view();
+            auto dphi_dnv1k_wv1k = tmp_dphi_dnv1k_wv1k->view();
+            auto dphi_dnv2k_wv2k = tmp_dphi_dnv2k_w2k->view();
+
+            for (int idx = 0; idx < kmesh.shape(); ++idx)
+                {
+                const double k = kmesh(idx);
+
                 std::complex<double> w0,w1,w2,w3,wv1,wv2;
                 computeWeights(w2,w3,wv2,k,R);
                 computeProportionalByWeight(w0, w1, wv1, w2, wv2, R);
-                
-                dphi_dn0k(idx) = dphi_dn0k(idx)*w0;
-                dphi_dn1k(idx) = dphi_dn1k(idx)*w1;
-                dphi_dn2k(idx) = dphi_dn2k(idx)*w2;
-                dphi_dn3k(idx) = dphi_dn3k(idx)*w3;
-                dphi_dnv1k(idx) = dphi_dnv1k(idx)*wv1;
-                dphi_dnv2k(idx) = dphi_dnv2k(idx)*wv2;
-                dphi_dnv2k_2(idx) = dphi_dn3k(idx)*w3;
+
+                dphi_dn0k_w0k(idx) = dphi_dn0k(idx)*w0;
+                dphi_dn1k_w1k(idx) = dphi_dn1k(idx)*w1;
+                dphi_dn2k_w2k(idx) = dphi_dn2k(idx)*w2;
+                dphi_dn3k_w3k(idx) = dphi_dn3k(idx)*w3;
+                // sign is opposite here due to oddness of weight function and reversed order
+                dphi_dnv1k_wv1k(idx) = -dphi_dnv1k(idx)*wv1;
+                dphi_dnv2k_wv2k(idx) = -dphi_dnv2k(idx)*wv2;
+                // TODO: there is a missing term for nv1 and nv2
                 }
-            
-            {
-            ft_->setReciprocalData(dphi_dn0k_->const_view());
-            ft_->transform();
-            std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),tmp_dphi_dn0->full_view().begin());
-            
 
-            ft_->setReciprocalData(dphi_dn1k_->const_view());
+            ft_->setReciprocalData(dphi_dn0k_w0k);
             ft_->transform();
-            std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),tmp_dphi_dn1->full_view().begin());
+            std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),tmp_dF_dn0->full_view().begin());
 
-            ft_->setReciprocalData(dphi_dn2k_->const_view());
+            ft_->setReciprocalData(dphi_dn1k_w1k);
             ft_->transform();
-            std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),tmp_dphi_dn2->full_view().begin());
+            std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),tmp_dF_dn1->full_view().begin());
 
-            ft_->setReciprocalData(dphi_dn3k_->const_view());
+            ft_->setReciprocalData(dphi_dn2k_w2k);
             ft_->transform();
-            std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),tmp_dphi_dn3->full_view().begin());
+            std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),tmp_dF_dn2->full_view().begin());
 
-            ft_->setReciprocalData(dphi_dnv1k_->const_view());
+            ft_->setReciprocalData(dphi_dn3k_w3k);
             ft_->transform();
-            std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),tmp_dphi_dnv1->full_view().begin());
+            std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),tmp_dF_dn3->full_view().begin());
+
+            ft_->setReciprocalData(dphi_dnv1k_wv1k);
+            ft_->transform();
+            std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),tmp_dF_dnv1->full_view().begin());
             
-            ft_->setReciprocalData(dphi_dnv2k_->const_view());
+            ft_->setReciprocalData(dphi_dnv2k_wv2k);
             ft_->transform();
-            std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),tmp_dphi_dnv2->full_view().begin());
-            
-            ft_->setReciprocalData(dphi_dnv2k_2_->const_view());
-            ft_->transform();
-            std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),dphi_dnv2_2->full_view().begin());// The second convolution term in nv2
+            std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),tmp_dF_dnv2->full_view().begin());
             }
         
-            // normalize phi derivatives with r
+        // normalize phi derivatives with r
             {        
-            auto dphi_dn0i = tmp_dphi_dn0->view();
-            auto dphi_dn1i = tmp_dphi_dn1->view();
-            auto dphi_dn2i = tmp_dphi_dn2->view();
-            auto dphi_dn3i = tmp_dphi_dn3->view();
-            auto dphi_dnv1i = tmp_dphi_dnv1->view();
-            auto dphi_dnv2i = tmp_dphi_dnv2->view();
-            auto dphi_dnv2i_2 = dphi_dnv2_2->view();
-            
+            auto dF_dn0 = tmp_dF_dn0->view();
+            auto dF_dn1 = tmp_dF_dn1->view();
+            auto dF_dn2 = tmp_dF_dn2->view();
+            auto dF_dn3 = tmp_dF_dn3->view();
+            auto dF_dnv1 = tmp_dF_dnv1->view();
+            auto dF_dnv2 = tmp_dF_dnv2->view();
+
             for(int idx = 0; idx < mesh->shape(); ++idx)
                 {           
                 const auto r = mesh->center(idx);
-                dphi_dn0i(idx) /= r;
-                dphi_dn1i(idx) /= r;
-                dphi_dn2i(idx) /= r;
-                dphi_dn3i(idx) /= r;
-                dphi_dnv1i(idx) /= r;
-                // nv2 also needs to have n3/r added, not just scale by r
-                dphi_dnv2i(idx) = dphi_dnv2i(idx)/r+ dphi_dnv2i_2(idx)/r;
+                dF_dn0(idx) /= r;
+                dF_dn1(idx) /= r;
+                dF_dn2(idx) /= r;
+                dF_dn3(idx) /= r;
+                dF_dnv1(idx) /= r;
+                dF_dnv2(idx) /= r;
+                // TODO: extra term for nv1 and nv2
                 }
-                                
+            }
+
+        // handle special case points near center
+        if (mesh->lower_bound(0) < R)
+            {
             auto dphi_dn0 = dphi_dn0_->const_view();
             auto dphi_dn1 = dphi_dn1_->const_view();
             auto dphi_dn2 = dphi_dn2_->const_view();
             auto dphi_dn3 = dphi_dn3_->const_view();
             auto dphi_dnv1 = dphi_dnv1_->const_view();
             auto dphi_dnv2 = dphi_dnv2_->const_view();
-                
-            const double R = 0.5*diameters_(t);
-            if (mesh->lower_bound(0) < R)
-                {
-                const auto dr = mesh->step();
-                for (int idx=0; idx < std::min(mesh->bin(R), mesh->shape()); ++idx)
-                    {
-                    // reset n for this bin
-                    dphi_dn0i(idx) = 0.;
-                    dphi_dn1i(idx) = 0.;
-                    dphi_dn2i(idx) = 0.;
-                    dphi_dn3i(idx) = 0.;
-                    dphi_dnv1i(idx) = 0.;
-                    dphi_dnv2i(idx) = 0.;
-                    // take integrals using quadrature
-                    const auto r = mesh->center(idx);
-                    const auto lower_bin = mesh->bin(0.);
-                    const auto split_bin = mesh->bin(R-r);
-                    const auto upper_bin = mesh->bin(r+R);
-                    const double sq_R = R*R;
-                    for (int ig_idx=lower_bin; ig_idx < split_bin; ++ig_idx)
-                        {
-                        dphi_dn0i(idx) += (1/sq_R) * mesh->center(ig_idx) * dphi_dn0(ig_idx) *dr;
-                        dphi_dn1i(idx) += (1/R) * M_PI * mesh->center(ig_idx) * dphi_dn1(ig_idx) *dr;
-                        dphi_dn3i(idx) += 4. * M_PI * mesh->center(ig_idx) * dphi_dn3(ig_idx) *dr;
-                        }
-                    for (int ig_idx=split_bin; ig_idx < upper_bin; ++ig_idx)
-                        {
-                        const auto rig = mesh->center(ig_idx);
-                        dphi_dn0i(idx) += (1/4*sq_R*r) * dphi_dn0(ig_idx)* (sq_R - (r-rig)*(r-rig)) * dr;
-                        dphi_dn1i(idx) += (1/4*R*r) * dphi_dn0(ig_idx)* (sq_R - (r-rig)*(r-rig)) * dr;
-                        dphi_dn3i(idx) += (M_PI/r) * dphi_dn3(ig_idx) * (sq_R - (r-rig)*(r-rig)) * dr;
-                        dphi_dn2i(idx) += (2.*M_PI*R/r) * dphi_dn2(ig_idx) * dr;
-                        dphi_dnv1i(idx) += -(1/(4*R*r*r)) * dphi_dnv1(ig_idx) * (sq_R + r*r - rig*rig) * dr;
-                        dphi_dnv2i(idx) += -(M_PI/(r*r)) * dphi_dnv2(ig_idx) * (sq_R + r*r - rig*rig) * dr;
 
-                        }
+            auto dF_dn0 = tmp_dF_dn0->view();
+            auto dF_dn1 = tmp_dF_dn1->view();
+            auto dF_dn2 = tmp_dF_dn2->view();
+            auto dF_dn3 = tmp_dF_dn3->view();
+            auto dF_dnv1 = tmp_dF_dnv1->view();
+            auto dF_dnv2 = tmp_dF_dnv2->view();
+
+            const auto dr = mesh->step();
+            for (int idx=0; idx < std::min(mesh->bin(R), mesh->shape()); ++idx)
+                {
+                // reset values for this bin
+                dF_dn0(idx) = 0.;
+                dF_dn1(idx) = 0.;
+                dF_dn2(idx) = 0.;
+                dF_dn3(idx) = 0.;
+                dF_dnv1(idx) = 0.;
+                dF_dnv2(idx) = 0.;
+
+                // take integrals using quadrature
+                const auto r = mesh->center(idx);
+                const auto lower_bin = mesh->bin(0.);
+                const auto split_bin = mesh->bin(R-r);
+                const auto upper_bin = mesh->bin(r+R);
+                const double sq_R = R*R;
+                for (int ig_idx=lower_bin; ig_idx < split_bin; ++ig_idx)
+                    {
+                    const auto rig = mesh->center(ig_idx);
+                    dF_dn3(idx) += 4. * M_PI * dphi_dn3(ig_idx) * (rig * rig) * dr;
+                    }
+                for (int ig_idx=split_bin; ig_idx < upper_bin; ++ig_idx)
+                    {
+                    const auto rig = mesh->center(ig_idx);
+                    const double kernel_w3 = rig * (M_PI/r) * (sq_R - (r-rig)*(r-rig));
+                    const double kernel_w2 = rig * (2.*M_PI*R/r);
+                    const double kernel_wv2 = rig * (M_PI/(r*r)) * (R*R + r*r - rig*rig);
+                    double kernel_w0, kernel_w1, kernel_wv1;
+                    computeProportionalByWeight(kernel_w0, kernel_w1, kernel_wv1, kernel_w2, kernel_wv2, R);
+
+                    dF_dn0(idx) += dphi_dn0(ig_idx)* kernel_w0 * dr;
+                    dF_dn1(idx) += dphi_dn1(ig_idx)* kernel_w1 * dr;
+                    dF_dn2(idx) += dphi_dn2(ig_idx)* kernel_w1 * dr;
+                    dF_dn3(idx) += dphi_dn3(ig_idx) * kernel_w3 * dr;
+                    dF_dnv1(idx) += dphi_dnv1(ig_idx) * kernel_wv1 * dr;
+                    dF_dnv2(idx) += dphi_dnv2(ig_idx) * kernel_wv2 * dr;
                     }
                 }
-            //Accumulating the values 
-            auto derivative = derivatives_(t)->view();
-            std::fill(derivative.begin(), derivative.end(),0.0);
-            if (R == 0.)
-                {
-                // no radius, no contribution to energy
-                // need to set here as we are not prefilling the array with zeros
-                auto derivative = derivatives_(t)->view();
-                std::fill(derivative.begin(), derivative.end(),0.0);
-                continue;
-                }
-            #ifdef FLYFT_OPENMP
-            #pragma omp parallel for schedule(static) default(none) firstprivate(mesh) shared(din,dout)
-            #endif
-            for (int idx=0; idx < mesh->shape(); ++idx)
-                {
-                derivative(idx) = dphi_dn0i(idx)+dphi_dn1i(idx)+dphi_dn2i(idx)+dphi_dn3i(idx)+dphi_dnv1i(idx)+dphi_dnv2i(idx);
-                }
-            // start communicating this type
-            state->getMesh()->startSync(derivatives_(t));
             }
+
+        // TODO: finish combining the derivatives together
+        
+        // #ifdef FLYFT_OPENMP
+        // #pragma omp parallel for schedule(static) default(none) firstprivate(mesh) shared(din,dout)
+        // #endif
+        // for (int idx=0; idx < mesh->shape(); ++idx)
+        //     {
+        //     derivative(idx) = dphi_dn0i(idx)+dphi_dn1i(idx)+dphi_dn2i(idx)+dphi_dn3i(idx)+dphi_dnv1i(idx)+dphi_dnv2i(idx);
+        //     }
+
+        // start communicating this type
+        state->getMesh()->startSync(derivatives_(t));
+        }
+
+    // finish up communication of all types
+    for (const auto& t : state->getTypes())
+        {
+        state->getMesh()->endSync(derivatives_(t));
         }
     }
 
@@ -536,11 +561,6 @@ void RosenfeldFMT::computeSphericalWeightedDensities(std::shared_ptr<State> stat
     std::fill(nv1_->view().begin(), nv1_->view().end(), 0.);
     std::fill(nv2_->view().begin(), nv2_->view().end(), 0.);
 
-    // transformed density for convolution
-    // TODO: we should only be alloc'ing this one, will fix later
-    std::shared_ptr<Field> tmp_density;
-    setupField(tmp_density);
-
     // weighted densities by type
     // TODO: we should only be alloc'ing these once, will fix later
     std::shared_ptr<Field> tmp_n0, tmp_n1, tmp_n2, tmp_n3, tmp_nv1, tmp_nv2;
@@ -561,22 +581,9 @@ void RosenfeldFMT::computeSphericalWeightedDensities(std::shared_ptr<State> stat
             continue;
             }
 
-        // fft the density
-            {
-            auto density = state->getField(t)->const_full_view();
-            auto r_density = tmp_density->full_view();
-            for (int idx=0; idx < mesh->shape() + 2*buffer_shape_; ++idx)
-                { 
-                // r can't be negative, setting it to zero effectively throws this term out, as it should
-                const auto r = std::max(mesh->center(idx-buffer_shape_), 0.);
-                r_density(idx) = r * density(idx);
-                }
-            ft_->setRealData(r_density);
-            ft_->transform();
-            }
-
         // get the fourier transformed weighted densities for this type
             {
+            fourierTransformFieldSpherical(state->getField(t)->const_full_view(), state->getMesh()->local());
             auto rhok = ft_->const_view_reciprocal();
             auto n2k = n2k_->view();
             auto n3k = n3k_->view();
@@ -630,7 +637,7 @@ void RosenfeldFMT::computeSphericalWeightedDensities(std::shared_ptr<State> stat
         // fix up n for the r values that are close to the origin
         if (mesh->lower_bound(0) < R)
             {
-            const auto r_rho = tmp_density->view();
+            const auto r_rho = tmp_r_field_->view();
             const auto dr = mesh->step();
 
             auto n2i = tmp_n2->view();
@@ -863,6 +870,20 @@ RosenfeldFMT::ConvolutionType RosenfeldFMT::getConvolutionType(std::shared_ptr<c
         throw std::runtime_error("Failed to deduce type");
         }
     return conv_type;
+    }
+
+void RosenfeldFMT::fourierTransformFieldSpherical(const Field::ConstantView& input,
+                                                  std::shared_ptr<const Mesh> mesh) const
+    {
+    auto tmp = tmp_r_field_->full_view();
+    for (int idx=0; idx < mesh->shape() + 2*buffer_shape_; ++idx)
+        {
+        // r can't be negative, setting it to zero effectively throws this term out, as it should
+        const auto r = std::max(mesh->center(idx-buffer_shape_), 0.);
+        tmp(idx) = r * input(idx);
+        }
+    ft_->setRealData(tmp);
+    ft_->transform();
     }
 
 TypeMap<double>& RosenfeldFMT::getDiameters()

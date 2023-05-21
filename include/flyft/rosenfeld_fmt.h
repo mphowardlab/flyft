@@ -110,6 +110,10 @@ class RosenfeldFMT : public Functional
             cartesian, spherical
             };
         ConvolutionType getConvolutionType(std::shared_ptr<const Mesh> mesh) const;
+
+        std::shared_ptr<Field> tmp_r_field_;
+        void fourierTransformFieldSpherical(const Field::ConstantView& input,
+                                            std::shared_ptr<const Mesh> mesh) const;
     };
 
 template<typename T>
