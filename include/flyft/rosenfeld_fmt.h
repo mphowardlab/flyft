@@ -113,7 +113,7 @@ class RosenfeldFMT : public Functional
 
         std::shared_ptr<Field> tmp_r_field_;
         void fourierTransformFieldSpherical(const Field::ConstantView& input,
-                                            std::shared_ptr<const Mesh> mesh) const;
+                                            const Mesh* mesh) const;
     };
 
 template<typename T>

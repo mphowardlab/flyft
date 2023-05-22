@@ -270,27 +270,27 @@ void RosenfeldFMT::computeSphericalDerivative(std::shared_ptr<State> state)
     // these can be reused by all of the types, so we compute them first outside the type loop
         {
         // dphi_dn0
-        fourierTransformFieldSpherical(dphi_dn0_->const_full_view(), state->getMesh()->local());
+        fourierTransformFieldSpherical(dphi_dn0_->const_full_view(), mesh);
         std::copy(ft_->const_view_reciprocal().begin(), ft_->const_view_reciprocal().end(), dphi_dn0k_->full_view().begin());
 
         // dphi_dn1
-        fourierTransformFieldSpherical(dphi_dn1_->const_full_view(), state->getMesh()->local());
+        fourierTransformFieldSpherical(dphi_dn1_->const_full_view(), mesh);
         std::copy(ft_->const_view_reciprocal().begin(), ft_->const_view_reciprocal().end(), dphi_dn1k_->full_view().begin());
 
         // dphi_dn2
-        fourierTransformFieldSpherical(dphi_dn2_->const_full_view(), state->getMesh()->local());
+        fourierTransformFieldSpherical(dphi_dn2_->const_full_view(), mesh);
         std::copy(ft_->const_view_reciprocal().begin(), ft_->const_view_reciprocal().end(), dphi_dn2k_->full_view().begin());
 
         // dphi_dn3
-        fourierTransformFieldSpherical(dphi_dn3_->const_full_view(), state->getMesh()->local());
+        fourierTransformFieldSpherical(dphi_dn3_->const_full_view(), mesh);
         std::copy(ft_->const_view_reciprocal().begin(), ft_->const_view_reciprocal().end(), dphi_dn3k_->full_view().begin());
 
         // dphi_dnv1
-        fourierTransformFieldSpherical(dphi_dnv1_->const_full_view(), state->getMesh()->local());
+        fourierTransformFieldSpherical(dphi_dnv1_->const_full_view(), mesh);
         std::copy(ft_->const_view_reciprocal().begin(), ft_->const_view_reciprocal().end(), dphi_dnv1k_->full_view().begin());
 
         // dphi_dnv2
-        fourierTransformFieldSpherical(dphi_dnv2_->const_full_view(), state->getMesh()->local());
+        fourierTransformFieldSpherical(dphi_dnv2_->const_full_view(), mesh);
         std::copy(ft_->const_view_reciprocal().begin(), ft_->const_view_reciprocal().end(), dphi_dnv2k_->full_view().begin());
         }
     
@@ -431,7 +431,8 @@ void RosenfeldFMT::computeSphericalDerivative(std::shared_ptr<State> state)
                     const auto rig = mesh->center(ig_idx);
                     const double kernel_w3 = rig * (M_PI/r) * (sq_R - (r-rig)*(r-rig));
                     const double kernel_w2 = rig * (2.*M_PI*R/r);
-                    const double kernel_wv2 = rig * (M_PI/(r*r)) * (R*R + r*r - rig*rig);
+                    // minus sign for wv2 kernel to account for swap of variables in convolution with odd function
+                    const double kernel_wv2 = -rig * (M_PI/(r*r)) * (R*R + r*r - rig*rig);
                     double kernel_w0, kernel_w1, kernel_wv1;
                     computeProportionalByWeight(kernel_w0, kernel_w1, kernel_wv1, kernel_w2, kernel_wv2, R);
 
@@ -445,15 +446,26 @@ void RosenfeldFMT::computeSphericalDerivative(std::shared_ptr<State> state)
                 }
             }
 
-        // TODO: finish combining the derivatives together
-        
-        // #ifdef FLYFT_OPENMP
-        // #pragma omp parallel for schedule(static) default(none) firstprivate(mesh) shared(din,dout)
-        // #endif
-        // for (int idx=0; idx < mesh->shape(); ++idx)
-        //     {
-        //     derivative(idx) = dphi_dn0i(idx)+dphi_dn1i(idx)+dphi_dn2i(idx)+dphi_dn3i(idx)+dphi_dnv1i(idx)+dphi_dnv2i(idx);
-        //     }
+        // combinine terms of the derivatives together
+            {
+            auto derivative = derivatives_(t)->view();
+
+            auto dF_dn0 = tmp_dF_dn0->const_view();
+            auto dF_dn1 = tmp_dF_dn1->const_view();
+            auto dF_dn2 = tmp_dF_dn2->const_view();
+            auto dF_dn3 = tmp_dF_dn3->const_view();
+            auto dF_dnv1 = tmp_dF_dnv1->const_view();
+            auto dF_dnv2 = tmp_dF_dnv2->const_view();
+
+            #ifdef FLYFT_OPENMP
+            #pragma omp parallel for schedule(static) default(none) firstprivate(mesh) \
+            shared(derivative,dF_dn0,dF_dn1,dF_dn2,dF_dn3,dF_dnv1,dF_dnv2)
+            #endif
+            for (int idx=0; idx < mesh->shape(); ++idx)
+                {
+                derivative(idx) = dF_dn0(idx) + dF_dn1(idx) + dF_dn2(idx) + dF_dn3(idx) + dF_dnv1(idx) + dF_dnv2(idx);
+                }
+            }
 
         // start communicating this type
         state->getMesh()->startSync(derivatives_(t));
@@ -583,7 +595,7 @@ void RosenfeldFMT::computeSphericalWeightedDensities(std::shared_ptr<State> stat
 
         // get the fourier transformed weighted densities for this type
             {
-            fourierTransformFieldSpherical(state->getField(t)->const_full_view(), state->getMesh()->local());
+            fourierTransformFieldSpherical(state->getField(t)->const_full_view(), mesh);
             auto rhok = ft_->const_view_reciprocal();
             auto n2k = n2k_->view();
             auto n3k = n3k_->view();
@@ -873,7 +885,7 @@ RosenfeldFMT::ConvolutionType RosenfeldFMT::getConvolutionType(std::shared_ptr<c
     }
 
 void RosenfeldFMT::fourierTransformFieldSpherical(const Field::ConstantView& input,
-                                                  std::shared_ptr<const Mesh> mesh) const
+                                                  const Mesh* mesh) const
     {
     auto tmp = tmp_r_field_->full_view();
     for (int idx=0; idx < mesh->shape() + 2*buffer_shape_; ++idx)
