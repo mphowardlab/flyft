@@ -251,21 +251,24 @@ void RosenfeldFMT::computeSphericalDerivative(std::shared_ptr<State> state)
 
     // these temporary variables will be used for convolutions of each derivative per type
     // TODO: cache allocation
-    std::shared_ptr<Field> tmp_dF_dn0, tmp_dF_dn1, tmp_dF_dn2, tmp_dF_dn3, tmp_dF_dnv1, tmp_dF_dnv2;
+    std::shared_ptr<Field> tmp_dF_dn0, tmp_dF_dn1, tmp_dF_dn2, tmp_dF_dn3, tmp_dF_dnv1, tmp_dF_dnv2, tmp_dF_dnv2_w3, tmp_dF_dnv1_w3;
     setupField(tmp_dF_dn0);
     setupField(tmp_dF_dn1);
     setupField(tmp_dF_dn2);
     setupField(tmp_dF_dn3);
     setupField(tmp_dF_dnv1);
     setupField(tmp_dF_dnv2);
-    std::unique_ptr<ComplexField> tmp_dphi_dn0k_w0k, tmp_dphi_dn1k_w1k, tmp_dphi_dn2k_w2k, tmp_dphi_dn3k_w3k, tmp_dphi_dnv1k_wv1k, tmp_dphi_dnv2k_w2k;
+    setupField(tmp_dF_dnv2_w3);
+    setupField(tmp_dF_dnv1_w3);
+    std::unique_ptr<ComplexField> tmp_dphi_dn0k_w0k, tmp_dphi_dn1k_w1k, tmp_dphi_dn2k_w2k, tmp_dphi_dn3k_w3k, tmp_dphi_dnv1k_wv1k, tmp_dphi_dnv2k_w2k,tmp_dphi_dnv2k_w3k,tmp_dphi_dnv1k_w3k;
     setupComplexField(tmp_dphi_dn0k_w0k);
     setupComplexField(tmp_dphi_dn1k_w1k);
     setupComplexField(tmp_dphi_dn2k_w2k);
     setupComplexField(tmp_dphi_dn3k_w3k);
     setupComplexField(tmp_dphi_dnv1k_wv1k);
     setupComplexField(tmp_dphi_dnv2k_w2k);
-    
+    setupComplexField(tmp_dphi_dnv2k_w3k);
+    setupComplexField(tmp_dphi_dnv1k_w3k);
     // convert phi derivatives to Fourier space for convolution, accounting for factor of r
     // these can be reused by all of the types, so we compute them first outside the type loop
         {
@@ -321,7 +324,9 @@ void RosenfeldFMT::computeSphericalDerivative(std::shared_ptr<State> state)
             auto dphi_dn3k_w3k = tmp_dphi_dn3k_w3k->view();
             auto dphi_dnv1k_wv1k = tmp_dphi_dnv1k_wv1k->view();
             auto dphi_dnv2k_wv2k = tmp_dphi_dnv2k_w2k->view();
-
+            auto dphi_dnv2k_w3k = tmp_dphi_dnv2k_w3k->view();
+            auto dphi_dnv1k_w3k = tmp_dphi_dnv1k_w3k->view();
+            
             for (int idx = 0; idx < kmesh.shape(); ++idx)
                 {
                 const double k = kmesh(idx);
@@ -338,6 +343,8 @@ void RosenfeldFMT::computeSphericalDerivative(std::shared_ptr<State> state)
                 dphi_dnv1k_wv1k(idx) = -dphi_dnv1k(idx)*wv1;
                 dphi_dnv2k_wv2k(idx) = -dphi_dnv2k(idx)*wv2;
                 // TODO: there is a missing term for nv1 and nv2
+                dphi_dnv2k_w3k(idx) = -dphi_dnv2k(idx)*w3;
+                dphi_dnv1k_w3k(idx) = -dphi_dnv1k(idx)*w3;
                 }
 
             ft_->setReciprocalData(dphi_dn0k_w0k);
@@ -363,7 +370,16 @@ void RosenfeldFMT::computeSphericalDerivative(std::shared_ptr<State> state)
             ft_->setReciprocalData(dphi_dnv2k_wv2k);
             ft_->transform();
             std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),tmp_dF_dnv2->full_view().begin());
+            
+            ft_->setReciprocalData(dphi_dnv2k_w3k);
+            ft_->transform();
+            std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),tmp_dF_dnv2_w3->full_view().begin());
+            
+            ft_->setReciprocalData(dphi_dnv1k_w3k);
+            ft_->transform();
+            std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),tmp_dF_dnv1_w3->full_view().begin());
             }
+            
         
         // normalize phi derivatives with r
             {        
@@ -373,7 +389,9 @@ void RosenfeldFMT::computeSphericalDerivative(std::shared_ptr<State> state)
             auto dF_dn3 = tmp_dF_dn3->view();
             auto dF_dnv1 = tmp_dF_dnv1->view();
             auto dF_dnv2 = tmp_dF_dnv2->view();
-
+            auto dF_dnv2_w3 = tmp_dF_dnv2_w3->view();
+            auto dF_dnv1_w3 = tmp_dF_dnv1_w3->view();
+            
             for(int idx = 0; idx < mesh->shape(); ++idx)
                 {           
                 const auto r = mesh->center(idx);
@@ -384,6 +402,8 @@ void RosenfeldFMT::computeSphericalDerivative(std::shared_ptr<State> state)
                 dF_dnv1(idx) /= r;
                 dF_dnv2(idx) /= r;
                 // TODO: extra term for nv1 and nv2
+                dF_dnv2(idx) = dF_dnv2_w3(idx)/(r*r)+dF_dnv2(idx);
+                dF_dnv1(idx) = dF_dnv1_w3(idx)/(r*r)+dF_dnv1(idx);
                 }
             }
 
