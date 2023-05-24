@@ -251,24 +251,24 @@ void RosenfeldFMT::computeSphericalDerivative(std::shared_ptr<State> state)
 
     // these temporary variables will be used for convolutions of each derivative per type
     // TODO: cache allocation
-    std::shared_ptr<Field> tmp_dF_dn0, tmp_dF_dn1, tmp_dF_dn2, tmp_dF_dn3, tmp_dF_dnv1, tmp_dF_dnv2, tmp_dF_dnv2_w3, tmp_dF_dnv1_w3;
-    setupField(tmp_dF_dn0);
-    setupField(tmp_dF_dn1);
-    setupField(tmp_dF_dn2);
-    setupField(tmp_dF_dn3);
-    setupField(tmp_dF_dnv1);
-    setupField(tmp_dF_dnv2);
-    setupField(tmp_dF_dnv2_w3);
-    setupField(tmp_dF_dnv1_w3);
-    std::unique_ptr<ComplexField> tmp_dphi_dn0k_w0k, tmp_dphi_dn1k_w1k, tmp_dphi_dn2k_w2k, tmp_dphi_dn3k_w3k, tmp_dphi_dnv1k_wv1k, tmp_dphi_dnv2k_w2k,tmp_dphi_dnv2k_w3k,tmp_dphi_dnv1k_w3k;
-    setupComplexField(tmp_dphi_dn0k_w0k);
-    setupComplexField(tmp_dphi_dn1k_w1k);
-    setupComplexField(tmp_dphi_dn2k_w2k);
-    setupComplexField(tmp_dphi_dn3k_w3k);
-    setupComplexField(tmp_dphi_dnv1k_wv1k);
-    setupComplexField(tmp_dphi_dnv2k_w2k);
-    setupComplexField(tmp_dphi_dnv2k_w3k);
-    setupComplexField(tmp_dphi_dnv1k_w3k);
+
+    setupField(tmp_field_["dF_dn0"]);
+    setupField(tmp_field_["dF_dn1"]);
+    setupField(tmp_field_["dF_dn2"]);
+    setupField(tmp_field_["dF_dn3"]);
+    setupField(tmp_field_["dF_dnv1"]);
+    setupField(tmp_field_["dF_dnv2"]);
+    setupField(tmp_field_["dF_dnv2_2"]);
+    setupField(tmp_field_["dF_dnv1_2"]);
+    
+    setupComplexField(tmp_complexfield_["dphi_dn0k_w0k"]);
+    setupComplexField(tmp_complexfield_["dphi_dn1k_w1k"]);
+    setupComplexField(tmp_complexfield_["dphi_dn2k_w2k"]);
+    setupComplexField(tmp_complexfield_["dphi_dn3k_w3k"]);
+    setupComplexField(tmp_complexfield_["dphi_dnv1k_wv1k"]);
+    setupComplexField(tmp_complexfield_["dphi_dnv2k_wv2k"]);
+    setupComplexField(tmp_complexfield_["dphi_dnv2k_w3k"]);
+    setupComplexField(tmp_complexfield_["dphi_dnv1k_w3k"]);
     // convert phi derivatives to Fourier space for convolution, accounting for factor of r
     // these can be reused by all of the types, so we compute them first outside the type loop
         {
@@ -318,14 +318,14 @@ void RosenfeldFMT::computeSphericalDerivative(std::shared_ptr<State> state)
             auto dphi_dn3k = dphi_dn3k_->const_view();
             auto dphi_dnv1k = dphi_dnv1k_->const_view();
             auto dphi_dnv2k = dphi_dnv2k_->const_view();
-            auto dphi_dn0k_w0k = tmp_dphi_dn0k_w0k->view();
-            auto dphi_dn1k_w1k = tmp_dphi_dn1k_w1k->view();
-            auto dphi_dn2k_w2k = tmp_dphi_dn2k_w2k->view();
-            auto dphi_dn3k_w3k = tmp_dphi_dn3k_w3k->view();
-            auto dphi_dnv1k_wv1k = tmp_dphi_dnv1k_wv1k->view();
-            auto dphi_dnv2k_wv2k = tmp_dphi_dnv2k_w2k->view();
-            auto dphi_dnv2k_w3k = tmp_dphi_dnv2k_w3k->view();
-            auto dphi_dnv1k_w3k = tmp_dphi_dnv1k_w3k->view();
+            auto dphi_dn0k_w0k = tmp_complexfield_["dphi_dn0k_w0k"]->view();
+            auto dphi_dn1k_w1k = tmp_complexfield_["dphi_dn1k_w1k"]->view();
+            auto dphi_dn2k_w2k = tmp_complexfield_["dphi_dn2k_w2k"]->view();
+            auto dphi_dn3k_w3k = tmp_complexfield_["dphi_dn3k_w3k"]->view();
+            auto dphi_dnv1k_wv1k = tmp_complexfield_["dphi_dnv1k_wv1k"]->view();
+            auto dphi_dnv2k_wv2k = tmp_complexfield_["dphi_dnv2k_wv2k"]->view();
+            auto dphi_dnv2k_w3k = tmp_complexfield_["dphi_dnv2k_w3k"]->view();
+            auto dphi_dnv1k_w3k = tmp_complexfield_["dphi_dnv1k_w3k"]->view();
             
             for (int idx = 0; idx < kmesh.shape(); ++idx)
                 {
@@ -349,48 +349,48 @@ void RosenfeldFMT::computeSphericalDerivative(std::shared_ptr<State> state)
 
             ft_->setReciprocalData(dphi_dn0k_w0k);
             ft_->transform();
-            std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),tmp_dF_dn0->full_view().begin());
+            std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),tmp_field_["dF_dn0"]->full_view().begin());
 
             ft_->setReciprocalData(dphi_dn1k_w1k);
             ft_->transform();
-            std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),tmp_dF_dn1->full_view().begin());
+            std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),tmp_field_["dF_dn1"]->full_view().begin());
 
             ft_->setReciprocalData(dphi_dn2k_w2k);
             ft_->transform();
-            std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),tmp_dF_dn2->full_view().begin());
+            std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),tmp_field_["dF_dn2"]->full_view().begin());
 
             ft_->setReciprocalData(dphi_dn3k_w3k);
             ft_->transform();
-            std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),tmp_dF_dn3->full_view().begin());
+            std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),tmp_field_["dF_dn3"]->full_view().begin());
 
             ft_->setReciprocalData(dphi_dnv1k_wv1k);
             ft_->transform();
-            std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),tmp_dF_dnv1->full_view().begin());
+            std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),tmp_field_["dF_dnv1"]->full_view().begin());
             
             ft_->setReciprocalData(dphi_dnv2k_wv2k);
             ft_->transform();
-            std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),tmp_dF_dnv2->full_view().begin());
+            std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),tmp_field_["dF_dnv2"]->full_view().begin());
             
             ft_->setReciprocalData(dphi_dnv2k_w3k);
             ft_->transform();
-            std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),tmp_dF_dnv2_w3->full_view().begin());
+            std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),tmp_field_["dF_dnv2_2"]->full_view().begin());
             
             ft_->setReciprocalData(dphi_dnv1k_w3k);
             ft_->transform();
-            std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),tmp_dF_dnv1_w3->full_view().begin());
+            std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),tmp_field_["dF_dnv2_2"]->full_view().begin());
             }
             
         
         // normalize phi derivatives with r
             {        
-            auto dF_dn0 = tmp_dF_dn0->view();
-            auto dF_dn1 = tmp_dF_dn1->view();
-            auto dF_dn2 = tmp_dF_dn2->view();
-            auto dF_dn3 = tmp_dF_dn3->view();
-            auto dF_dnv1 = tmp_dF_dnv1->view();
-            auto dF_dnv2 = tmp_dF_dnv2->view();
-            auto dF_dnv2_w3 = tmp_dF_dnv2_w3->view();
-            auto dF_dnv1_w3 = tmp_dF_dnv1_w3->view();
+            auto dF_dn0 = tmp_field_["dF_dn0"]->view();
+            auto dF_dn1 = tmp_field_["dF_dn1"]->view();
+            auto dF_dn2 = tmp_field_["dF_dn2"]->view();
+            auto dF_dn3 = tmp_field_["dF_dn3"]->view();
+            auto dF_dnv1 = tmp_field_["dF_dnv1"]->view();
+            auto dF_dnv2 = tmp_field_["dF_dnv2"]->view();
+            auto dF_dnv2_2 = tmp_field_["dF_dnv2_2"]->view();
+            auto dF_dnv1_2 = tmp_field_["dF_dnv1_2"]->view();
             
             for(int idx = 0; idx < mesh->shape(); ++idx)
                 {           
@@ -402,8 +402,8 @@ void RosenfeldFMT::computeSphericalDerivative(std::shared_ptr<State> state)
                 dF_dnv1(idx) /= r;
                 dF_dnv2(idx) /= r;
                 // TODO: extra term for nv1 and nv2
-                dF_dnv2(idx) = dF_dnv2_w3(idx)/(r*r)+dF_dnv2(idx);
-                dF_dnv1(idx) = dF_dnv1_w3(idx)/(r*r)+dF_dnv1(idx);
+                dF_dnv2(idx) += dF_dnv2_2(idx)/(r*r);
+                dF_dnv1(idx) += dF_dnv1_2(idx)/(r*r);
                 }
             }
 
@@ -417,12 +417,12 @@ void RosenfeldFMT::computeSphericalDerivative(std::shared_ptr<State> state)
             auto dphi_dnv1 = dphi_dnv1_->const_view();
             auto dphi_dnv2 = dphi_dnv2_->const_view();
 
-            auto dF_dn0 = tmp_dF_dn0->view();
-            auto dF_dn1 = tmp_dF_dn1->view();
-            auto dF_dn2 = tmp_dF_dn2->view();
-            auto dF_dn3 = tmp_dF_dn3->view();
-            auto dF_dnv1 = tmp_dF_dnv1->view();
-            auto dF_dnv2 = tmp_dF_dnv2->view();
+            auto dF_dn0 = tmp_field_["dF_dn0"]->view();
+            auto dF_dn1 = tmp_field_["dF_dn1"]->view();
+            auto dF_dn2 = tmp_field_["dF_dn2"]->view();
+            auto dF_dn3 = tmp_field_["dF_dn3"]->view();
+            auto dF_dnv1 = tmp_field_["dF_dnv1"]->view();
+            auto dF_dnv2 = tmp_field_["dF_dnv2"]->view();
 
             const auto dr = mesh->step();
             for (int idx=0; idx < std::min(mesh->bin(R), mesh->shape()); ++idx)
@@ -470,12 +470,12 @@ void RosenfeldFMT::computeSphericalDerivative(std::shared_ptr<State> state)
             {
             auto derivative = derivatives_(t)->view();
 
-            auto dF_dn0 = tmp_dF_dn0->const_view();
-            auto dF_dn1 = tmp_dF_dn1->const_view();
-            auto dF_dn2 = tmp_dF_dn2->const_view();
-            auto dF_dn3 = tmp_dF_dn3->const_view();
-            auto dF_dnv1 = tmp_dF_dnv1->const_view();
-            auto dF_dnv2 = tmp_dF_dnv2->const_view();
+            auto dF_dn0 = tmp_field_["dF_dn0"]->const_view();
+            auto dF_dn1 = tmp_field_["dF_dn1"]->const_view();
+            auto dF_dn2 = tmp_field_["dF_dn2"]->const_view();
+            auto dF_dn3 = tmp_field_["dF_dn3"]->const_view();
+            auto dF_dnv1 = tmp_field_["dF_dnv1"]->const_view();
+            auto dF_dnv2 = tmp_field_["dF_dnv2"]->const_view();
 
             #ifdef FLYFT_OPENMP
             #pragma omp parallel for schedule(static) default(none) firstprivate(mesh) \
@@ -595,13 +595,13 @@ void RosenfeldFMT::computeSphericalWeightedDensities(std::shared_ptr<State> stat
 
     // weighted densities by type
     // TODO: we should only be alloc'ing these once, will fix later
-    std::shared_ptr<Field> tmp_n0, tmp_n1, tmp_n2, tmp_n3, tmp_nv1, tmp_nv2;
-    setupField(tmp_n0);
-    setupField(tmp_n1);
-    setupField(tmp_n2);
-    setupField(tmp_n3);
-    setupField(tmp_nv1);
-    setupField(tmp_nv2);
+    
+    setupField(tmp_field_["n0"]);
+    setupField(tmp_field_["n1"]);
+    setupField(tmp_field_["n2"]);
+    setupField(tmp_field_["n3"]);
+    setupField(tmp_field_["nv1"]);
+    setupField(tmp_field_["nv2"]);
 
     for (const auto& t : state->getTypes())
         {
@@ -641,21 +641,21 @@ void RosenfeldFMT::computeSphericalWeightedDensities(std::shared_ptr<State> stat
         // no need for a factor of mesh.step() here because w is analytical
         ft_->setReciprocalData(n2k_->const_view());
         ft_->transform();
-        std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),tmp_n2->full_view().begin());
+        std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),tmp_field_["n2"]->full_view().begin());
 
         ft_->setReciprocalData(n3k_->const_view());
         ft_->transform();
-        std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),tmp_n3->full_view().begin());
+        std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),tmp_field_["n3"]->full_view().begin());
 
         ft_->setReciprocalData(nv2k_->const_view());
         ft_->transform();
-        std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),tmp_nv2->full_view().begin());
+        std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),tmp_field_["nv2"]->full_view().begin());
 
         // divide through by r
             {
-            auto n2i = tmp_n2->view();
-            auto n3i = tmp_n3->view();
-            auto nv2i = tmp_nv2->view();
+            auto n2i = tmp_field_["n2"]->view();
+            auto n3i = tmp_field_["n3"]->view();
+            auto nv2i = tmp_field_["nv2"]->view();
             for(int idx = 0; idx < mesh->shape(); ++idx)
                 {           
                 const auto r = mesh->center(idx);
@@ -672,9 +672,9 @@ void RosenfeldFMT::computeSphericalWeightedDensities(std::shared_ptr<State> stat
             const auto r_rho = tmp_r_field_->view();
             const auto dr = mesh->step();
 
-            auto n2i = tmp_n2->view();
-            auto n3i = tmp_n3->view();
-            auto nv2i = tmp_nv2->view();
+            auto n2i = tmp_field_["n2"]->view();
+            auto n3i = tmp_field_["n3"]->view();
+            auto nv2i = tmp_field_["nv2"]->view();
 
             for (int idx=0; idx < std::min(mesh->bin(R), mesh->shape()); ++idx)
                 {
@@ -711,9 +711,9 @@ void RosenfeldFMT::computeSphericalWeightedDensities(std::shared_ptr<State> stat
             auto nv1 = nv1_->view();
             auto nv2 = nv2_->view();
 
-            auto n2i = tmp_n2->const_view();
-            auto n3i = tmp_n3->const_view();
-            auto nv2i = tmp_nv2->const_view();
+            auto n2i = tmp_field_["n2"]->const_view();
+            auto n3i = tmp_field_["n3"]->const_view();
+            auto nv2i = tmp_field_["nv2"]->const_view();
             
             for (int idx=0; idx < mesh->shape(); ++idx)
                 {

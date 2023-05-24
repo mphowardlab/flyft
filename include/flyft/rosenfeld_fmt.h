@@ -67,6 +67,9 @@ class RosenfeldFMT : public Functional
 
         void computeCartesianWeightedDensities(std::shared_ptr<State> state);
         void computeSphericalWeightedDensities(std::shared_ptr<State> state);
+        
+        std::map<std::string,std::shared_ptr<Field>> tmp_field_;
+        std::map<std::string,std::unique_ptr<ComplexField>> tmp_complexfield_;
 
         void computePhiAndDerivatives(int idx,
                                       Field::View& phi,
