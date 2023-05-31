@@ -46,13 +46,6 @@ class RosenfeldFMT : public Functional
         std::shared_ptr<Field> dphi_dnv1_;
         std::shared_ptr<Field> dphi_dnv2_;
 
-        std::unique_ptr<ComplexField> n0k_;
-        std::unique_ptr<ComplexField> n1k_;
-        std::unique_ptr<ComplexField> n2k_;
-        std::unique_ptr<ComplexField> n3k_;
-        std::unique_ptr<ComplexField> nv1k_;
-        std::unique_ptr<ComplexField> nv2k_;
-
         std::unique_ptr<ComplexField> dphi_dn0k_;
         std::unique_ptr<ComplexField> dphi_dn1k_;
         std::unique_ptr<ComplexField> dphi_dn2k_;
@@ -69,7 +62,7 @@ class RosenfeldFMT : public Functional
         void computeSphericalWeightedDensities(std::shared_ptr<State> state);
         
         std::map<std::string,std::shared_ptr<Field>> tmp_field_;
-        std::map<std::string,std::unique_ptr<ComplexField>> tmp_complexfield_;
+        std::map<std::string,std::unique_ptr<ComplexField>> tmp_complex_field_;
 
         void computePhiAndDerivatives(int idx,
                                       Field::View& phi,
