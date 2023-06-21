@@ -422,7 +422,6 @@ void RosenfeldFMT::computeSphericalDerivative(std::shared_ptr<State> state)
             auto dF_dnv1 = tmp_field_["dF_dnv1"]->view();
             auto dF_dnv2 = tmp_field_["dF_dnv2"]->view();
 
-            const auto dr = mesh->step();
             for (int idx=0; idx < std::min(mesh->bin(R), mesh->shape()); ++idx)
                 {
                 // reset values for this bin
@@ -432,35 +431,69 @@ void RosenfeldFMT::computeSphericalDerivative(std::shared_ptr<State> state)
                 dF_dn3(idx) = 0.;
                 dF_dnv1(idx) = 0.;
                 dF_dnv2(idx) = 0.;
-
+                
+                double dF_dn3_1 = 0;
+                double dF_dn3_2 = 0;
                 // take integrals using quadrature
                 const auto r = mesh->center(idx);
-                const auto lower_bin = mesh->bin(0.);
-                const auto split_bin = mesh->bin(R-r);
-                const auto upper_bin = mesh->bin(r+R);
+                const auto lower = 0.;
+                const auto split = R-r;
+                const auto upper = r+R;
                 const double sq_R = R*R;
-                for (int ig_idx=lower_bin; ig_idx < split_bin; ++ig_idx)
+                
+                double n = 10000;
+                double x;
+                double dr;
+                
+                //Trapezoidal integral 1
+                dr = split/n;
+                x = lower;
+                
+                for (int ig_idx=0; ig_idx <=n; ++ig_idx)
                     {
-                    const auto rig = mesh->center(ig_idx);
-                    dF_dn3(idx) += 4. * M_PI * dphi_dn3(ig_idx) * (rig * rig) * dr;
+                    const auto dphi_dn3_ig = mesh->interpolate(x, dphi_dn3);
+                    const double factor = (ig_idx == 0 || ig_idx == n) ? 0.5 : 1.0;
+                    dF_dn3_1 += factor * 4. * M_PI * dphi_dn3_ig * (x* x) ;
+                    x += dr;
                     }
-                for (int ig_idx=split_bin; ig_idx < upper_bin; ++ig_idx)
+                    
+                //Trapezoidal integral 2
+                dr = (upper-split)/n;
+                x = split;                
+                
+                for (int ig_idx=0; ig_idx <=n; ++ig_idx)
                     {
-                    const auto rig = mesh->center(ig_idx);
-                    const double kernel_w3 = rig * (M_PI/r) * (sq_R - (r-rig)*(r-rig));
-                    const double kernel_w2 = rig * (2.*M_PI*R/r);
+                    const double kernel_w3 = x * (M_PI/r) * (sq_R - (r-x)*(r-x));
+                    const double kernel_w2 = x * (2.*M_PI*R/r);
                     // minus sign for wv2 kernel to account for swap of variables in convolution with odd function
-                    const double kernel_wv2 = -rig * (M_PI/(r*r)) * (R*R + r*r - rig*rig);
+                    const double kernel_wv2 = -x * (M_PI/(r*r)) * (R*R + r*r - x*x);
                     double kernel_w0, kernel_w1, kernel_wv1;
                     computeProportionalByWeight(kernel_w0, kernel_w1, kernel_wv1, kernel_w2, kernel_wv2, R);
+                    
+                    const double factor = (ig_idx == 0 || ig_idx == n) ? 0.5 : 1.0;
+                    double dphi_dn0_ig = mesh->interpolate(x, dphi_dn0);
+                    double dphi_dn1_ig = mesh->interpolate(x, dphi_dn1);
+                    double dphi_dn2_ig = mesh->interpolate(x, dphi_dn2);
+                    double dphi_dn3_ig = mesh->interpolate(x, dphi_dn3);
+                    double dphi_dnv1_ig = mesh->interpolate(x, dphi_dnv1);
+                    double dphi_dnv2_ig = mesh->interpolate(x, dphi_dnv2);
+                    
 
-                    dF_dn0(idx) += dphi_dn0(ig_idx)* kernel_w0 * dr;
-                    dF_dn1(idx) += dphi_dn1(ig_idx)* kernel_w1 * dr;
-                    dF_dn2(idx) += dphi_dn2(ig_idx)* kernel_w1 * dr;
-                    dF_dn3(idx) += dphi_dn3(ig_idx) * kernel_w3 * dr;
-                    dF_dnv1(idx) += dphi_dnv1(ig_idx) * kernel_wv1 * dr;
-                    dF_dnv2(idx) += dphi_dnv2(ig_idx) * kernel_wv2 * dr;
+                    dF_dn0(idx) += factor * dphi_dn0_ig * kernel_w0;
+                    dF_dn1(idx) += factor * dphi_dn1_ig * kernel_w1 ;
+                    dF_dn2(idx) += factor * dphi_dn2_ig * kernel_w1 ;
+                    dF_dn3_2 += factor * dphi_dn3_ig * kernel_w3 ;
+                    dF_dnv1(idx) += factor * dphi_dnv1_ig * kernel_wv1 ;
+                    dF_dnv2(idx) += factor * dphi_dnv2_ig* kernel_wv2 ;
+                    x += dr;               
                     }
+                
+                dF_dn0(idx) *= dr;
+                dF_dn1(idx) *= dr;
+                dF_dn2(idx) *= dr;
+                dF_dn3(idx) = (dF_dn3_1+dF_dn3_2)*dr; 
+                dF_dnv1(idx) *= dr;
+                dF_dnv2(idx) *= dr;          
                 }
             }
 
@@ -662,36 +695,63 @@ void RosenfeldFMT::computeSphericalWeightedDensities(std::shared_ptr<State> stat
         // fix up n for the r values that are close to the origin
         if (mesh->lower_bound(0) < R)
             {
-            const auto r_rho = tmp_r_field_->view();
-            const auto dr = mesh->step();
-
+            const auto rho = state->getField(t)->const_view(); 
             auto n2i = tmp_field_["n2"]->view();
             auto n3i = tmp_field_["n3"]->view();
             auto nv2i = tmp_field_["nv2"]->view();
-
+            
+            
             for (int idx=0; idx < std::min(mesh->bin(R), mesh->shape()); ++idx)
                 {
                 // reset n for this bin
                 n2i(idx) = 0.;
                 n3i(idx) = 0.;
                 nv2i(idx) = 0.;
-
-                // take integrals using quadrature
+                    
+                // take integrals using trapezoidal rule
                 const auto r = mesh->center(idx);
-                const auto lower_bin = mesh->bin(0.);
-                const auto split_bin = mesh->bin(R-r);
-                const auto upper_bin = mesh->bin(r+R);
-                for (int ig_idx=lower_bin; ig_idx < split_bin; ++ig_idx)
+    
+                const double lower = 0;
+                const double split = R-r;
+                const double upper = r+R;
+                double x ;
+                double n = 10000;
+                double dr;
+            
+                //Initial step for the first integral 
+                double n3_ig_1 = 0;
+                double n3_ig_2 = 0; 
+                double n2_ig_2 = 0;
+                double nv2_ig_2 = 0;
+            
+                //Integral from 0 to R-r
+                x = lower;
+                dr = split/n;
+                for (int ig_idx=1; ig_idx <n; ig_idx++)
                     {
-                    n3i(idx) += 4. * M_PI * r_rho(ig_idx) * mesh->center(ig_idx) * dr;
+                    const double factor = (ig_idx == 0 || ig_idx == n) ? 0.5 : 1.0;
+                    double rho_ig = mesh->interpolate(x, rho);
+                    n3_ig_1 += factor * 4*M_PI* x * x * rho_ig;
+                    x += dr;
                     }
-                for (int ig_idx=split_bin; ig_idx < upper_bin; ++ig_idx)
+                
+                 //Integral from R-r to r+R
+                 x = split;
+                 dr = (upper-split)/n;
+
+                for (int ig_idx=1; ig_idx <n; ig_idx++)
                     {
-                    const auto rig = mesh->center(ig_idx);
-                    n3i(idx) += (M_PI/r) * r_rho(ig_idx) * (R*R - (r-rig)*(r-rig)) * dr;
-                    n2i(idx) += (2.*M_PI*R/r) * r_rho(ig_idx) * dr;
-                    nv2i(idx) += (M_PI/(r*r)) * r_rho(ig_idx) * (R*R + r*r - rig*rig) * dr;
+                    const double factor = (ig_idx == 0 || ig_idx == n) ? 0.5 : 1.0;
+                    const auto rho_ig = mesh->interpolate(x,rho);
+                    n3_ig_2 += factor * (M_PI/r) * (rho_ig *x* (R*R - (r-x)*(r-x)));
+                    n2_ig_2 += factor * (2.*M_PI*R/r) * rho_ig * x;
+                    nv2_ig_2 += factor * (M_PI/(r*r)) * (rho_ig * x  * (R*R + r*r - x*x));
+                    x +=dr;
                     }
+                    
+                n3i(idx) = (n3_ig_1+ n3_ig_2)*dr;
+                n2i(idx) = n2_ig_2*dr;
+                nv2i(idx) = nv2_ig_2*dr;
                 }
             }
 
@@ -719,6 +779,11 @@ void RosenfeldFMT::computeSphericalWeightedDensities(std::shared_ptr<State> stat
                 n3(idx) += n3i(idx);
                 nv1(idx) += nv1i;
                 nv2(idx) += nv2i(idx);
+                
+                
+                std::cout<<mesh->center(idx)<<", "<<n3(idx)<<", "<<n2(idx) <<", "<<nv2(idx)<<std::endl;
+                
+                
                 }
             }
         }

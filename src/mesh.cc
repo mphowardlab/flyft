@@ -105,19 +105,33 @@ double Mesh::integrateVolume(int idx, const DataView<const double>& f) const
     return integrateVolume(idx, f(idx));
     }
 
-double Mesh::interpolate(int /*i*/,double f_lo, double f_hi) const
+double Mesh::interpolate(double x, const DataView<double>& f) const
     {
-    return 0.5*(f_lo+f_hi);
+    return interpolate(x,f);
     }
 
-double Mesh::interpolate(int idx, const DataView<double>& f) const
+double Mesh::interpolate(double x, const DataView<const double>& f) const
     {
-    return interpolate(idx,f(idx-1),f(idx));
-    }
+    const auto idx = bin(x);
+    const auto x_c = center(idx);
 
-double Mesh::interpolate(int idx, const DataView<const double>& f) const
-    {
-    return interpolate(idx,f(idx-1),f(idx));
+    double x_0, x_1, f_0, f_1;
+    if (x < x_c)
+        {
+        x_0 = center(idx - 1);
+        x_1 = x_c;
+        f_0 = f(idx - 1);
+        f_1 = f(idx);
+        }
+    else
+        {
+        x_0 = x_c;
+        x_1 = center(idx + 1);
+        f_0 = f(idx);
+        f_1 = f(idx + 1);
+        }
+
+    return f_0 + (x - x_0) * (f_1 - f_0) / (x_1 - x_0);
     }
 
 double Mesh::gradient(int idx, const DataView<double>& f) const
