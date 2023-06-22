@@ -441,7 +441,7 @@ void RosenfeldFMT::computeSphericalDerivative(std::shared_ptr<State> state)
                 const auto upper = r+R;
                 const double sq_R = R*R;
                 
-                double n = 10000;
+                double n = 100;
                 double x;
                 double dr;
                 
@@ -453,7 +453,7 @@ void RosenfeldFMT::computeSphericalDerivative(std::shared_ptr<State> state)
                     {
                     const auto dphi_dn3_ig = mesh->interpolate(x, dphi_dn3);
                     const double factor = (ig_idx == 0 || ig_idx == n) ? 0.5 : 1.0;
-                    dF_dn3_1 += factor * 4. * M_PI * dphi_dn3_ig * (x* x) ;
+                    dF_dn3_1 += factor * 4. * M_PI * dphi_dn3_ig * (x * x) ;
                     x += dr;
                     }
                     
@@ -715,7 +715,7 @@ void RosenfeldFMT::computeSphericalWeightedDensities(std::shared_ptr<State> stat
                 const double split = R-r;
                 const double upper = r+R;
                 double x ;
-                double n = 10000;
+                double n = 100;
                 double dr;
             
                 //Initial step for the first integral 
@@ -727,7 +727,7 @@ void RosenfeldFMT::computeSphericalWeightedDensities(std::shared_ptr<State> stat
                 //Integral from 0 to R-r
                 x = lower;
                 dr = split/n;
-                for (int ig_idx=1; ig_idx <n; ig_idx++)
+                for (int ig_idx=0; ig_idx <=n; ig_idx++)
                     {
                     const double factor = (ig_idx == 0 || ig_idx == n) ? 0.5 : 1.0;
                     double rho_ig = mesh->interpolate(x, rho);
@@ -739,7 +739,7 @@ void RosenfeldFMT::computeSphericalWeightedDensities(std::shared_ptr<State> stat
                  x = split;
                  dr = (upper-split)/n;
 
-                for (int ig_idx=1; ig_idx <n; ig_idx++)
+                for (int ig_idx=0; ig_idx <=n; ig_idx++)
                     {
                     const double factor = (ig_idx == 0 || ig_idx == n) ? 0.5 : 1.0;
                     const auto rho_ig = mesh->interpolate(x,rho);
@@ -780,10 +780,7 @@ void RosenfeldFMT::computeSphericalWeightedDensities(std::shared_ptr<State> stat
                 nv1(idx) += nv1i;
                 nv2(idx) += nv2i(idx);
                 
-                
                 std::cout<<mesh->center(idx)<<", "<<n3(idx)<<", "<<n2(idx) <<", "<<nv2(idx)<<std::endl;
-                
-                
                 }
             }
         }
