@@ -436,17 +436,18 @@ void RosenfeldFMT::computeSphericalDerivative(std::shared_ptr<State> state)
                 double dF_dn3_2 = 0;
                 // take integrals using quadrature
                 const auto r = mesh->center(idx);
-                const auto lower = 0.;
-                const auto split = R-r;
-                const auto upper = r+R;
+                const double lower = 0.;
+                const double split = R-r;
+                const double upper = r+R;
                 const double sq_R = R*R;
-                
+                const double sq_r = r*r;
+
                 double n = 100;
                 double x;
                 double dr;
                 
-                //Trapezoidal integral 1
-                dr = split/n;
+                //Integral 1
+                dr = (split-lower)/n;
                 x = lower;
                 
                 for (int ig_idx=0; ig_idx <=n; ++ig_idx)
@@ -456,8 +457,9 @@ void RosenfeldFMT::computeSphericalDerivative(std::shared_ptr<State> state)
                     dF_dn3_1 += factor * 4. * M_PI * dphi_dn3_ig * (x * x) ;
                     x += dr;
                     }
-                    
-                //Trapezoidal integral 2
+                    dF_dn3_1 *= dr;           
+
+                //Integral 2
                 dr = (upper-split)/n;
                 x = split;                
                 
@@ -466,17 +468,17 @@ void RosenfeldFMT::computeSphericalDerivative(std::shared_ptr<State> state)
                     const double kernel_w3 = x * (M_PI/r) * (sq_R - (r-x)*(r-x));
                     const double kernel_w2 = x * (2.*M_PI*R/r);
                     // minus sign for wv2 kernel to account for swap of variables in convolution with odd function
-                    const double kernel_wv2 = -x * (M_PI/(r*r)) * (R*R + r*r - x*x);
+                    const double kernel_wv2 = -x * (M_PI/(sq_r)) * (sq_R + sq_r - x*x);
                     double kernel_w0, kernel_w1, kernel_wv1;
                     computeProportionalByWeight(kernel_w0, kernel_w1, kernel_wv1, kernel_w2, kernel_wv2, R);
                     
                     const double factor = (ig_idx == 0 || ig_idx == n) ? 0.5 : 1.0;
-                    double dphi_dn0_ig = mesh->interpolate(x, dphi_dn0);
-                    double dphi_dn1_ig = mesh->interpolate(x, dphi_dn1);
-                    double dphi_dn2_ig = mesh->interpolate(x, dphi_dn2);
-                    double dphi_dn3_ig = mesh->interpolate(x, dphi_dn3);
-                    double dphi_dnv1_ig = mesh->interpolate(x, dphi_dnv1);
-                    double dphi_dnv2_ig = mesh->interpolate(x, dphi_dnv2);
+                    const auto dphi_dn0_ig = mesh->interpolate(x, dphi_dn0);
+                    const auto dphi_dn1_ig = mesh->interpolate(x, dphi_dn1);
+                    const auto dphi_dn2_ig = mesh->interpolate(x, dphi_dn2);
+                    const auto dphi_dn3_ig = mesh->interpolate(x, dphi_dn3);
+                    const auto dphi_dnv1_ig = mesh->interpolate(x, dphi_dnv1);
+                    const auto dphi_dnv2_ig = mesh->interpolate(x, dphi_dnv2);
                     
 
                     dF_dn0(idx) += factor * dphi_dn0_ig * kernel_w0;
@@ -491,7 +493,7 @@ void RosenfeldFMT::computeSphericalDerivative(std::shared_ptr<State> state)
                 dF_dn0(idx) *= dr;
                 dF_dn1(idx) *= dr;
                 dF_dn2(idx) *= dr;
-                dF_dn3(idx) = (dF_dn3_1+dF_dn3_2)*dr; 
+                dF_dn3(idx) = dF_dn3_1+dF_dn3_2*dr; 
                 dF_dnv1(idx) *= dr;
                 dF_dnv2(idx) *= dr;          
                 }
@@ -718,11 +720,11 @@ void RosenfeldFMT::computeSphericalWeightedDensities(std::shared_ptr<State> stat
                 double n = 100;
                 double dr;
             
-                //Initial step for the first integral 
+                //Initializing n3 integrals 
                 double n3_ig_1 = 0;
                 double n3_ig_2 = 0; 
-                double n2_ig_2 = 0;
-                double nv2_ig_2 = 0;
+               
+               
             
                 //Integral from 0 to R-r
                 x = lower;
@@ -734,7 +736,8 @@ void RosenfeldFMT::computeSphericalWeightedDensities(std::shared_ptr<State> stat
                     n3_ig_1 += factor * 4*M_PI* x * x * rho_ig;
                     x += dr;
                     }
-                
+                 n3_ig_1 *= dr;                
+                 
                  //Integral from R-r to r+R
                  x = split;
                  dr = (upper-split)/n;
@@ -744,14 +747,14 @@ void RosenfeldFMT::computeSphericalWeightedDensities(std::shared_ptr<State> stat
                     const double factor = (ig_idx == 0 || ig_idx == n) ? 0.5 : 1.0;
                     const auto rho_ig = mesh->interpolate(x,rho);
                     n3_ig_2 += factor * (M_PI/r) * (rho_ig *x* (R*R - (r-x)*(r-x)));
-                    n2_ig_2 += factor * (2.*M_PI*R/r) * rho_ig * x;
-                    nv2_ig_2 += factor * (M_PI/(r*r)) * (rho_ig * x  * (R*R + r*r - x*x));
+                    n2i(idx) += factor * (2.*M_PI*R/r) * rho_ig * x;
+                    nv2i(idx) += factor * (M_PI/(r*r)) * (rho_ig * x  * (R*R + r*r - x*x));
                     x +=dr;
                     }
                     
-                n3i(idx) = (n3_ig_1+ n3_ig_2)*dr;
-                n2i(idx) = n2_ig_2*dr;
-                nv2i(idx) = nv2_ig_2*dr;
+                n3i(idx) = n3_ig_1+ n3_ig_2 * dr;
+                n2i(idx) *= dr;
+                nv2i(idx) *= dr;
                 }
             }
 
@@ -778,9 +781,7 @@ void RosenfeldFMT::computeSphericalWeightedDensities(std::shared_ptr<State> stat
                 n2(idx) += n2i(idx);
                 n3(idx) += n3i(idx);
                 nv1(idx) += nv1i;
-                nv2(idx) += nv2i(idx);
-                
-                std::cout<<mesh->center(idx)<<", "<<n3(idx)<<", "<<n2(idx) <<", "<<nv2(idx)<<std::endl;
+                nv2(idx) += nv2i(idx);    
                 }
             }
         }
