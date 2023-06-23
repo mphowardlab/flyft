@@ -441,14 +441,13 @@ void RosenfeldFMT::computeSphericalDerivative(std::shared_ptr<State> state)
                 const double upper = r+R;
                 const double sq_R = R*R;
                 const double sq_r = r*r;
-
-                double n = 100;
-                double x;
-                double dr;
                 
-                //Integral 1
-                dr = (split-lower)/n;
-                x = lower;
+                //integral 1
+                //we have found 100 points works well
+
+                const int n = 100;
+                double dr = (split-lower)/n;
+                double x = lower;
                 
                 for (int ig_idx=0; ig_idx <=n; ++ig_idx)
                     {
@@ -716,19 +715,17 @@ void RosenfeldFMT::computeSphericalWeightedDensities(std::shared_ptr<State> stat
                 const double lower = 0;
                 const double split = R-r;
                 const double upper = r+R;
-                double x ;
-                double n = 100;
-                double dr;
             
-                //Initializing n3 integrals 
+                // initializing n3 integrals 
                 double n3_ig_1 = 0;
                 double n3_ig_2 = 0; 
                
                
             
-                //Integral from 0 to R-r
-                x = lower;
-                dr = split/n;
+                // integral from 0 to R-r
+                const int n = 100;
+                double x = lower;
+                double dr = (split-lower)/n;
                 for (int ig_idx=0; ig_idx <=n; ig_idx++)
                     {
                     const double factor = (ig_idx == 0 || ig_idx == n) ? 0.5 : 1.0;
