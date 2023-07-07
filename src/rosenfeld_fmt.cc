@@ -482,7 +482,7 @@ void RosenfeldFMT::computeSphericalDerivative(std::shared_ptr<State> state)
 
                     dF_dn0(idx) += factor * dphi_dn0_ig * kernel_w0;
                     dF_dn1(idx) += factor * dphi_dn1_ig * kernel_w1 ;
-                    dF_dn2(idx) += factor * dphi_dn2_ig * kernel_w1 ;
+                    dF_dn2(idx) += factor * dphi_dn2_ig * kernel_w2 ;
                     dF_dn3_2 += factor * dphi_dn3_ig * kernel_w3 ;
                     dF_dnv1(idx) += factor * dphi_dnv1_ig * kernel_wv1 ;
                     dF_dnv2(idx) += factor * dphi_dnv2_ig* kernel_wv2 ;
