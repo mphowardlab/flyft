@@ -142,6 +142,260 @@ void RosenfeldFMT::_compute(std::shared_ptr<State> state, bool compute_value)
         }
     }
 
+void RosenfeldFMT::computeCartesianWeightedDensities(std::shared_ptr<State> state)
+    {
+    const auto kmesh = ft_->getWavevectors();
+    
+    // zero the weights before accumulating by type
+    std::fill(tmp_complex_field_["n0k"]->view().begin(), tmp_complex_field_["n0k"]->view().end(), 0.);
+    std::fill(tmp_complex_field_["n1k"]->view().begin(), tmp_complex_field_["n1k"]->view().end(), 0.);
+    std::fill(tmp_complex_field_["n2k"]->view().begin(), tmp_complex_field_["n2k"]->view().end(), 0.);
+    std::fill(tmp_complex_field_["n3k"]->view().begin(), tmp_complex_field_["n3k"]->view().end(), 0.);
+    std::fill(tmp_complex_field_["nv1k"]->view().begin(), tmp_complex_field_["nv1k"]->view().end(), 0.);
+    std::fill(tmp_complex_field_["nv2k"]->view().begin(), tmp_complex_field_["nv2k"]->view().end(), 0.);
+
+    for (const auto& t : state->getTypes())
+        {
+        // hard-sphere radius
+        const double R = 0.5*diameters_(t);
+        if (R == 0.)
+            {
+            // no radius, no weights contribute (skip)
+            continue;
+            }
+
+        // fft the density
+        ft_->setRealData(state->getField(t)->const_full_view());
+        ft_->transform();
+        auto rhok = ft_->const_view_reciprocal();
+
+        // accumulate the fourier transformed densities into n
+        auto n0k = tmp_complex_field_["n0k"]->view();
+        auto n1k = tmp_complex_field_["n1k"]->view();
+        auto n2k = tmp_complex_field_["n2k"]->view();
+        auto n3k = tmp_complex_field_["n3k"]->view();
+        auto nv1k = tmp_complex_field_["nv1k"]->view();
+        auto nv2k = tmp_complex_field_["nv2k"]->view();
+        #ifdef FLYFT_OPENMP
+        #pragma omp parallel for schedule(static) default(none) firstprivate(R,kmesh) shared(rhok,n0k,n1k,n2k,n3k,nv1k,nv2k)
+        #endif
+        for (int idx=0; idx < kmesh.shape(); ++idx)
+            {
+            const double k = kmesh(idx);
+
+            // compute weights at this k, using limiting values for k = 0
+            std::complex<double> w0,w1,w2,w3,wv1,wv2;
+            computeWeights(w2,w3,wv2,k,R);
+            computeProportionalByWeight(w0, w1, wv1, w2, wv2, R);
+
+            n0k(idx) += w0*rhok(idx);
+            n1k(idx) += w1*rhok(idx);
+            n2k(idx) += w2*rhok(idx);
+            n3k(idx) += w3*rhok(idx);
+            nv1k(idx) += wv1*rhok(idx);
+            nv2k(idx) += wv2*rhok(idx);
+            }
+        }
+
+    // transform n weights to real space to finish convolution
+    // no need for a factor of mesh.step() here because w is analytical
+    ft_->setReciprocalData(tmp_complex_field_["n0k"]->const_view());
+    ft_->transform();
+    std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),n0_->full_view().begin());
+
+    ft_->setReciprocalData(tmp_complex_field_["n1k"]->const_view());
+    ft_->transform();
+    std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),n1_->full_view().begin());
+
+    ft_->setReciprocalData(tmp_complex_field_["n2k"]->const_view());
+    ft_->transform();
+    std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),n2_->full_view().begin());
+
+    ft_->setReciprocalData(tmp_complex_field_["n3k"]->const_view());
+    ft_->transform();
+    std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),n3_->full_view().begin());
+
+    ft_->setReciprocalData(tmp_complex_field_["nv1k"]->const_view());
+    ft_->transform();
+    std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),nv1_->full_view().begin());
+
+    ft_->setReciprocalData(tmp_complex_field_["nv2k"]->const_view());
+    ft_->transform();
+    std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),nv2_->full_view().begin());
+    }
+
+void RosenfeldFMT::computeSphericalWeightedDensities(std::shared_ptr<State> state)
+    {
+    const auto mesh = state->getMesh()->local().get();
+    const auto kmesh = ft_->getWavevectors();
+
+    // zero the real space weighted densities for accumulation later
+    std::fill(n0_->view().begin(), n0_->view().end(), 0.);
+    std::fill(n1_->view().begin(), n1_->view().end(), 0.);
+    std::fill(n2_->view().begin(), n2_->view().end(), 0.);
+    std::fill(n3_->view().begin(), n3_->view().end(), 0.);
+    std::fill(nv1_->view().begin(), nv1_->view().end(), 0.);
+    std::fill(nv2_->view().begin(), nv2_->view().end(), 0.);
+
+    // weighted densities by type
+    setupField(tmp_field_["n2"]);
+    setupField(tmp_field_["n3"]);
+    setupField(tmp_field_["nv2"]);
+
+    for (const auto& t : state->getTypes())
+        {
+        // hard-sphere radius
+        const double R = 0.5*diameters_(t);
+        if (R == 0.)
+            {
+            // no radius, no weights contribute (skip)
+            continue;
+            }
+
+        // get the fourier transformed weighted densities for this type
+            {
+            fourierTransformFieldSpherical(state->getField(t)->const_full_view(), mesh);
+            auto rhok = ft_->const_view_reciprocal();
+            auto n2k = tmp_complex_field_["n2k"]->view();
+            auto n3k = tmp_complex_field_["n3k"]->view();
+            auto nv2k = tmp_complex_field_["nv2k"]->view();
+            #ifdef FLYFT_OPENMP
+            #pragma omp parallel for schedule(static) default(none) firstprivate(R,kmesh) shared(rhok,n0k,n1k,n2k,n3k,nv1k,nv2k)
+            #endif
+            for (int idx=0; idx < kmesh.shape(); ++idx)
+                {
+                const double k = kmesh(idx);
+
+                // compute weights at this k, using limiting values for k = 0
+                std::complex<double> w2,w3,wv2;
+                computeWeights(w2,w3,wv2,k,R);
+
+                n2k(idx) = w2*rhok(idx);
+                n3k(idx) = w3*rhok(idx);
+                nv2k(idx) = wv2*rhok(idx);
+                }
+            }
+
+        // transform n weights to real space to finish convolution
+        // no need for a factor of mesh.step() here because w is analytical
+        ft_->setReciprocalData(tmp_complex_field_["n2k"]->const_view());
+        ft_->transform();
+        std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),tmp_field_["n2"]->full_view().begin());
+
+        ft_->setReciprocalData(tmp_complex_field_["n3k"]->const_view());
+        ft_->transform();
+        std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),tmp_field_["n3"]->full_view().begin());
+
+        ft_->setReciprocalData(tmp_complex_field_["nv2k"]->const_view());
+        ft_->transform();
+        std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),tmp_field_["nv2"]->full_view().begin());
+
+        // divide through by r
+            {
+            auto n2i = tmp_field_["n2"]->view();
+            auto n3i = tmp_field_["n3"]->view();
+            auto nv2i = tmp_field_["nv2"]->view();
+            for(int idx = 0; idx < mesh->shape(); ++idx)
+                {           
+                const auto r = mesh->center(idx);
+                n2i(idx) /= r;
+                n3i(idx) /= r;
+                // nv2 also needs to have n3/r added, not just scale by r
+                nv2i(idx) = nv2i(idx)/r + n3i(idx)/r;
+                }
+            }
+
+        // fix up n for the r values that are close to the origin
+        if (mesh->lower_bound(0) < R)
+            {
+            const auto rho = state->getField(t)->const_view(); 
+            auto n2i = tmp_field_["n2"]->view();
+            auto n3i = tmp_field_["n3"]->view();
+            auto nv2i = tmp_field_["nv2"]->view();
+            
+            
+            for (int idx=0; idx < std::min(mesh->bin(R), mesh->shape()); ++idx)
+                {
+                // reset n for this bin
+                n2i(idx) = 0.;
+                n3i(idx) = 0.;
+                nv2i(idx) = 0.;
+                    
+                // take integrals using trapezoidal rule
+                const auto r = mesh->center(idx);
+    
+                const double lower = 0;
+                const double split = R-r;
+                const double upper = r+R;
+            
+                // initializing n3 integrals 
+                double n3_ig_1 = 0;
+                double n3_ig_2 = 0; 
+               
+               
+            
+                // integral from 0 to R-r
+                const int n = 100;
+                double x = lower;
+                double dr = (split-lower)/n;
+                for (int ig_idx=0; ig_idx <=n; ig_idx++)
+                    {
+                    const double factor = (ig_idx == 0 || ig_idx == n) ? 0.5 : 1.0;
+                    double rho_ig = mesh->interpolate(x, rho);
+                    n3_ig_1 += factor * 4*M_PI* x * x * rho_ig;
+                    x += dr;
+                    }
+                 n3_ig_1 *= dr;                
+                 
+                 //Integral from R-r to r+R
+                 x = split;
+                 dr = (upper-split)/n;
+
+                for (int ig_idx=0; ig_idx <=n; ig_idx++)
+                    {
+                    const double factor = (ig_idx == 0 || ig_idx == n) ? 0.5 : 1.0;
+                    const auto rho_ig = mesh->interpolate(x,rho);
+                    n3_ig_2 += factor * (M_PI/r) * (rho_ig *x* (R*R - (r-x)*(r-x)));
+                    n2i(idx) += factor * (2.*M_PI*R/r) * rho_ig * x;
+                    nv2i(idx) += factor * (M_PI/(r*r)) * (rho_ig * x  * (R*R + r*r - x*x));
+                    x +=dr;
+                    }
+                    
+                n3i(idx) = n3_ig_1+ n3_ig_2 * dr;
+                n2i(idx) *= dr;
+                nv2i(idx) *= dr;
+                }
+            }
+
+        // accumulate the weighted densities for the type into the total
+            {
+            auto n0 = n0_->view();
+            auto n1 = n1_->view();
+            auto n2 = n2_->view();
+            auto n3 = n3_->view();
+            auto nv1 = nv1_->view();
+            auto nv2 = nv2_->view();
+
+            auto n2i = tmp_field_["n2"]->const_view();
+            auto n3i = tmp_field_["n3"]->const_view();
+            auto nv2i = tmp_field_["nv2"]->const_view();
+            
+            for (int idx=0; idx < mesh->shape(); ++idx)
+                {
+                double n0i, n1i, nv1i;
+                computeProportionalByWeight(n0i, n1i, nv1i, n2i(idx), nv2i(idx), R);
+
+                n0(idx) += n0i;
+                n1(idx) += n1i;
+                n2(idx) += n2i(idx);
+                n3(idx) += n3i(idx);
+                nv1(idx) += nv1i;
+                nv2(idx) += nv2i(idx);    
+                }
+            }
+        }
+    }
+
 void RosenfeldFMT::computeCartesianDerivative(std::shared_ptr<State> state)
     {
     const auto mesh = state->getMesh()->local().get();
@@ -530,301 +784,6 @@ void RosenfeldFMT::computeSphericalDerivative(std::shared_ptr<State> state)
         }
     }
 
-void RosenfeldFMT::computeCartesianWeightedDensities(std::shared_ptr<State> state)
-    {
-    const auto kmesh = ft_->getWavevectors();
-    
-    // zero the weights before accumulating by type
-    std::fill(tmp_complex_field_["n0k"]->view().begin(), tmp_complex_field_["n0k"]->view().end(), 0.);
-    std::fill(tmp_complex_field_["n1k"]->view().begin(), tmp_complex_field_["n1k"]->view().end(), 0.);
-    std::fill(tmp_complex_field_["n2k"]->view().begin(), tmp_complex_field_["n2k"]->view().end(), 0.);
-    std::fill(tmp_complex_field_["n3k"]->view().begin(), tmp_complex_field_["n3k"]->view().end(), 0.);
-    std::fill(tmp_complex_field_["nv1k"]->view().begin(), tmp_complex_field_["nv1k"]->view().end(), 0.);
-    std::fill(tmp_complex_field_["nv2k"]->view().begin(), tmp_complex_field_["nv2k"]->view().end(), 0.);
-
-    for (const auto& t : state->getTypes())
-        {
-        // hard-sphere radius
-        const double R = 0.5*diameters_(t);
-        if (R == 0.)
-            {
-            // no radius, no weights contribute (skip)
-            continue;
-            }
-
-        // fft the density
-        ft_->setRealData(state->getField(t)->const_full_view());
-        ft_->transform();
-        auto rhok = ft_->const_view_reciprocal();
-
-        // accumulate the fourier transformed densities into n
-        auto n0k = tmp_complex_field_["n0k"]->view();
-        auto n1k = tmp_complex_field_["n1k"]->view();
-        auto n2k = tmp_complex_field_["n2k"]->view();
-        auto n3k = tmp_complex_field_["n3k"]->view();
-        auto nv1k = tmp_complex_field_["nv1k"]->view();
-        auto nv2k = tmp_complex_field_["nv2k"]->view();
-        #ifdef FLYFT_OPENMP
-        #pragma omp parallel for schedule(static) default(none) firstprivate(R,kmesh) shared(rhok,n0k,n1k,n2k,n3k,nv1k,nv2k)
-        #endif
-        for (int idx=0; idx < kmesh.shape(); ++idx)
-            {
-            const double k = kmesh(idx);
-
-            // compute weights at this k, using limiting values for k = 0
-            std::complex<double> w0,w1,w2,w3,wv1,wv2;
-            computeWeights(w2,w3,wv2,k,R);
-            computeProportionalByWeight(w0, w1, wv1, w2, wv2, R);
-
-            n0k(idx) += w0*rhok(idx);
-            n1k(idx) += w1*rhok(idx);
-            n2k(idx) += w2*rhok(idx);
-            n3k(idx) += w3*rhok(idx);
-            nv1k(idx) += wv1*rhok(idx);
-            nv2k(idx) += wv2*rhok(idx);
-            }
-        }
-
-    // transform n weights to real space to finish convolution
-    // no need for a factor of mesh.step() here because w is analytical
-    ft_->setReciprocalData(tmp_complex_field_["n0k"]->const_view());
-    ft_->transform();
-    std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),n0_->full_view().begin());
-
-    ft_->setReciprocalData(tmp_complex_field_["n1k"]->const_view());
-    ft_->transform();
-    std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),n1_->full_view().begin());
-
-    ft_->setReciprocalData(tmp_complex_field_["n2k"]->const_view());
-    ft_->transform();
-    std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),n2_->full_view().begin());
-
-    ft_->setReciprocalData(tmp_complex_field_["n3k"]->const_view());
-    ft_->transform();
-    std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),n3_->full_view().begin());
-
-    ft_->setReciprocalData(tmp_complex_field_["nv1k"]->const_view());
-    ft_->transform();
-    std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),nv1_->full_view().begin());
-
-    ft_->setReciprocalData(tmp_complex_field_["nv2k"]->const_view());
-    ft_->transform();
-    std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),nv2_->full_view().begin());
-    }
-
-void RosenfeldFMT::computeSphericalWeightedDensities(std::shared_ptr<State> state)
-    {
-    const auto mesh = state->getMesh()->local().get();
-    const auto kmesh = ft_->getWavevectors();
-
-    // zero the real space weighted densities for accumulation later
-    std::fill(n0_->view().begin(), n0_->view().end(), 0.);
-    std::fill(n1_->view().begin(), n1_->view().end(), 0.);
-    std::fill(n2_->view().begin(), n2_->view().end(), 0.);
-    std::fill(n3_->view().begin(), n3_->view().end(), 0.);
-    std::fill(nv1_->view().begin(), nv1_->view().end(), 0.);
-    std::fill(nv2_->view().begin(), nv2_->view().end(), 0.);
-
-    // weighted densities by type
-    setupField(tmp_field_["n2"]);
-    setupField(tmp_field_["n3"]);
-    setupField(tmp_field_["nv2"]);
-
-    for (const auto& t : state->getTypes())
-        {
-        // hard-sphere radius
-        const double R = 0.5*diameters_(t);
-        if (R == 0.)
-            {
-            // no radius, no weights contribute (skip)
-            continue;
-            }
-
-        // get the fourier transformed weighted densities for this type
-            {
-            fourierTransformFieldSpherical(state->getField(t)->const_full_view(), mesh);
-            auto rhok = ft_->const_view_reciprocal();
-            auto n2k = tmp_complex_field_["n2k"]->view();
-            auto n3k = tmp_complex_field_["n3k"]->view();
-            auto nv2k = tmp_complex_field_["nv2k"]->view();
-            #ifdef FLYFT_OPENMP
-            #pragma omp parallel for schedule(static) default(none) firstprivate(R,kmesh) shared(rhok,n0k,n1k,n2k,n3k,nv1k,nv2k)
-            #endif
-            for (int idx=0; idx < kmesh.shape(); ++idx)
-                {
-                const double k = kmesh(idx);
-
-                // compute weights at this k, using limiting values for k = 0
-                std::complex<double> w2,w3,wv2;
-                computeWeights(w2,w3,wv2,k,R);
-
-                n2k(idx) = w2*rhok(idx);
-                n3k(idx) = w3*rhok(idx);
-                nv2k(idx) = wv2*rhok(idx);
-                }
-            }
-
-        // transform n weights to real space to finish convolution
-        // no need for a factor of mesh.step() here because w is analytical
-        ft_->setReciprocalData(tmp_complex_field_["n2k"]->const_view());
-        ft_->transform();
-        std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),tmp_field_["n2"]->full_view().begin());
-
-        ft_->setReciprocalData(tmp_complex_field_["n3k"]->const_view());
-        ft_->transform();
-        std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),tmp_field_["n3"]->full_view().begin());
-
-        ft_->setReciprocalData(tmp_complex_field_["nv2k"]->const_view());
-        ft_->transform();
-        std::copy(ft_->const_view_real().begin(),ft_->const_view_real().end(),tmp_field_["nv2"]->full_view().begin());
-
-        // divide through by r
-            {
-            auto n2i = tmp_field_["n2"]->view();
-            auto n3i = tmp_field_["n3"]->view();
-            auto nv2i = tmp_field_["nv2"]->view();
-            for(int idx = 0; idx < mesh->shape(); ++idx)
-                {           
-                const auto r = mesh->center(idx);
-                n2i(idx) /= r;
-                n3i(idx) /= r;
-                // nv2 also needs to have n3/r added, not just scale by r
-                nv2i(idx) = nv2i(idx)/r + n3i(idx)/r;
-                }
-            }
-
-        // fix up n for the r values that are close to the origin
-        if (mesh->lower_bound(0) < R)
-            {
-            const auto rho = state->getField(t)->const_view(); 
-            auto n2i = tmp_field_["n2"]->view();
-            auto n3i = tmp_field_["n3"]->view();
-            auto nv2i = tmp_field_["nv2"]->view();
-            
-            
-            for (int idx=0; idx < std::min(mesh->bin(R), mesh->shape()); ++idx)
-                {
-                // reset n for this bin
-                n2i(idx) = 0.;
-                n3i(idx) = 0.;
-                nv2i(idx) = 0.;
-                    
-                // take integrals using trapezoidal rule
-                const auto r = mesh->center(idx);
-    
-                const double lower = 0;
-                const double split = R-r;
-                const double upper = r+R;
-            
-                // initializing n3 integrals 
-                double n3_ig_1 = 0;
-                double n3_ig_2 = 0; 
-               
-               
-            
-                // integral from 0 to R-r
-                const int n = 100;
-                double x = lower;
-                double dr = (split-lower)/n;
-                for (int ig_idx=0; ig_idx <=n; ig_idx++)
-                    {
-                    const double factor = (ig_idx == 0 || ig_idx == n) ? 0.5 : 1.0;
-                    double rho_ig = mesh->interpolate(x, rho);
-                    n3_ig_1 += factor * 4*M_PI* x * x * rho_ig;
-                    x += dr;
-                    }
-                 n3_ig_1 *= dr;                
-                 
-                 //Integral from R-r to r+R
-                 x = split;
-                 dr = (upper-split)/n;
-
-                for (int ig_idx=0; ig_idx <=n; ig_idx++)
-                    {
-                    const double factor = (ig_idx == 0 || ig_idx == n) ? 0.5 : 1.0;
-                    const auto rho_ig = mesh->interpolate(x,rho);
-                    n3_ig_2 += factor * (M_PI/r) * (rho_ig *x* (R*R - (r-x)*(r-x)));
-                    n2i(idx) += factor * (2.*M_PI*R/r) * rho_ig * x;
-                    nv2i(idx) += factor * (M_PI/(r*r)) * (rho_ig * x  * (R*R + r*r - x*x));
-                    x +=dr;
-                    }
-                    
-                n3i(idx) = n3_ig_1+ n3_ig_2 * dr;
-                n2i(idx) *= dr;
-                nv2i(idx) *= dr;
-                }
-            }
-
-        // accumulate the weighted densities for the type into the total
-            {
-            auto n0 = n0_->view();
-            auto n1 = n1_->view();
-            auto n2 = n2_->view();
-            auto n3 = n3_->view();
-            auto nv1 = nv1_->view();
-            auto nv2 = nv2_->view();
-
-            auto n2i = tmp_field_["n2"]->const_view();
-            auto n3i = tmp_field_["n3"]->const_view();
-            auto nv2i = tmp_field_["nv2"]->const_view();
-            
-            for (int idx=0; idx < mesh->shape(); ++idx)
-                {
-                double n0i, n1i, nv1i;
-                computeProportionalByWeight(n0i, n1i, nv1i, n2i(idx), nv2i(idx), R);
-
-                n0(idx) += n0i;
-                n1(idx) += n1i;
-                n2(idx) += n2i(idx);
-                n3(idx) += n3i(idx);
-                nv1(idx) += nv1i;
-                nv2(idx) += nv2i(idx);    
-                }
-            }
-        }
-    }
-
-void RosenfeldFMT::computePhiAndDerivatives(int idx,
-                                            Field::View& phi,
-                                            Field::View& dphi_dn0,
-                                            Field::View& dphi_dn1,
-                                            Field::View& dphi_dn2,
-                                            Field::View& dphi_dn3,
-                                            Field::View& dphi_dnv1,
-                                            Field::View& dphi_dnv2,
-                                            const Field::ConstantView& n0,
-                                            const Field::ConstantView& n1,
-                                            const Field::ConstantView& n2,
-                                            const Field::ConstantView& n3,
-                                            const Field::ConstantView& nv1,
-                                            const Field::ConstantView& nv2,
-                                            bool compute_value) const
-    {
-    // these are all functions of n3 (via vf)
-    double f1, f2, f4, df1, df2, df4;
-    computePrefactorFunctions(f1, f2, f4, df1, df2, df4, n3(idx));
-
-    if (compute_value)
-        {
-        phi(idx) = (f1*n0(idx)
-                    +f2*(n1(idx)*n2(idx)-nv1(idx)*nv2(idx))
-                    +f4*(n2(idx)*n2(idx)*n2(idx)-3.*n2(idx)*nv2(idx)*nv2(idx)));
-        }
-    else
-        {
-        phi(idx) = 0.;
-        }
-
-    dphi_dn0(idx) = f1;
-    dphi_dn1(idx) = f2*n2(idx);
-    dphi_dn2(idx) = f2*n1(idx) + 3.*f4*(n2(idx)*n2(idx)-nv2(idx)*nv2(idx));
-    dphi_dn3(idx) = (df1*n0(idx)
-                        +df2*(n1(idx)*n2(idx)-nv1(idx)*nv2(idx))
-                        +df4*(n2(idx)*n2(idx)*n2(idx)-3.*n2(idx)*nv2(idx)*nv2(idx)));
-    dphi_dnv1(idx) = -f2*nv2(idx);
-    dphi_dnv2(idx) = -f2*nv1(idx)-6.*f4*n2(idx)*nv2(idx);
-    }
-
 void RosenfeldFMT::computePrefactorFunctions(double& f1,
                                              double& f2,
                                              double& f4,
@@ -871,6 +830,47 @@ void RosenfeldFMT::computeWeights(std::complex<double>& w2,
         w3 = w2*(R/3.);
         wv2 = 0.0;
         }
+    }
+    
+void RosenfeldFMT::computePhiAndDerivatives(int idx,
+                                            Field::View& phi,
+                                            Field::View& dphi_dn0,
+                                            Field::View& dphi_dn1,
+                                            Field::View& dphi_dn2,
+                                            Field::View& dphi_dn3,
+                                            Field::View& dphi_dnv1,
+                                            Field::View& dphi_dnv2,
+                                            const Field::ConstantView& n0,
+                                            const Field::ConstantView& n1,
+                                            const Field::ConstantView& n2,
+                                            const Field::ConstantView& n3,
+                                            const Field::ConstantView& nv1,
+                                            const Field::ConstantView& nv2,
+                                            bool compute_value) const
+    {
+    // these are all functions of n3 (via vf)
+    double f1, f2, f4, df1, df2, df4;
+    computePrefactorFunctions(f1, f2, f4, df1, df2, df4, n3(idx));
+
+    if (compute_value)
+        {
+        phi(idx) = (f1*n0(idx)
+                    +f2*(n1(idx)*n2(idx)-nv1(idx)*nv2(idx))
+                    +f4*(n2(idx)*n2(idx)*n2(idx)-3.*n2(idx)*nv2(idx)*nv2(idx)));
+        }
+    else
+        {
+        phi(idx) = 0.;
+        }
+
+    dphi_dn0(idx) = f1;
+    dphi_dn1(idx) = f2*n2(idx);
+    dphi_dn2(idx) = f2*n1(idx) + 3.*f4*(n2(idx)*n2(idx)-nv2(idx)*nv2(idx));
+    dphi_dn3(idx) = (df1*n0(idx)
+                        +df2*(n1(idx)*n2(idx)-nv1(idx)*nv2(idx))
+                        +df4*(n2(idx)*n2(idx)*n2(idx)-3.*n2(idx)*nv2(idx)*nv2(idx)));
+    dphi_dnv1(idx) = -f2*nv2(idx);
+    dphi_dnv2(idx) = -f2*nv1(idx)-6.*f4*n2(idx)*nv2(idx);
     }
 
 int RosenfeldFMT::determineBufferShape(std::shared_ptr<State> state, const std::string& /*type*/)
