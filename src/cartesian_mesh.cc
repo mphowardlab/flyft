@@ -3,13 +3,13 @@
 namespace flyft
 {
 
-CartesianMesh::CartesianMesh(double L, int shape, double area)
-    : CartesianMesh(L,shape,area,0)
+CartesianMesh::CartesianMesh(double L, int shape, double area, BoundaryType lower_bc, BoundaryType upper_bc)
+    : CartesianMesh(L,shape,area,0, lower_bc, upper_bc)
     {
     }
 
-CartesianMesh::CartesianMesh(double L,int shape, double area, double origin)
-    : Mesh(L,shape,origin), area_(area)
+CartesianMesh::CartesianMesh(double L,int shape, double area, double origin, BoundaryType lower_bc, BoundaryType upper_bc)
+    : Mesh(L,shape,origin,lower_bc,upper_bc), area_(area)
     {
     }
 
@@ -47,5 +47,16 @@ double CartesianMesh::gradient(int /*i*/, double f_lo, double f_hi) const
     {
     return (f_hi-f_lo)/step_; 
     }
+    
+BoundaryType CartesianMesh::setlowerbound() const
+    {
+    return lower_bc_;
+    }  
+
+BoundaryType CartesianMesh::setupperbound() const
+    {
+    return upper_bc_;
+    }
+
 
 }

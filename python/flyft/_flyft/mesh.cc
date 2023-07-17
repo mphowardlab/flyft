@@ -1,6 +1,6 @@
 #include "_flyft.h"
 #include "flyft/mesh.h"
-
+#include "flyft/boundary_type.h"
 namespace flyft
 {
 
@@ -33,6 +33,14 @@ class MeshTrampoline : public Mesh
             {
             PYBIND11_OVERRIDE_PURE(double, Mesh, gradient, idx, f_lo, f_hi);
             }
+        BoundaryType setlowerbound() const override
+            {
+            PYBIND11_OVERRIDE_PURE(BoundaryType, Mesh,);
+            }
+        BoundaryType setupperbound() const override
+            {
+            PYBIND11_OVERRIDE_PURE(BoundaryType, Mesh,);
+            }
 
     };
 
@@ -43,8 +51,8 @@ void bindMesh(py::module_& m)
     using namespace flyft;
 
     py::class_<Mesh,std::shared_ptr<Mesh>,MeshTrampoline>(m, "Mesh")
-        .def(py::init<double,int>())
-        .def(py::init<double,int,double>())
+        .def(py::init<double,int,BoundaryType, BoundaryType>())
+        .def(py::init<double,int,double,BoundaryType,BoundaryType>())
         .def(py::init<int,double>())
         .def(py::init<int,double,double>())
         .def_property_readonly("L", &Mesh::L)

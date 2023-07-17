@@ -24,6 +24,9 @@ class ParallelMesh
 
         std::shared_ptr<const Mesh> local() const;
         std::shared_ptr<const Mesh> full() const;
+        
+        BoundaryType getlowerbound(std::shared_ptr<Mesh> mesh);
+        BoundaryType getupperbound(std::shared_ptr<Mesh> mesh);
 
         int getProcessorShape() const;
         int getProcessorCoordinates() const;

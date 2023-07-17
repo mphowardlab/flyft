@@ -1,17 +1,18 @@
 #include "flyft/mesh.h"
+#include <iostream>
 
 #include <cmath>
 
 namespace flyft
 {
 
-Mesh::Mesh(double L, int shape)
-    : Mesh(L,shape,0)
+Mesh::Mesh(double L, int shape, BoundaryType lower_bc, BoundaryType upper_bc)
+    : Mesh(L,shape,0, lower_bc, upper_bc )
     {
     }
 
-Mesh::Mesh(double L, int shape, double origin)
-    : L_(L), shape_(shape), step_(L_/shape_), origin_(origin)
+Mesh::Mesh(double L, int shape, double origin,BoundaryType lower_bc, BoundaryType upper_bc)
+    : L_(L), shape_(shape), step_(L_/shape_), origin_(origin), lower_bc_(lower_bc), upper_bc_(upper_bc)
     {
     }
 
@@ -116,7 +117,7 @@ double Mesh::interpolate(double x, const DataView<const double>& f) const
     const auto x_c = center(idx);
 
     double x_0, x_1, f_0, f_1;
-    if (x < x_c)
+    if (x < x_c && lower_bound(idx) != 0)// TODO: Fix this in communicator. ITS A HACK!
         {
         x_0 = center(idx - 1);
         x_1 = x_c;
@@ -153,5 +154,4 @@ bool Mesh::operator!=(const Mesh& other) const
     {
     return !(*this == other);
     }
-
 }
