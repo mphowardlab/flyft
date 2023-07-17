@@ -63,9 +63,8 @@ class Mesh
         double integrateVolume(int idx, const DataView<double>& f) const;
         double integrateVolume(int idx, const DataView<const double>& f) const;
 
-        double interpolate(int idx, double f_lo, double f_hi) const;
-        double interpolate(int idx, const DataView<double>& f) const;  
-        double interpolate(int idx, const DataView<const double>& f) const;      
+        double interpolate(double x, const DataView<double>& f) const;  
+        double interpolate(double x, const DataView<const double>& f) const;  
         
         virtual double gradient(int idx, double f_lo, double f_hi) const = 0;
         double gradient(int idx, const DataView<const double>& f) const ;

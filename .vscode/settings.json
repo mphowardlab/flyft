@@ -99,7 +99,12 @@
         "valarray": "cpp",
         "variant": "cpp",
         "cinttypes": "cpp",
-        "__functional_base_03": "cpp"
+        "__functional_base_03": "cpp",
+        "codecvt": "cpp",
+        "fstream": "cpp",
+        "iomanip": "cpp",
+        "__bits": "cpp",
+        "__verbose_abort": "cpp"
     },
     "cmake.configureOnOpen": true
 }

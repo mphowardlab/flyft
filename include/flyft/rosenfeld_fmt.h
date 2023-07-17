@@ -4,6 +4,7 @@
 #include "flyft/field.h"
 #include "flyft/fourier_transform.h"
 #include "flyft/functional.h"
+#include "flyft/mesh.h"
 #include "flyft/state.h"
 #include "flyft/type_map.h"
 
@@ -45,13 +46,6 @@ class RosenfeldFMT : public Functional
         std::shared_ptr<Field> dphi_dnv1_;
         std::shared_ptr<Field> dphi_dnv2_;
 
-        std::unique_ptr<ComplexField> n0k_;
-        std::unique_ptr<ComplexField> n1k_;
-        std::unique_ptr<ComplexField> n2k_;
-        std::unique_ptr<ComplexField> n3k_;
-        std::unique_ptr<ComplexField> nv1k_;
-        std::unique_ptr<ComplexField> nv2k_;
-
         std::unique_ptr<ComplexField> dphi_dn0k_;
         std::unique_ptr<ComplexField> dphi_dn1k_;
         std::unique_ptr<ComplexField> dphi_dn2k_;
@@ -63,21 +57,16 @@ class RosenfeldFMT : public Functional
 
         bool setup(std::shared_ptr<State> state, bool compute_value) override;
         void _compute(std::shared_ptr<State> state, bool compute_value) override;
-        void computePhiAndDerivatives(int idx,
-                                      Field::View& phi,
-                                      Field::View& dphi_dn0,
-                                      Field::View& dphi_dn1,
-                                      Field::View& dphi_dn2,
-                                      Field::View& dphi_dn3,
-                                      Field::View& dphi_dnv1,
-                                      Field::View& dphi_dnv2,
-                                      const Field::ConstantView& n0,
-                                      const Field::ConstantView& n1,
-                                      const Field::ConstantView& n2,
-                                      const Field::ConstantView& n3,
-                                      const Field::ConstantView& nv1,
-                                      const Field::ConstantView& nv2,
-                                      bool compute_value) const;
+
+        void computeCartesianWeightedDensities(std::shared_ptr<State> state);
+        void computeSphericalWeightedDensities(std::shared_ptr<State> state);
+        
+        std::map<std::string,std::shared_ptr<Field>> tmp_field_;
+        std::map<std::string,std::unique_ptr<ComplexField>> tmp_complex_field_;
+        
+        void computeCartesianDerivative(std::shared_ptr<State> state);
+        void computeSphericalDerivative(std::shared_ptr<State> state);
+        
         virtual void computePrefactorFunctions(double& f1,
                                                double& f2,
                                                double& f4,
@@ -85,18 +74,51 @@ class RosenfeldFMT : public Functional
                                                double& df2dn3,
                                                double& df4dn3,
                                                double n3) const;
-        void computeWeights(std::complex<double>& w0,
-                            std::complex<double>& w1,
-                            std::complex<double>& w2,
+        void computeWeights(std::complex<double>& w2,
                             std::complex<double>& w3,
-                            std::complex<double>& wv1,
                             std::complex<double>& wv2,
                             double k,
                             double R) const;
+        void computePhiAndDerivatives(int idx,
+                                Field::View& phi,
+                                Field::View& dphi_dn0,
+                                Field::View& dphi_dn1,
+                                Field::View& dphi_dn2,
+                                Field::View& dphi_dn3,
+                                Field::View& dphi_dnv1,
+                                Field::View& dphi_dnv2,
+                                const Field::ConstantView& n0,
+                                const Field::ConstantView& n1,
+                                const Field::ConstantView& n2,
+                                const Field::ConstantView& n3,
+                                const Field::ConstantView& nv1,
+                                const Field::ConstantView& nv2,
+                                bool compute_value) const;
+        template<typename T>
+        void computeProportionalByWeight(T& w0, T& w1, T& wv1, const T& w2, const T& wv2, const double R) const;
 
         void setupField(std::shared_ptr<Field>& field);
         void setupComplexField(std::unique_ptr<ComplexField>& kfield);
+
+        enum struct ConvolutionType
+            {
+            cartesian, spherical
+            };
+        ConvolutionType getConvolutionType(std::shared_ptr<const Mesh> mesh) const;
+
+        std::shared_ptr<Field> tmp_r_field_;
+        void fourierTransformFieldSpherical(const Field::ConstantView& input,
+                                            const Mesh* mesh) const;
     };
+
+template<typename T>
+void RosenfeldFMT::computeProportionalByWeight(T& w0, T& w1, T& wv1, const T& w2, const T& wv2, const double R) const
+    {
+    const double factor = 1./(4.*M_PI*R);
+    w1 = w2 * factor;
+    w0 = w1 / R;
+    wv1 = wv2 * factor;
+    }
 
 }
 
