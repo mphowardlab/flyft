@@ -33,15 +33,6 @@ class MeshTrampoline : public Mesh
             {
             PYBIND11_OVERRIDE_PURE(double, Mesh, gradient, idx, f_lo, f_hi);
             }
-        BoundaryType setlowerbound() const override
-            {
-            PYBIND11_OVERRIDE_PURE(BoundaryType, Mesh,);
-            }
-        BoundaryType setupperbound() const override
-            {
-            PYBIND11_OVERRIDE_PURE(BoundaryType, Mesh,);
-            }
-
     };
 
 }

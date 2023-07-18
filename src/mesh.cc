@@ -154,4 +154,16 @@ bool Mesh::operator!=(const Mesh& other) const
     {
     return !(*this == other);
     }
+
+BoundaryType Mesh::getlower_boundary_type() const
+    {
+    return lower_bc_;
+    }  
+
+BoundaryType Mesh::getupper_boundary_type() const
+    {
+    return upper_bc_;
+    }
+
+
 }

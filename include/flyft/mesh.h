@@ -74,8 +74,8 @@ class Mesh
         bool operator==(const Mesh& other) const;
         bool operator!=(const Mesh& other) const;
         
-        virtual BoundaryType setlowerbound() const = 0;
-        virtual BoundaryType setupperbound() const = 0; 
+        BoundaryType getlower_boundary_type() const;
+        BoundaryType getupper_boundary_type() const; 
 
     protected:
         double L_;      //!< Length of the domain

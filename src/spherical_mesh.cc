@@ -14,10 +14,6 @@ SphericalMesh::SphericalMesh(double R, int shape, BoundaryType upper_bc)
 SphericalMesh::SphericalMesh(double R,int shape, double origin, BoundaryType lower_bc, BoundaryType upper_bc)
     : Mesh(R,shape,origin, lower_bc, upper_bc)
     {
-    if(upper_bc==BoundaryType::periodic)
-        {
-        std::cout<<"Boundary type is not valid";
-        }
     }
 
 SphericalMesh::SphericalMesh(int shape, double step)
@@ -26,7 +22,7 @@ SphericalMesh::SphericalMesh(int shape, double step)
     }
 
 SphericalMesh::SphericalMesh(int shape, double step, double origin)
-    : Mesh(shape, step, origin)
+    : Mesh(shape,step,origin)
     {
     }
 
@@ -64,15 +60,16 @@ double SphericalMesh::gradient(int idx, double f_lo, double f_hi) const
         return (f_hi-f_lo)/(step_);
         }
     }   
-
-BoundaryType SphericalMesh::setlowerbound() const
+void SphericalMesh::validateBoundaryCondition()
     {
-    return lower_bc_;
-    }  
-
-BoundaryType SphericalMesh::setupperbound() const
-    {
-    return upper_bc_;
+    if (lower_bc_ == BoundaryType::periodic){
+        throw std::invalid_argument("Lower boundary type not valid for spherical geometry");
+        }
+    else if (upper_bc_ == BoundaryType::periodic){
+        throw std::invalid_argument("Upper boundary type not valid for spherical geometry");
+        }
+    else{
+        return;
+        }
     }
-
 }

@@ -15,8 +15,7 @@ class CartesianMesh: public Mesh
         CartesianMesh(int shape, double step, double area, double origin);
         
         std::shared_ptr<Mesh> slice(int start, int end) const override;
-        BoundaryType setlowerbound() const override;
-        BoundaryType setupperbound() const override; 
+
         
         double area(int i) const override;
         double volume() const override; 
@@ -25,6 +24,7 @@ class CartesianMesh: public Mesh
     
     private:
         double area_; //<! Cross sectional area
+        void validateBoundaryCondition();
     };
 }
 #endif // FLYFT_CARTESIAN_MESH_H_

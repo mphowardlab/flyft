@@ -1,4 +1,5 @@
 #include "flyft/cartesian_mesh.h"
+#include <iostream>
 
 namespace flyft
 {
@@ -47,16 +48,18 @@ double CartesianMesh::gradient(int /*i*/, double f_lo, double f_hi) const
     {
     return (f_hi-f_lo)/step_; 
     }
-    
-BoundaryType CartesianMesh::setlowerbound() const
-    {
-    return lower_bc_;
-    }  
 
-BoundaryType CartesianMesh::setupperbound() const
-    {
-    return upper_bc_;
-    }
-
-
+void CartesianMesh::validateBoundaryCondition(){
+    if (lower_bc_ != BoundaryType::periodic && upper_bc_ == BoundaryType::periodic){
+        throw std::invalid_argument("Lower boundary type not valid for periodic boundary condition");
+        }
+    else if (lower_bc_ == BoundaryType::periodic && upper_bc_ != BoundaryType::periodic){
+        throw std::invalid_argument("Upper boundary type not valid for periodic boundary condition");
+        }
+    else{
+        return;
+        }
+    }        
 }
+
+

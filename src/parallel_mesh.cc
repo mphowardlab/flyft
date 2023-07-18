@@ -70,17 +70,6 @@ std::shared_ptr<const Mesh> ParallelMesh::full() const
     return full_mesh_;
     }
 
-BoundaryType ParallelMesh::getlowerbound(std::shared_ptr<Mesh> mesh)
-    {
-    return mesh->setlowerbound();
-    }
-    
-BoundaryType ParallelMesh::getupperbound(std::shared_ptr<Mesh> mesh)
-    {
-    return mesh->setupperbound();
-    }
-
-
 int ParallelMesh::getProcessorShape() const
     {
     return layout_.shape();
