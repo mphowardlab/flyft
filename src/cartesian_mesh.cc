@@ -21,17 +21,17 @@ double CartesianMesh::area(int /*i*/) const
 
 double CartesianMesh::volume() const
     {
-    return area_*L();
+    return area_*L_;
     }
 
 double CartesianMesh::volume(int /*i*/) const
     {
-    return area_*step();
+    return area_*step_;
     }
 
 double CartesianMesh::gradient(int /*i*/, double f_lo, double f_hi) const
     {
-    return (f_hi-f_lo)/step(); 
+    return (f_hi-f_lo)/step_; 
     }
 
 void CartesianMesh::validateBoundaryCondition(){

@@ -5,12 +5,6 @@
 
 namespace flyft
 {
-
-// SphericalMesh::SphericalMesh(double lower, double upper, int shape, BoundaryType upper_bc)
-//     : SphericalMesh(lower, upper,shape, BoundaryType::reflect, upper_bc)
-//     {
-//     }
-
 SphericalMesh::SphericalMesh(double lower, double upper,int shape, BoundaryType lower_bc, BoundaryType upper_bc)
     : Mesh(lower, upper, shape, lower_bc, upper_bc)
     {
@@ -48,7 +42,7 @@ double SphericalMesh::gradient(int idx, double f_lo, double f_hi) const
         return 0;
         }
     else{
-        return (f_hi-f_lo)/(step());
+        return (f_hi-f_lo)/(step_);
         }
     }   
 void SphericalMesh::validateBoundaryCondition()

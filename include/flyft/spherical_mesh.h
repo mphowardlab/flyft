@@ -8,10 +8,8 @@ namespace flyft
 class SphericalMesh : public Mesh
     {
     public:
-        // SphericalMesh(double lower, double upper, int shape, BoundaryType upper_bc);
         SphericalMesh(double lower, double upper, int shape, BoundaryType lower_bc, BoundaryType upper_bc);  
 
-        
         std::shared_ptr<Mesh> slice(int start, int end) const override;
 
         double area(int i) const override;

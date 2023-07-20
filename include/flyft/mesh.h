@@ -12,8 +12,8 @@ class Mesh
     {
     public:
         Mesh() = delete;
+        
         Mesh(double lower, double upper, int shape, BoundaryType lower_bc, BoundaryType upper_bc);
-        // Mesh(double lower, double upper, int shape, double step, BoundaryType lower_bc, BoundaryType upper_bc);
 
         virtual std::shared_ptr<Mesh> slice(int start, int end) const = 0;
 
@@ -76,10 +76,11 @@ class Mesh
         BoundaryType getupper_boundary_type() const; 
 
     protected:
-        double lower_;      //!< Length of the domain
+        double lower_;    
         double upper_;
+        double L_;      //!< Length of the domain
         int shape_;     //!< Shape of the mesh
-        // double step_;   //!< Spacing between mesh points
+        double step_;   //!< Spacing between mesh points
         double origin_; //!< Origin of the mesh
         BoundaryType lower_bc_;
         BoundaryType upper_bc_;
