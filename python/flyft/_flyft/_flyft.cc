@@ -7,6 +7,7 @@ void bindTypeMap(py::module_&);
 void bindVector(py::module_&);
 void bindDoubleParameters(py::module_&);
 
+void bindBoundaryType(py::module_&);
 void bindCommunicator(py::module_&);
 void bindField(py::module_&);
 void bindMesh(py::module_&);
@@ -67,7 +68,8 @@ PYBIND11_MODULE(_flyft, m)
     bindTypeMap(m);
     bindVector(m);
     bindDoubleParameters(m);
-
+    
+    bindBoundaryType(m);
     bindCommunicator(m);
     bindField(m);
     bindMesh(m);

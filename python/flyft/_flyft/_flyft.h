@@ -2,6 +2,7 @@
 #define FLYFT_PYTHON__FLYFT_H_
 
 // flyft headers for binding opaque types
+#include "flyft/boundary_type.h"
 #include "flyft/field.h"
 #include "flyft/flux.h"
 #include "flyft/functional.h"

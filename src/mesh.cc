@@ -6,49 +6,34 @@
 namespace flyft
 {
 
-Mesh::Mesh(double L, int shape, BoundaryType lower_bc, BoundaryType upper_bc)
-    : Mesh(L,shape,0, lower_bc, upper_bc )
-    {
-    }
-
-Mesh::Mesh(double L, int shape, double origin,BoundaryType lower_bc, BoundaryType upper_bc)
-    : L_(L), shape_(shape), step_(L_/shape_), origin_(origin), lower_bc_(lower_bc), upper_bc_(upper_bc)
-    {
-    }
-
-Mesh::Mesh(int shape, double step)
-    : Mesh(shape,step,0)
-    {
-    }
-
-Mesh::Mesh(int shape, double step, double origin)
-    : L_(shape*step), shape_(shape), step_(step), origin_(origin)
+Mesh::Mesh(double lower, double upper, int shape, BoundaryType lower_bc, BoundaryType upper_bc)
+    : lower_(lower), upper_(upper), shape_(shape), lower_bc_(lower_bc), upper_bc_(upper_bc)
     {
     }
 
 double Mesh::center(int i) const
     {
-    return origin_+static_cast<double>(i+0.5)*step_;
+    return lower_+static_cast<double>(i+0.5)*step();
     }
 
 int Mesh::bin(double x) const
     {
-    return static_cast<int>((x-origin_)/step_);
+    return static_cast<int>((x-lower_)/step());
     }
 
 double Mesh::lower_bound(int i) const
     {
-    return origin_+static_cast<double>(i)*step_;
+    return origin_+static_cast<double>(i)*step();
     }
     
 double Mesh::upper_bound(int i) const
     {
-    return origin_+static_cast<double>(i+1)*step_;
+    return origin_+static_cast<double>(i+1)*step();
     }
         
 double Mesh::L() const
     {
-    return L_;
+    return upper_-lower_;
     }
 
 int Mesh::shape() const
@@ -58,7 +43,7 @@ int Mesh::shape() const
 
 double Mesh::step() const
     {
-    return step_;
+    return ((upper_-lower_)/shape_);
     }
 
 double Mesh::origin() const
@@ -68,12 +53,12 @@ double Mesh::origin() const
 
 int Mesh::asShape(double dx) const
     {
-    return static_cast<int>(std::ceil(dx/step_));
+    return static_cast<int>(std::ceil(dx/step()));
     }
 
 double Mesh::asLength(int shape) const
     {
-    return shape*step_;
+    return shape*step();
     }
 
 double Mesh::integrateSurface(int idx, double j_lo, double j_hi) const
@@ -147,7 +132,7 @@ double Mesh::gradient(int idx, const DataView<const double>& f) const
 
 bool Mesh::operator==(const Mesh& other) const
     {
-    return (L_ == other.L_ && shape_ == other.shape_ && origin_ == other.origin_);
+    return (L() == other.L() && shape_ == other.shape_ && origin_ == other.origin_);
     }
 
 bool Mesh::operator!=(const Mesh& other) const

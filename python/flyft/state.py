@@ -64,14 +64,16 @@ class Mesh(mirror.Mirror,mirrorclass=_flyft.Mesh):
     origin = mirror.Property()
     shape = mirror.Property()
     step = mirror.Property()
+    lower_bc = mirror.Property()
+    upper_bc = mirror.Property()
 
 class CartesianMesh(Mesh,mirrorclass=_flyft.CartesianMesh):
-    def __init__(self,L,shape,area = 1.):      
-        super().__init__(L,shape,area) 
+    def __init__(self,L,shape, lower_bc, upper_bc,area = 1.):      
+        super().__init__(L,shape,area,lower_bc,upper_bc) 
 
 class SphericalMesh(Mesh,mirrorclass=_flyft.SphericalMesh):
-    def __init__(self,R,shape):
-        super().__init__(R,shape)
+    def __init__(self,R,shape,lower_bc, upper_bc):
+        super().__init__(R,shape,lower_bc,upper_bc)
 
 class ParallelMesh(mirror.Mirror,mirrorclass=_flyft.ParallelMesh):
     def __init__(self,mesh):

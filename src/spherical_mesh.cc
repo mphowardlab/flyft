@@ -6,29 +6,20 @@
 namespace flyft
 {
 
-SphericalMesh::SphericalMesh(double R, int shape, BoundaryType upper_bc)
-    : SphericalMesh(R,shape,0, BoundaryType::reflect, upper_bc)
+// SphericalMesh::SphericalMesh(double lower, double upper, int shape, BoundaryType upper_bc)
+//     : SphericalMesh(lower, upper,shape, BoundaryType::reflect, upper_bc)
+//     {
+//     }
+
+SphericalMesh::SphericalMesh(double lower, double upper,int shape, BoundaryType lower_bc, BoundaryType upper_bc)
+    : Mesh(lower, upper, shape, lower_bc, upper_bc)
     {
     }
 
-SphericalMesh::SphericalMesh(double R,int shape, double origin, BoundaryType lower_bc, BoundaryType upper_bc)
-    : Mesh(R,shape,origin, lower_bc, upper_bc)
-    {
-    }
-
-SphericalMesh::SphericalMesh(int shape, double step)
-    :SphericalMesh(shape,step,0)
-    {
-    }
-
-SphericalMesh::SphericalMesh(int shape, double step, double origin)
-    : Mesh(shape,step,origin)
-    {
-    }
 
 std::shared_ptr<Mesh> SphericalMesh::slice(int start, int end) const
     {
-    return std::shared_ptr<Mesh>(new SphericalMesh(end-start,step_,lower_bound(start)));
+    return std::shared_ptr<Mesh>(new SphericalMesh(lower_bound(start),end,end-start,lower_bc_, upper_bc_));
     }
 
 double SphericalMesh::area(int i) const
@@ -57,7 +48,7 @@ double SphericalMesh::gradient(int idx, double f_lo, double f_hi) const
         return 0;
         }
     else{
-        return (f_hi-f_lo)/(step_);
+        return (f_hi-f_lo)/(step());
         }
     }   
 void SphericalMesh::validateBoundaryCondition()

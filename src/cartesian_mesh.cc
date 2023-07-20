@@ -4,29 +4,14 @@
 namespace flyft
 {
 
-CartesianMesh::CartesianMesh(double L, int shape, double area, BoundaryType lower_bc, BoundaryType upper_bc)
-    : CartesianMesh(L,shape,area,0, lower_bc, upper_bc)
-    {
-    }
-
-CartesianMesh::CartesianMesh(double L,int shape, double area, double origin, BoundaryType lower_bc, BoundaryType upper_bc)
-    : Mesh(L,shape,origin,lower_bc,upper_bc), area_(area)
-    {
-    }
-
-CartesianMesh::CartesianMesh(int shape, double step, double area)
-    : CartesianMesh(shape,step,area,0)
-    {
-    }
-
-CartesianMesh::CartesianMesh(int shape, double step,double area, double origin)
-    : Mesh(shape,step,origin),area_(area)
+CartesianMesh::CartesianMesh(double lower,double upper,int shape, BoundaryType lower_bc, BoundaryType upper_bc,double area)
+    : Mesh(lower,upper,shape,lower_bc,upper_bc), area_(area)
     {
     }
 
 std::shared_ptr<Mesh> CartesianMesh::slice(int start, int end) const
     {
-    return std::shared_ptr<Mesh>(new CartesianMesh(end-start,step_,area_,lower_bound(start)));
+    return std::shared_ptr<Mesh>(new CartesianMesh(lower_bound(start),end,end-start,lower_bc_, upper_bc_,area_));
     }
 
 double CartesianMesh::area(int /*i*/) const
@@ -36,17 +21,17 @@ double CartesianMesh::area(int /*i*/) const
 
 double CartesianMesh::volume() const
     {
-    return area_*L_;
+    return area_*L();
     }
 
 double CartesianMesh::volume(int /*i*/) const
     {
-    return area_*step_;
+    return area_*step();
     }
 
 double CartesianMesh::gradient(int /*i*/, double f_lo, double f_hi) const
     {
-    return (f_hi-f_lo)/step_; 
+    return (f_hi-f_lo)/step(); 
     }
 
 void CartesianMesh::validateBoundaryCondition(){
