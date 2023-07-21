@@ -7,5 +7,11 @@ void bindBoundaryType(py::module_& m)
     {
     using namespace flyft;
 
-    py::bind_map<BoundaryType>(m, "BoundaryType");
+    py::enum_<BoundaryType>(m, "BoundaryType");
+    .value("periodic", BoundaryType::periodic)
+    .value("zeros", BoundaryType::zero)
+    .value("reflect", BoundaryType::reflect)
+    .value("repeat", BoundaryType::repeat)
+    .export_values();
+
     }

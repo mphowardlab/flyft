@@ -1,5 +1,4 @@
 #include "flyft/mesh.h"
-#include <iostream>
 
 #include <cmath>
 
@@ -23,12 +22,12 @@ int Mesh::bin(double x) const
 
 double Mesh::lower_bound(int i) const
     {
-    return origin_+static_cast<double>(i)*step_;
+    return lower_+static_cast<double>(i)*step_;
     }
     
 double Mesh::upper_bound(int i) const
     {
-    return origin_+static_cast<double>(i+1)*step_;
+    return lower_+static_cast<double>(i+1)*step_;
     }
         
 double Mesh::L() const
@@ -43,12 +42,17 @@ int Mesh::shape() const
 
 double Mesh::step() const
     {
-    return ((upper_-lower_)/shape_);
+    return step_;
     }
 
-double Mesh::origin() const
+double Mesh::lower() const
     {
-    return origin_;
+    return lower_;
+    }
+
+double Mesh::upper() const
+    {
+    return upper_;
     }
 
 int Mesh::asShape(double dx) const
@@ -58,7 +62,7 @@ int Mesh::asShape(double dx) const
 
 double Mesh::asLength(int shape) const
     {
-    return shape*step();
+    return shape*step_;
     }
 
 double Mesh::integrateSurface(int idx, double j_lo, double j_hi) const
@@ -132,7 +136,7 @@ double Mesh::gradient(int idx, const DataView<const double>& f) const
 
 bool Mesh::operator==(const Mesh& other) const
     {
-    return (L_ == other.L_ && shape_ == other.shape_ && origin_ == other.origin_);
+    return (L_ == other.L_ && shape_ == other.shape_ && lower_ == other.lower_);
     }
 
 bool Mesh::operator!=(const Mesh& other) const
@@ -140,12 +144,12 @@ bool Mesh::operator!=(const Mesh& other) const
     return !(*this == other);
     }
 
-BoundaryType Mesh::getlower_boundary_type() const
+BoundaryType Mesh::lower_boundary_condition() const
     {
     return lower_bc_;
     }  
 
-BoundaryType Mesh::getupper_boundary_type() const
+BoundaryType Mesh::upper_boundary_condition() const
     {
     return upper_bc_;
     }

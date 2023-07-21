@@ -61,9 +61,10 @@ class Mesh(mirror.Mirror,mirrorclass=_flyft.Mesh):
         return v
 
     L = mirror.Property()
-    origin = mirror.Property()
     shape = mirror.Property()
     step = mirror.Property()
+    lower = mirror.Property()
+    upper = mirror.Property()
     lower_bc = mirror.Property()
     upper_bc = mirror.Property()
 

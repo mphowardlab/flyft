@@ -11,7 +11,7 @@ CartesianMesh::CartesianMesh(double lower,double upper,int shape, BoundaryType l
 
 std::shared_ptr<Mesh> CartesianMesh::slice(int start, int end) const
     {
-    return std::shared_ptr<Mesh>(new CartesianMesh(lower_bound(start),end,end-start,lower_bc_, upper_bc_,area_));
+    return std::shared_ptr<Mesh>(new CartesianMesh(lower_bound(start),lower_bound(end),end-start, (start > 0)?BoundaryType::internal:lower_bc_, (start > 0)?BoundaryType::internal:upper_bc_,area_));
     }
 
 double CartesianMesh::area(int /*i*/) const
@@ -35,14 +35,10 @@ double CartesianMesh::gradient(int /*i*/, double f_lo, double f_hi) const
     }
 
 void CartesianMesh::validateBoundaryCondition(){
-    if (lower_bc_ != BoundaryType::periodic && upper_bc_ == BoundaryType::periodic){
-        throw std::invalid_argument("Lower boundary type not valid for periodic boundary condition");
-        }
-    else if (lower_bc_ == BoundaryType::periodic && upper_bc_ != BoundaryType::periodic){
-        throw std::invalid_argument("Upper boundary type not valid for periodic boundary condition");
-        }
-    else{
-        return;
+    if ((lower_bc_ != BoundaryType::periodic && upper_bc_ == BoundaryType::periodic) ||
+        (lower_bc_ == BoundaryType::periodic && upper_bc_ != BoundaryType::periodic))
+        {
+        throw std::invalid_argument("Both boundaries must be periodic if one is.");
         }
     }        
 }

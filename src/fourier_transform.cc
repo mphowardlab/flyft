@@ -16,14 +16,14 @@ FourierTransform::FourierTransform(double L, int N)
     fftw_plan_with_nthreads(omp_get_max_threads());
     #endif
     // this is the doc'd size of "real" memory required for the r2c / c2r transform
-    data_ = fftw_alloc_real(2*(N/2+1));
+    data_ = fftw_alloc_real(2*(N_/2+1));
 
-    r2c_plan_ = fftw_plan_dft_r2c_1d(N,
+    r2c_plan_ = fftw_plan_dft_r2c_1d(N_,
                                      data_,
                                      reinterpret_cast<fftw_complex*>(data_),
                                      FFTW_ESTIMATE);
 
-    c2r_plan_ = fftw_plan_dft_c2r_1d(N,
+    c2r_plan_ = fftw_plan_dft_c2r_1d(N_,
                                      reinterpret_cast<fftw_complex*>(data_),
                                      data_,
                                      FFTW_ESTIMATE);
@@ -117,7 +117,7 @@ void FourierTransform::transform()
         // execute inverse FFT and renormalize by N (FFTW does not)
         fftw_execute(c2r_plan_);
         const auto size = getN();
-        std::transform(data_,data_+size,data_,[&](auto x){return x/size;});
+        std::transform(data_,data_+size,data_,[&](auto x){return x/N_;});
         space_ = RealSpace;
         }
     }

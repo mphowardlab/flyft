@@ -1,7 +1,7 @@
 #ifndef FLYFT_MESH_H_
 #define FLYFT_MESH_H_
-#include "flyft/data_view.h"
 #include "flyft/boundary_type.h"
+#include "flyft/data_view.h"
 
 #include <memory>
 
@@ -48,8 +48,15 @@ class Mesh
         double step() const;
 
         //! Mesh origin
-        double origin() const;
+        double lower() const;
+        
+        //! Mesh upper coordinate
+        double upper() const;
+        
+        BoundaryType lower_boundary_condition() const;
+        BoundaryType upper_boundary_condition() const; 
 
+        
         int asShape(double dx) const;
 
         double asLength(int shape) const;
@@ -72,8 +79,6 @@ class Mesh
         bool operator==(const Mesh& other) const;
         bool operator!=(const Mesh& other) const;
         
-        BoundaryType getlower_boundary_type() const;
-        BoundaryType getupper_boundary_type() const; 
 
     protected:
         double lower_;    
@@ -81,7 +86,6 @@ class Mesh
         double L_;      //!< Length of the domain
         int shape_;     //!< Shape of the mesh
         double step_;   //!< Spacing between mesh points
-        double origin_; //!< Origin of the mesh
         BoundaryType lower_bc_;
         BoundaryType upper_bc_;
     };
