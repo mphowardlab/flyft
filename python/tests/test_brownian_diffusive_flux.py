@@ -6,12 +6,12 @@ from pytest_lazyfixture import lazy_fixture
 
 @pytest.fixture
 def cartesian_mesh_grand():
-    return flyft.state.CartesianMesh(10.,500,1)
+    return flyft.state.CartesianMesh(0,10.,500,"periodic", 1 )
 
 @pytest.fixture
 def spherical_mesh_grand():
-    return flyft.state.SphericalMesh(10.,500)
-
+    return flyft.state.SphericalMesh(0,10.,500, "zero") 
+    
 @pytest.fixture(params=[lazy_fixture("cartesian_mesh_grand"), lazy_fixture("spherical_mesh_grand")])
 def mesh_grand(request):
     return request.param

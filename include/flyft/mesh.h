@@ -3,7 +3,9 @@
 #include "flyft/boundary_type.h"
 #include "flyft/data_view.h"
 
+#include <exception>
 #include <memory>
+
 
 namespace flyft
 {
@@ -13,13 +15,20 @@ class Mesh
     public:
         Mesh() = delete;
         
-        Mesh(double lower, double upper, int shape, BoundaryType lower_bc, BoundaryType upper_bc);
+        Mesh(double lower_bound, double upper_bound, int shape, BoundaryType lower_bc, BoundaryType upper_bc);
 
         virtual std::shared_ptr<Mesh> slice(int start, int end) const = 0;
 
         //! Get position on the mesh, defined as center of bin
         double center(int i) const;
 
+        
+        //! Get lowermost bin
+        double lower_bound() const;
+
+        //! Get uppermost bin
+        double upper_bound() const;
+        
         //! Get lower bound of bin
         double lower_bound(int i) const;
 
@@ -47,11 +56,7 @@ class Mesh
         //! Step size of the mesh
         double step() const;
 
-        //! Mesh origin
-        double lower() const;
-        
-        //! Mesh upper coordinate
-        double upper() const;
+
         
         BoundaryType lower_boundary_condition() const;
         BoundaryType upper_boundary_condition() const; 
@@ -78,6 +83,8 @@ class Mesh
         
         bool operator==(const Mesh& other) const;
         bool operator!=(const Mesh& other) const;
+        
+        void validateBoundaryCondition();
         
 
     protected:

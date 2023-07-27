@@ -34,6 +34,7 @@ class Field(mirror.Mirror,mirrorclass=_flyft.Field):
         np.copyto(self.data, v)
 
     shape = mirror.Property()
+       
 
 class Fields(mirror.Mapping):
     def __init__(self, _self):
@@ -47,6 +48,7 @@ class Fields(mirror.Mapping):
         return self._cache[key]
 
 class Mesh(mirror.Mirror,mirrorclass=_flyft.Mesh):
+        
     @property
     def centers(self):
         if not hasattr(self, '_centers'):
@@ -59,22 +61,57 @@ class Mesh(mirror.Mirror,mirrorclass=_flyft.Mesh):
         else:
             v = self._self.bin_volume(bin)
         return v
+         
+    def lower_bound(self, bin = None):
+        if bin is None:
+            l = self._self.lower_bound
+        else:
+            l = self._self.bin_lower_bound(bin)
+        return l
+    
+    def upper_bound(self, bin = None):
+        if bin is None:
+            u = self._self.upper_bound
+        else:
+            u = self._self.bin_upper_bound(bin)
+        return u
+    
+    @staticmethod
+    def _parse_boundary_condition(bc):
+        if isinstance(bc, str):
+            lower_boundary_condition = upper_boundary_condition = getattr(_flyft.BoundaryType, bc, None)
+        elif len(bc) == 2:
+            lower_boundary_condition = getattr(_flyft.BoundaryType, bc[0], None)
+            upper_boundary_condition = getattr(_flyft.BoundaryType, bc[1], None)
+        else:
+            raise TypeError("Boundary type must be str or 2-tuple")
 
+        if lower_boundary_condition is None or upper_boundary_condition is None:
+            raise ValueError("Unrecognized boundary type")
+            
+        return lower_boundary_condition,upper_boundary_condition
+        
+    
+    boundary_type = _flyft.BoundaryType
+    lower_boundary_condition = mirror.Property()
+    upper_boundary_condition = mirror.Property()
     L = mirror.Property()
     shape = mirror.Property()
     step = mirror.Property()
-    lower = mirror.Property()
-    upper = mirror.Property()
-    lower_bc = mirror.Property()
-    upper_bc = mirror.Property()
+    
+    
 
 class CartesianMesh(Mesh,mirrorclass=_flyft.CartesianMesh):
-    def __init__(self,L,shape, lower_bc, upper_bc,area = 1.):      
-        super().__init__(L,shape,area,lower_bc,upper_bc) 
-
+    def __init__(self,lower,upper,shape, boundary_condition, area = 1.): 
+        lower_boundary_condition,upper_boundary_condition = Mesh._parse_boundary_condition(boundary_condition)
+        super().__init__(lower,upper,shape, lower_boundary_condition,upper_boundary_condition,area)
+        
+        
 class SphericalMesh(Mesh,mirrorclass=_flyft.SphericalMesh):
-    def __init__(self,R,shape,lower_bc, upper_bc):
-        super().__init__(R,shape,lower_bc,upper_bc)
+    def __init__(self,lower,upper,shape,boundary_condition):
+        lower_boundary_condition,upper_boundary_condition = Mesh._parse_boundary_condition(boundary_condition)
+        super().__init__(lower,upper,shape,Mesh.boundary_type.reflect,upper_boundary_condition)
+        
 
 class ParallelMesh(mirror.Mirror,mirrorclass=_flyft.ParallelMesh):
     def __init__(self,mesh):

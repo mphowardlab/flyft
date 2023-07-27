@@ -14,6 +14,7 @@ set(FLYFT_PY_SOURCES
 # pull in _flyft files here to get compiled module at same level in build as python module
 set(_FLYFT_CC_SOURCES
     _flyft.cc
+    boundary_type.cc
     boublik_hard_sphere_functional.cc
     brownian_diffusive_flux.cc
     cartesian_mesh.cc

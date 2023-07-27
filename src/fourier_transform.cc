@@ -116,8 +116,7 @@ void FourierTransform::transform()
         {
         // execute inverse FFT and renormalize by N (FFTW does not)
         fftw_execute(c2r_plan_);
-        const auto size = getN();
-        std::transform(data_,data_+size,data_,[&](auto x){return x/N_;});
+        std::transform(data_,data_+N_,data_,[&](auto x){return x/N_;});
         space_ = RealSpace;
         }
     }

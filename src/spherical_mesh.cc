@@ -8,6 +8,7 @@ namespace flyft
 SphericalMesh::SphericalMesh(double lower, double upper,int shape, BoundaryType lower_bc, BoundaryType upper_bc)
     : Mesh(lower, upper, shape, lower_bc, upper_bc)
     {
+          validateBoundaryCondition();
     }
 
 
@@ -24,8 +25,8 @@ double SphericalMesh::area(int i) const
 
 double SphericalMesh::volume() const
     {
-    const double rlo = lower_bound(0);
-    const double rhi = upper_bound(shape_-1);
+    const double rlo = lower_;
+    const double rhi = upper_;
     return (4.*M_PI/3.)*(rhi*rhi*rhi - rlo*rlo*rlo);
     }
     
@@ -47,8 +48,8 @@ double SphericalMesh::gradient(int idx, double f_lo, double f_hi) const
     }   
 void SphericalMesh::validateBoundaryCondition()
     {
-    if (lower_bc_ == BoundaryType::periodic || upper_bc_ == BoundaryType::periodic){
-        throw std::invalid_argument("Periodic boundary conditions not valid in spherical geometry");
+    if(lower_bc_ == BoundaryType::periodic || upper_bc_ == BoundaryType::periodic){
+         std::cout<<"Periodic boundary conditions not valid in spherical geometry";
         }
     }
 }
