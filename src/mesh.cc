@@ -108,7 +108,7 @@ double Mesh::interpolate(double x, const DataView<const double>& f) const
     const auto x_c = center(idx);
 
     double x_0, x_1, f_0, f_1;
-    if (x < x_c && lower_bound(idx) != 0)// TODO: Fix this in communicator. ITS A HACK!
+    if (x < x_c)
         {
         x_0 = center(idx - 1);
         x_1 = x_c;

@@ -23,7 +23,7 @@ def cartesian_mesh_sine():
 
 @pytest.fixture
 def spherical_mesh_sine():
-    return flyft.state.SphericalMesh(0,2.,100,"zero")
+    return flyft.state.SphericalMesh(0,2.,100,"reflect")
 
 
 @pytest.fixture(params=[lazy_fixture("cartesian_mesh_sine"), lazy_fixture("spherical_mesh_sine")])
@@ -40,7 +40,7 @@ def cartesian_mesh():
 
 @pytest.fixture
 def spherical_mesh():
-    return flyft.state.SphericalMesh(0.,10.0,20,"zero")
+    return flyft.state.SphericalMesh(0.,10.0,20,"reflect")
     
 @pytest.fixture(params=[lazy_fixture("cartesian_mesh"), lazy_fixture("spherical_mesh")])
 def mesh(request):

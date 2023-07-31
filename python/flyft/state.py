@@ -93,6 +93,7 @@ class Mesh(mirror.Mirror,mirrorclass=_flyft.Mesh):
         
     
     boundary_type = _flyft.BoundaryType
+    
     lower_boundary_condition = mirror.Property()
     upper_boundary_condition = mirror.Property()
     L = mirror.Property()

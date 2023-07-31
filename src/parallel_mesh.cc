@@ -150,40 +150,107 @@ void ParallelMesh::startSync(std::shared_ptr<Field> field)
         // nothing to do, no buffer needed
         return;
         }
-
+        
     // sync field
     auto f = field->view();
+    const auto lower_bc = local_mesh_->lower_boundary_condition();
+    const auto upper_bc = local_mesh_->upper_boundary_condition();
+
     #ifdef FLYFT_MPI
-    if (comm_->size() > 1)
+    const int left = layout_(getProcessorCoordinatesByOffset(-1));
+    const int right = layout_(getProcessorCoordinatesByOffset(1));
+    std::vector<MPI_Request> requests;
+    requests.reserve(4);
+
+    if (comm_->size() > 1 && (lower_bc==BoundaryType::periodic || lower_bc==BoundaryType::internal))
         {
-        const int left = layout_(getProcessorCoordinatesByOffset(-1));
-        const int right = layout_(getProcessorCoordinatesByOffset(1));
-
-        MPI_Comm comm = comm_->get();
-        std::vector<MPI_Request> requests(4);
-        // MPI_Request requests[4];
         // receive left buffer from left (tag 0), right buffer from right (tag 1)
-        MPI_Irecv(&f(-buffer_shape),buffer_shape,MPI_DOUBLE,left,0,comm,&requests[0]);
-        MPI_Irecv(&f(shape),buffer_shape,MPI_DOUBLE,right,1,comm,&requests[1]);
-        // send left edge to left (tag 1), right edge to right (tag 0)
-        MPI_Isend(&f(0),buffer_shape,MPI_DOUBLE,left,1,comm,&requests[2]);
-        MPI_Isend(&f(shape-buffer_shape),buffer_shape,MPI_DOUBLE,right,0,comm,&requests[3]);
-
-        field_requests_[field->id()] = requests;
+        MPI_Comm comm = comm_->get();
+        const auto end = requests.size();
+        requests.resize(end+2);
+        MPI_Irecv(&f(-buffer_shape),buffer_shape,MPI_DOUBLE,left,0,comm,&requests[end]);
+        MPI_Isend(&f(0),buffer_shape,MPI_DOUBLE,left,1,comm,&requests[end+1]);
         }
     else
     #endif
         {
-        for (int idx=0; idx < buffer_shape; ++idx)
+        for(int idx = 0; idx < buffer_shape; ++idx)
             {
-            f(shape+idx) = f(idx);
-            f(-1-idx) = f(shape-1-idx);
+            double value;
+            if (lower_bc == BoundaryType::zero)
+                {
+                value = 0;
+                }
+            else if (lower_bc == BoundaryType::repeat)  
+                {
+                value = f(0);
+                }    
+            else if (lower_bc == BoundaryType::reflect)
+                {
+                value = f(1+idx);
+                }
+            else if (lower_bc == BoundaryType::periodic || lower_bc == BoundaryType::internal)
+                {
+                value = f(shape-1-idx);
+                }
+            else
+                {
+                throw std::runtime_error("Unknown boundary condition");
+                }
+            f(-1-idx) = value;
             }
         }
 
+    #ifdef FLYFT_MPI
+    if(comm_->size() > 1 && (upper_bc == BoundaryType::periodic || upper_bc==BoundaryType::internal))
+        {
+        // send left edge to left (tag 1), right edge to right (tag 0)
+        MPI_Comm comm = comm_->get();
+        const auto end = requests.size();
+        requests.resize(end+2);
+        MPI_Irecv(&f(shape),buffer_shape,MPI_DOUBLE,right,1,comm,&requests[end]);
+        MPI_Isend(&f(shape-buffer_shape),buffer_shape,MPI_DOUBLE,right,0,comm,&requests[end+1]);
+        }
+    else
+    #endif
+        {
+        for(int idx = 0; idx < buffer_shape; ++idx)
+            {
+            double value;
+            if(upper_bc == BoundaryType::zero)
+                {
+                value = 0;
+                }
+            else if(upper_bc == BoundaryType::repeat)
+                {
+                value = f(shape);
+                }
+            else if(upper_bc == BoundaryType::reflect)
+                {
+                value = f(shape-1-idx);
+                }
+            else if(upper_bc == BoundaryType::periodic || upper_bc == BoundaryType::internal) 
+                {
+                value = f(idx);
+                }
+            else
+                {
+                throw std::runtime_error("Unknown boundary condition");
+                }
+            f(shape+idx) = value;
+            }
+        }
+
+    #ifdef FLYFT_MPI
+    if (requests.size() > 0)
+        {
+        field_requests_[field->id()] = requests;
+        }
+    #endif    
     // cache token
     field_tokens_[field->id()] = field->token();
     }
+    
 
 #ifdef FLYFT_MPI
 void ParallelMesh::endSync(std::shared_ptr<Field> field)
