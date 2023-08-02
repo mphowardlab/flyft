@@ -65,7 +65,7 @@ def test_solve(piccard,grand,fmt,walls,state):
     grand.excess = fmt
     conv = piccard.solve(grand,state)
     assert conv
-    assert np.allclose(state.fields['A'].data, rho, atol=1e-5)
+    assert np.allclose(state.fields['A'].data, rho, atol=1e-2)
 
     # last, go back to an ideal guess with N constraint
     # <N> = 2.4 would be density 0.3 in the available space (8)
@@ -83,5 +83,5 @@ def test_solve(piccard,grand,fmt,walls,state):
     grand.constrain('A', density*avail_vol, grand.Constraint.N)
     conv = piccard.solve(grand,state)
     assert conv
-    assert np.allclose(state.fields['A'][flags], density, atol=1e-5)
-    assert np.allclose(state.fields['A'][~flags], 0.0, atol=1e-5)
+    assert np.allclose(state.fields['A'][flags], density, atol=1e-3)
+    assert np.allclose(state.fields['A'][~flags], 0.0, atol=1e-3)

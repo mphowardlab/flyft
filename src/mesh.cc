@@ -5,8 +5,8 @@
 namespace flyft
 {
 
-Mesh::Mesh(double lower, double upper, int shape, BoundaryType lower_bc, BoundaryType upper_bc)
-    : lower_(lower), upper_(upper), L_(upper_-lower_), shape_(shape), step_(L_/shape_), lower_bc_(lower_bc), upper_bc_(upper_bc)
+Mesh::Mesh(double lower_bound, double upper_bound, int shape, BoundaryType lower_bc, BoundaryType upper_bc)
+    : lower_(lower_bound), upper_(upper_bound), shape_(shape), lower_bc_(lower_bc), upper_bc_(upper_bc), L_(upper_-lower_), step_(L_/shape_)
     {
     validateBoundaryCondition();
     }
@@ -26,15 +26,15 @@ double Mesh::lower_bound() const
     {
     return lower_;
     }
-    
-double Mesh::upper_bound() const
-    {
-    return upper_;
-    }
-    
+  
 double Mesh::lower_bound(int i) const
     {
     return lower_+static_cast<double>(i)*step_;
+    }
+  
+double Mesh::upper_bound() const
+    {
+    return upper_;
     }
     
 double Mesh::upper_bound(int i) const
@@ -128,12 +128,29 @@ double Mesh::interpolate(double x, const DataView<const double>& f) const
 
 double Mesh::gradient(int idx, const DataView<double>& f) const
     {
-    return gradient(idx, f(idx-1), f(idx));
+    if ((idx == 0 && lower_bc_ == BoundaryType::reflect) ||
+        (idx == shape_-1 && upper_bc_ == BoundaryType::reflect))
+        {
+        return 0;
+        }
+    else
+        {
+        return gradient(idx, f(idx-1), f(idx)); 
+        }
+    
     }
 
 double Mesh::gradient(int idx, const DataView<const double>& f) const
     {
-    return gradient(idx, f(idx-1), f(idx));
+    if ((idx == 0 && lower_bc_ == BoundaryType::reflect) ||
+        (idx == shape_-1 && upper_bc_ == BoundaryType::reflect))
+        {
+        return 0;
+        }
+    else
+        {
+        return gradient(idx, f(idx-1), f(idx)); 
+        }
     }
 
 bool Mesh::operator==(const Mesh& other) const
@@ -156,7 +173,8 @@ BoundaryType Mesh::upper_boundary_condition() const
     return upper_bc_;
     }
 
-void Mesh::validateBoundaryCondition(){
+void Mesh::validateBoundaryCondition() const
+    {
     if ((lower_bc_ != BoundaryType::periodic && upper_bc_ == BoundaryType::periodic) ||
         (lower_bc_ == BoundaryType::periodic && upper_bc_ != BoundaryType::periodic))
         {

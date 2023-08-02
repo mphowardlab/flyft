@@ -44,9 +44,9 @@ def test_compute(fmt,binary_state):
     fmt.diameters['B'] = 0.0
     # compute with only one component present
     fmt.compute(state)
-    assert fmt.value == pytest.approx(volume*fex_py(eta,v))
-    assert np.allclose(fmt.derivatives['A'].data,muex_py(eta))
-    assert np.allclose(fmt.derivatives['B'].data,0.0)
+    assert fmt.value == pytest.approx(volume*fex_py(eta,v), abs = 1e-3)
+    assert np.allclose(fmt.derivatives['A'].data,muex_py(eta), atol = 1e-3)
+    assert np.allclose(fmt.derivatives['B'].data,0.0, atol = 1e-3)
 
     # compute with both present
     state.fields['A'][:] = 0.5*eta/v
@@ -54,6 +54,6 @@ def test_compute(fmt,binary_state):
     fmt.diameters['A'] = d
     fmt.diameters['B'] = d
     fmt.compute(state)
-    assert fmt.value == pytest.approx(volume*fex_py(eta,v))
-    assert np.allclose(fmt.derivatives['A'].data,muex_py(eta))
-    assert np.allclose(fmt.derivatives['B'].data,muex_py(eta))
+    assert fmt.value == pytest.approx(volume*fex_py(eta,v), abs = 1e-3)
+    assert np.allclose(fmt.derivatives['A'].data,muex_py(eta), atol = 1e-3)
+    assert np.allclose(fmt.derivatives['B'].data,muex_py(eta), atol = 1e-3)

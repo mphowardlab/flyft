@@ -6,7 +6,7 @@ import flyft
 def test_init(state):
     assert isinstance(state.mesh, flyft.state.ParallelMesh)
     assert state.mesh.full.L == pytest.approx(10.0)
-    assert state.mesh.full.shape == 20
+    assert state.mesh.full.shape == 100
     assert state.time == pytest.approx(0.0)
 
 def test_fields(binary_state):

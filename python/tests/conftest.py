@@ -16,13 +16,12 @@ def grand():
 
 @pytest.fixture
 def cartesian_mesh_sine():
-    periodic = flyft._flyft.BoundaryType.periodic
-    return flyft.state.CartesianMesh(0,2.,100,"periodic",1)
+    return flyft.state.CartesianMesh(2.,100,"periodic",1)
     
 
 @pytest.fixture
 def spherical_mesh_sine():
-    return flyft.state.SphericalMesh(0,2.,100,"reflect")
+    return flyft.state.SphericalMesh(2.,100,"zero")
 
 
 @pytest.fixture(params=[lazy_fixture("cartesian_mesh_sine"), lazy_fixture("spherical_mesh_sine")])
@@ -35,11 +34,11 @@ def state_sine(mesh_sine):
 
 @pytest.fixture
 def cartesian_mesh():
-    return flyft.state.CartesianMesh(0.,10.0,20,"periodic",1.)
+    return flyft.state.CartesianMesh(10.0,100,"periodic",1.)
 
 @pytest.fixture
 def spherical_mesh():
-    return flyft.state.SphericalMesh(0.,10.0,20,"reflect")
+    return flyft.state.SphericalMesh(10.0,100,"repeat")
     
 @pytest.fixture(params=[lazy_fixture("cartesian_mesh"), lazy_fixture("spherical_mesh")])
 def mesh(request):

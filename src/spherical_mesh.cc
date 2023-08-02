@@ -14,7 +14,11 @@ SphericalMesh::SphericalMesh(double lower, double upper,int shape, BoundaryType 
 
 std::shared_ptr<Mesh> SphericalMesh::slice(int start, int end) const
     {
-    return std::shared_ptr<Mesh>(new SphericalMesh(lower_bound(start),lower_bound(end),end-start, (start > 0)?BoundaryType::internal:lower_bc_, (start > 0)?BoundaryType::internal:upper_bc_));
+    return std::shared_ptr<Mesh>(new SphericalMesh(
+        lower_bound(start),
+        lower_bound(end),end-start, 
+        (start > 0)?BoundaryType::internal:lower_bc_, 
+        (start > 0)?BoundaryType::internal:upper_bc_));
     }
 
 double SphericalMesh::area(int i) const
@@ -37,19 +41,18 @@ double SphericalMesh::volume(int i) const
     return (4.*M_PI/3.)*(r_out*r_out*r_out - r_in*r_in*r_in);
     }
 
-double SphericalMesh::gradient(int idx, double f_lo, double f_hi) const
+double SphericalMesh::gradient(int /*i*/, double f_lo, double f_hi) const
     {
-    if (idx == 0 && lower_ == 0.){
-        return 0;
-        }
-    else{
-        return (f_hi-f_lo)/(step_);
-        }
+    return (f_hi-f_lo)/(step_);
     }   
-void SphericalMesh::validateBoundaryCondition()
+    
+void SphericalMesh::validateBoundaryCondition() const
     {
-    if(lower_bc_ == BoundaryType::periodic || upper_bc_ == BoundaryType::periodic){
-         std::cout<<"Periodic boundary conditions not valid in spherical geometry";
+    Mesh::validateBoundaryCondition();
+    
+    if(lower_bc_ == BoundaryType::periodic || upper_bc_ == BoundaryType::periodic || upper_bc_ == BoundaryType::reflect)
+        {
+         throw std::invalid_argument("Periodic boundary conditions or reflect upper boundary condition is  not valid in spherical geometry");
         }
     }
 }

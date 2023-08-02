@@ -222,7 +222,7 @@ void ParallelMesh::startSync(std::shared_ptr<Field> field)
                 }
             else if(upper_bc == BoundaryType::repeat)
                 {
-                value = f(shape);
+                value = f(shape-1);
                 }
             else if(upper_bc == BoundaryType::reflect)
                 {

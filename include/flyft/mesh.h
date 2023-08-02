@@ -23,11 +23,11 @@ class Mesh
         //! Lower bound of entire mesh
         double lower_bound() const;
 
-        //! Upper bound of entire mesh
-        double upper_bound() const;
-        
         //! Get lower bound of bin
         double lower_bound(int i) const;
+        
+        //! Upper bound of entire mesh
+        double upper_bound() const;
 
         //! Get upper bound of bin
         double upper_bound(int i) const;
@@ -81,18 +81,18 @@ class Mesh
         
         bool operator==(const Mesh& other) const;
         bool operator!=(const Mesh& other) const;
-        
-        void validateBoundaryCondition();
-        
 
     protected:
         double lower_;    
         double upper_;
-        double L_;      //!< Length of the domain
         int shape_;     //!< Shape of the mesh
-        double step_;   //!< Spacing between mesh points
         BoundaryType lower_bc_;
         BoundaryType upper_bc_;
+        
+        double L_;      //!< Length of the domain
+        double step_;   //!< Spacing between mesh points
+        
+        void validateBoundaryCondition() const;
     };
 
 }

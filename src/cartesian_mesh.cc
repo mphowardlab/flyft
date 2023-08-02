@@ -10,7 +10,13 @@ CartesianMesh::CartesianMesh(double lower,double upper,int shape, BoundaryType l
 
 std::shared_ptr<Mesh> CartesianMesh::slice(int start, int end) const
     {
-    return std::shared_ptr<Mesh>(new CartesianMesh(lower_bound(start),lower_bound(end),end-start, (start > 0)?BoundaryType::internal:lower_bc_, (start > 0)?BoundaryType::internal:upper_bc_,area_));
+    return std::shared_ptr<Mesh>(new CartesianMesh(
+        lower_bound(start),
+        lower_bound(end),
+        end-start,
+        (start > 0) ? BoundaryType::internal : lower_bc_,
+        (end < shape_) ? BoundaryType::internal : upper_bc_,
+        area_));
     }
 
 double CartesianMesh::area(int /*i*/) const

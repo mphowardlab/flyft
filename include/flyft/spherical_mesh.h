@@ -19,7 +19,7 @@ class SphericalMesh : public Mesh
         double gradient(int idx, double f_lo, double f_hi) const override; 
     
     protected:
-        void validateBoundaryCondition();
+        void validateBoundaryCondition() const;
     };
 }
 
