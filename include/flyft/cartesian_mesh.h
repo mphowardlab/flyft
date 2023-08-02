@@ -17,7 +17,7 @@ class CartesianMesh: public Mesh
         double volume(int i) const override;  
         double gradient(int idx, double f_lo, double f_hi) const override; 
     
-    protected:
+    private:
         double area_; //<! Cross sectional area
     };
 }

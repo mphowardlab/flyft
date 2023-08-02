@@ -2,7 +2,6 @@ import pytest
 import flyft
 from pytest_lazyfixture import lazy_fixture
 
-
 @pytest.fixture
 def ig():
     return flyft.functional.IdealGas()

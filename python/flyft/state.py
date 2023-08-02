@@ -34,7 +34,6 @@ class Field(mirror.Mirror,mirrorclass=_flyft.Field):
         np.copyto(self.data, v)
 
     shape = mirror.Property()
-       
 
 class Fields(mirror.Mapping):
     def __init__(self, _self):
@@ -48,7 +47,6 @@ class Fields(mirror.Mapping):
         return self._cache[key]
 
 class Mesh(mirror.Mirror,mirrorclass=_flyft.Mesh):
-        
     @property
     def centers(self):
         if not hasattr(self, '_centers'):
@@ -62,14 +60,14 @@ class Mesh(mirror.Mirror,mirrorclass=_flyft.Mesh):
             v = self._self.bin_volume(bin)
         return v
          
-    def lower_bound(self, bin = None):
+    def lower_bound(self, bin=None):
         if bin is None:
             l = self._self.lower_bound
         else:
             l = self._self.bin_lower_bound(bin)
         return l
     
-    def upper_bound(self, bin = None):
+    def upper_bound(self, bin=None):
         if bin is None:
             u = self._self.upper_bound
         else:
@@ -99,8 +97,6 @@ class Mesh(mirror.Mirror,mirrorclass=_flyft.Mesh):
     L = mirror.Property()
     shape = mirror.Property()
     step = mirror.Property()
-    
-    
 
 class CartesianMesh(Mesh,mirrorclass=_flyft.CartesianMesh):
     def __init__(self,lower,upper,shape, boundary_condition, area = 1.): 

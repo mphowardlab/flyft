@@ -8,13 +8,14 @@
 namespace flyft
 {
 FourierTransform::FourierTransform(double L, int N)
-    : L_(L), N_(N), kmesh_(L,N),space_(RealSpace)
+    : L_(L), N_(N), kmesh_(L,N), space_(RealSpace)
     {
     #ifdef FLYFT_OPENMP
     // use all available OpenMP threads
     fftw_init_threads();
     fftw_plan_with_nthreads(omp_get_max_threads());
     #endif
+
     // this is the doc'd size of "real" memory required for the r2c / c2r transform
     data_ = fftw_alloc_real(2*(N_/2+1));
 
@@ -125,7 +126,6 @@ double FourierTransform::getL() const
     {
     return L_;
     }
-
 
 int FourierTransform::getN() const
     {

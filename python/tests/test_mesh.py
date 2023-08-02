@@ -13,15 +13,10 @@ def test_init(mesh):
     assert mesh.centers[0] == pytest.approx(0.25)
     assert mesh.centers[-1] == pytest.approx(9.75)
 
-
-
-   
-
 def test_mirror(mesh):
     assert mesh._self.L == 10.0
     assert mesh._self.shape == 20
     assert mesh._self.step == pytest.approx(0.5)
-   
 
 def test_immutable(mesh):
     with pytest.raises(AttributeError):

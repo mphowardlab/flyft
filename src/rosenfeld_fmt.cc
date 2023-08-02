@@ -895,10 +895,9 @@ bool RosenfeldFMT::setup(std::shared_ptr<State> state, bool compute_value)
     const int buffered_shape = mesh->shape()+2*buffer_shape_;
     const double buffered_L = mesh->asLength(buffered_shape);
     if (!ft_ || buffered_L != ft_->getL() || buffered_shape != ft_->getN())
-    {
+        {
         ft_ = std::make_unique<FourierTransform>(buffered_L,buffered_shape);
-    }
-
+        }
 
     // update shape of internal fields
     setupField(n0_); setupComplexField(tmp_complex_field_["n0k"]); setupField(dphi_dn0_); setupComplexField(dphi_dn0k_);

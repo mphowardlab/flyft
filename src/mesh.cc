@@ -8,7 +8,7 @@ namespace flyft
 Mesh::Mesh(double lower, double upper, int shape, BoundaryType lower_bc, BoundaryType upper_bc)
     : lower_(lower), upper_(upper), L_(upper_-lower_), shape_(shape), step_(L_/shape_), lower_bc_(lower_bc), upper_bc_(upper_bc)
     {
-        validateBoundaryCondition();
+    validateBoundaryCondition();
     }
 
 double Mesh::center(int i) const

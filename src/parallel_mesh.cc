@@ -150,7 +150,6 @@ void ParallelMesh::startSync(std::shared_ptr<Field> field)
         // nothing to do, no buffer needed
         return;
         }
-        
     // sync field
     auto f = field->view();
     const auto lower_bc = local_mesh_->lower_boundary_condition();

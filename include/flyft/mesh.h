@@ -6,7 +6,6 @@
 #include <exception>
 #include <memory>
 
-
 namespace flyft
 {
 
@@ -14,7 +13,6 @@ class Mesh
     {
     public:
         Mesh() = delete;
-        
         Mesh(double lower_bound, double upper_bound, int shape, BoundaryType lower_bc, BoundaryType upper_bc);
 
         virtual std::shared_ptr<Mesh> slice(int start, int end) const = 0;
@@ -22,11 +20,10 @@ class Mesh
         //! Get position on the mesh, defined as center of bin
         double center(int i) const;
 
-        
-        //! Get lowermost bin
+        //! Lower bound of entire mesh
         double lower_bound() const;
 
-        //! Get uppermost bin
+        //! Upper bound of entire mesh
         double upper_bound() const;
         
         //! Get lower bound of bin
@@ -57,11 +54,12 @@ class Mesh
         double step() const;
 
 
-        
+        //! Boundary condition on lower bound of mesh
         BoundaryType lower_boundary_condition() const;
+
+        //! Boundary condition on upper bound of mesh
         BoundaryType upper_boundary_condition() const; 
 
-        
         int asShape(double dx) const;
 
         double asLength(int shape) const;

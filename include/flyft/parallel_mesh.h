@@ -24,7 +24,6 @@ class ParallelMesh
 
         std::shared_ptr<const Mesh> local() const;
         std::shared_ptr<const Mesh> full() const;
-        
         int getProcessorShape() const;
         int getProcessorCoordinates() const;
         int getProcessorCoordinatesByOffset(int offset) const;

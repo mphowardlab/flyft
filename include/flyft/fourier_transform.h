@@ -72,7 +72,6 @@ class FourierTransform
     private:
         double L_;
         int N_;
-        
         Wavevectors kmesh_;
         Space space_;
         double* data_;

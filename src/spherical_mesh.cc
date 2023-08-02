@@ -1,14 +1,14 @@
 #include "flyft/spherical_mesh.h"
 
 #include <cmath>
-#include <iostream>
+#include <exception>
 
 namespace flyft
 {
 SphericalMesh::SphericalMesh(double lower, double upper,int shape, BoundaryType lower_bc, BoundaryType upper_bc)
     : Mesh(lower, upper, shape, lower_bc, upper_bc)
     {
-          validateBoundaryCondition();
+      validateBoundaryCondition();
     }
 
 

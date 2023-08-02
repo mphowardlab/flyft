@@ -2,6 +2,7 @@
 
 #include "flyft/mesh.h"
 #include <exception>
+
 namespace flyft
 {
 
