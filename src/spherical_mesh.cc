@@ -5,8 +5,8 @@
 
 namespace flyft
 {
-SphericalMesh::SphericalMesh(double lower, double upper,int shape, BoundaryType lower_bc, BoundaryType upper_bc)
-    : Mesh(lower, upper, shape, lower_bc, upper_bc)
+SphericalMesh::SphericalMesh(double lower_bound, double upper_bound,int shape, BoundaryType lower_bc, BoundaryType upper_bc)
+    : Mesh(lower_bound, upper_bound, shape, lower_bc, upper_bc)
     {
       validateBoundaryCondition();
     }

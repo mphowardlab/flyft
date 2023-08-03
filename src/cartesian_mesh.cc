@@ -3,8 +3,8 @@
 namespace flyft
 {
 
-CartesianMesh::CartesianMesh(double lower,double upper,int shape, BoundaryType lower_bc, BoundaryType upper_bc,double area)
-    : Mesh(lower,upper,shape,lower_bc,upper_bc), area_(area)
+CartesianMesh::CartesianMesh(double lower_bound,double upper_bound,int shape, BoundaryType lower_bc, BoundaryType upper_bc,double area)
+    : Mesh(lower_bound,upper_bound,shape,lower_bc,upper_bc), area_(area)
     {
     }
 
