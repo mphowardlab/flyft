@@ -2,6 +2,7 @@
 #define FLYFT_CARTESIAN_MESH_H_
 
 #include "flyft/mesh.h"
+
 namespace flyft
 {
 

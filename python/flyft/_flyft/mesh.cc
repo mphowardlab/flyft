@@ -1,6 +1,6 @@
 #include "_flyft.h"
-#include "flyft/mesh.h"
 #include "flyft/boundary_type.h"
+#include "flyft/mesh.h"
 
 namespace flyft
 {

@@ -8,7 +8,7 @@ namespace flyft
 SphericalMesh::SphericalMesh(double lower_bound, double upper_bound,int shape, BoundaryType lower_bc, BoundaryType upper_bc)
     : Mesh(lower_bound, upper_bound, shape, lower_bc, upper_bc)
     {
-      validateBoundaryCondition();
+    validateBoundaryCondition();
     }
 
 
@@ -16,9 +16,10 @@ std::shared_ptr<Mesh> SphericalMesh::slice(int start, int end) const
     {
     return std::shared_ptr<Mesh>(new SphericalMesh(
         lower_bound(start),
-        lower_bound(end),end-start, 
-        (start > 0)?BoundaryType::internal:lower_bc_, 
-        (start > 0)?BoundaryType::internal:upper_bc_));
+        lower_bound(end),
+        end-start, 
+        (start > 0) ? BoundaryType::internal : lower_bc_, 
+        (end < shape_) ? BoundaryType::internal : upper_bc_));
     }
 
 double SphericalMesh::area(int i) const
@@ -50,9 +51,13 @@ void SphericalMesh::validateBoundaryCondition() const
     {
     Mesh::validateBoundaryCondition();
     
-    if(lower_bc_ == BoundaryType::periodic || upper_bc_ == BoundaryType::periodic || upper_bc_ == BoundaryType::reflect)
+    if(lower_bc_ == BoundaryType::periodic || upper_bc_ == BoundaryType::periodic)
         {
-         throw std::invalid_argument("Periodic boundary conditions or reflect upper boundary condition is  not valid in spherical geometry");
+         throw std::invalid_argument("Periodic boundary conditions invalid in spherical geometry");
+        }
+    else if  (upper_bc_ == BoundaryType::reflect)
+        {
+        throw std::invalid_argument("Reflect boundary condition invalid for upper boundary");
         }
     }
 }
