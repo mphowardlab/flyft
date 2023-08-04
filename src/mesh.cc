@@ -155,7 +155,9 @@ double Mesh::gradient(int idx, const DataView<const double>& f) const
 
 bool Mesh::operator==(const Mesh& other) const
     {
-    return (L_ == other.L_ && shape_ == other.shape_ && lower_ == other.lower_);
+    return (typeid(*this) == typeid(other) && lower_ == other.lower_ 
+            && upper_ == other.upper_ && shape_ == other.shape_ 
+            && lower_bc_ == other.lower_bc_ && upper_bc_ == other.upper_bc_);
     }
 
 bool Mesh::operator!=(const Mesh& other) const
