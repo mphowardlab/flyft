@@ -80,11 +80,9 @@ class Mesh(mirror.Mirror,mirrorclass=_flyft.Mesh):
            try:
                 return getattr(_flyft.BoundaryType, bc)
            except AttributeError:
-                raise ValueError("Unrecognized boundary type")
-        
+                raise ValueError("Unrecognized boundary type") 
         elif isinstance(bc, _flyft.BoundaryType):
             return _flyft.BoundaryType(bc).name
-        
         else:
             raise TypeError("Unrecognized boundary condition type") 
 
@@ -103,16 +101,13 @@ class CartesianMesh(Mesh,mirrorclass=_flyft.CartesianMesh):
     def __init__(self, L, shape, boundary_condition, area = 1.): 
         if isinstance(boundary_condition,str):
             lower_bc = upper_bc  = Mesh._parse_boundary_condition(boundary_condition)
-
         elif len(boundary_condition) == 2:
             lower_bc = Mesh._parse_boundary_condition(boundary_condition[0])
             upper_bc = Mesh._parse_boundary_condition(boundary_condition[1])
-
         super().__init__(0, L, shape, lower_bc, upper_bc, area)
 
 class SphericalMesh(Mesh,mirrorclass=_flyft.SphericalMesh):
     def __init__(self,R,shape,boundary_condition):
-
         upper_bc = Mesh._parse_boundary_condition(boundary_condition)
         super().__init__(0, R, shape, _flyft.BoundaryType.reflect, upper_bc)
 
