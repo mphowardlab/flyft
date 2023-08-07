@@ -1,33 +1,25 @@
 #include "flyft/spherical_mesh.h"
 
 #include <cmath>
+#include <exception>
 
 namespace flyft
 {
-
-SphericalMesh::SphericalMesh(double R, int shape)
-    : SphericalMesh(R,shape,0)
+SphericalMesh::SphericalMesh(double lower_bound, double upper_bound,int shape, BoundaryType lower_bc, BoundaryType upper_bc)
+    : Mesh(lower_bound, upper_bound, shape, lower_bc, upper_bc)
     {
+    validateBoundaryCondition();
     }
 
-SphericalMesh::SphericalMesh(double R,int shape, double origin)
-    : Mesh(R,shape,origin)
-    {
-    }
-
-SphericalMesh::SphericalMesh(int shape, double step)
-    :SphericalMesh(shape,step,0)
-    {
-    }
-
-SphericalMesh::SphericalMesh(int shape, double step, double origin)
-    : Mesh(shape, step, origin)
-    {
-    }
 
 std::shared_ptr<Mesh> SphericalMesh::slice(int start, int end) const
     {
-    return std::shared_ptr<Mesh>(new SphericalMesh(end-start,step_,lower_bound(start)));
+    return std::shared_ptr<Mesh>(new SphericalMesh(
+        lower_bound(start),
+        lower_bound(end),
+        end-start, 
+        (start > 0) ? BoundaryType::internal : lower_bc_, 
+        (end < shape_) ? BoundaryType::internal : upper_bc_));
     }
 
 double SphericalMesh::area(int i) const
@@ -38,8 +30,8 @@ double SphericalMesh::area(int i) const
 
 double SphericalMesh::volume() const
     {
-    const double rlo = lower_bound(0);
-    const double rhi = upper_bound(shape_-1);
+    const double rlo = lower_;
+    const double rhi = upper_;
     return (4.*M_PI/3.)*(rhi*rhi*rhi - rlo*rlo*rlo);
     }
     
@@ -50,14 +42,22 @@ double SphericalMesh::volume(int i) const
     return (4.*M_PI/3.)*(r_out*r_out*r_out - r_in*r_in*r_in);
     }
 
-double SphericalMesh::gradient(int idx, double f_lo, double f_hi) const
+double SphericalMesh::gradient(int /*i*/, double f_lo, double f_hi) const
     {
-    if (idx == 0 && origin_ == 0.){
-        return 0;
-        }
-    else{
-        return (f_hi-f_lo)/(step_);
-        }
+    return (f_hi-f_lo)/(step_);
     }   
-
+    
+void SphericalMesh::validateBoundaryCondition() const
+    {
+    Mesh::validateBoundaryCondition();
+    
+    if(lower_bc_ == BoundaryType::periodic || upper_bc_ == BoundaryType::periodic)
+        {
+         throw std::invalid_argument("Periodic boundary conditions invalid in spherical geometry");
+        }
+    else if  (upper_bc_ == BoundaryType::reflect)
+        {
+        throw std::invalid_argument("Reflect boundary condition invalid for upper boundary");
+        }
+    }
 }

@@ -3,29 +3,20 @@
 namespace flyft
 {
 
-CartesianMesh::CartesianMesh(double L, int shape, double area)
-    : CartesianMesh(L,shape,area,0)
-    {
-    }
-
-CartesianMesh::CartesianMesh(double L,int shape, double area, double origin)
-    : Mesh(L,shape,origin), area_(area)
-    {
-    }
-
-CartesianMesh::CartesianMesh(int shape, double step, double area)
-    : CartesianMesh(shape,step,area,0)
-    {
-    }
-
-CartesianMesh::CartesianMesh(int shape, double step,double area, double origin)
-    : Mesh(shape,step,origin),area_(area)
+CartesianMesh::CartesianMesh(double lower_bound,double upper_bound,int shape, BoundaryType lower_bc, BoundaryType upper_bc,double area)
+    : Mesh(lower_bound,upper_bound,shape,lower_bc,upper_bc), area_(area)
     {
     }
 
 std::shared_ptr<Mesh> CartesianMesh::slice(int start, int end) const
     {
-    return std::shared_ptr<Mesh>(new CartesianMesh(end-start,step_,area_,lower_bound(start)));
+    return std::shared_ptr<Mesh>(new CartesianMesh(
+        lower_bound(start),
+        lower_bound(end),
+        end-start,
+        (start > 0) ? BoundaryType::internal : lower_bc_,
+        (end < shape_) ? BoundaryType::internal : upper_bc_,
+        area_));
     }
 
 double CartesianMesh::area(int /*i*/) const
@@ -47,5 +38,4 @@ double CartesianMesh::gradient(int /*i*/, double f_lo, double f_hi) const
     {
     return (f_hi-f_lo)/step_; 
     }
-
 }

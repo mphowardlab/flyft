@@ -474,7 +474,7 @@ void RosenfeldFMT::computeCartesianDerivative(std::shared_ptr<State> state)
 
             // copy the valid values
             Field::ConstantView din(ft_->const_view_real().begin().get(),
-                                    DataLayout(ft_->getMesh().shape()),
+                                    DataLayout(ft_->getN()),
                                     buffer_shape_,
                                     buffer_shape_+mesh->shape());
             auto dout = derivatives_(t)->view();
@@ -893,10 +893,10 @@ bool RosenfeldFMT::setup(std::shared_ptr<State> state, bool compute_value)
     // update Fourier transform to mesh shape + buffer
     const auto mesh = state->getMesh()->local().get();
     const int buffered_shape = mesh->shape()+2*buffer_shape_;
-    CartesianMesh ft_mesh(mesh->asLength(buffered_shape),buffered_shape,-0.5*mesh->step());
-    if (!ft_ || ft_mesh != ft_->getMesh())
+    const double buffered_L = mesh->asLength(buffered_shape);
+    if (!ft_ || buffered_L != ft_->getL() || buffered_shape != ft_->getN())
         {
-        ft_ = std::make_unique<FourierTransform>(ft_mesh.L(),ft_mesh.shape());
+        ft_ = std::make_unique<FourierTransform>(buffered_L,buffered_shape);
         }
 
     // update shape of internal fields
@@ -918,11 +918,11 @@ void RosenfeldFMT::setupField(std::shared_ptr<Field>& field)
     {
     if (!field)
         {
-        field = std::make_shared<Field>(ft_->getMesh().shape()-2*buffer_shape_,buffer_shape_);
+        field = std::make_shared<Field>(ft_->getN()-2*buffer_shape_,buffer_shape_);
         }
     else
         {
-        field->reshape(ft_->getMesh().shape()-2*buffer_shape_,buffer_shape_);
+        field->reshape(ft_->getN()-2*buffer_shape_,buffer_shape_);
         }
     }
 

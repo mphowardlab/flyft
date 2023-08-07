@@ -1,7 +1,9 @@
 #ifndef FLYFT_MESH_H_
 #define FLYFT_MESH_H_
+#include "flyft/boundary_type.h"
 #include "flyft/data_view.h"
 
+#include <exception>
 #include <memory>
 
 namespace flyft
@@ -11,18 +13,21 @@ class Mesh
     {
     public:
         Mesh() = delete;
-        Mesh(double L, int shape);
-        Mesh(double L, int shape, double origin);
-        Mesh(int shape, double step);
-        Mesh(int shape, double step, double origin);
+        Mesh(double lower_bound, double upper_bound, int shape, BoundaryType lower_bc, BoundaryType upper_bc);
 
         virtual std::shared_ptr<Mesh> slice(int start, int end) const = 0;
 
         //! Get position on the mesh, defined as center of bin
         double center(int i) const;
 
+        //! Lower bound of entire mesh
+        double lower_bound() const;
+
         //! Get lower bound of bin
         double lower_bound(int i) const;
+        
+        //! Upper bound of entire mesh
+        double upper_bound() const;
 
         //! Get upper bound of bin
         double upper_bound(int i) const;
@@ -48,8 +53,12 @@ class Mesh
         //! Step size of the mesh
         double step() const;
 
-        //! Mesh origin
-        double origin() const;
+
+        //! Boundary condition on lower bound of mesh
+        BoundaryType lower_boundary_condition() const;
+
+        //! Boundary condition on upper bound of mesh
+        BoundaryType upper_boundary_condition() const; 
 
         int asShape(double dx) const;
 
@@ -74,10 +83,16 @@ class Mesh
         bool operator!=(const Mesh& other) const;
 
     protected:
-        double L_;      //!< Length of the domain
+        double lower_;    
+        double upper_;
         int shape_;     //!< Shape of the mesh
+        BoundaryType lower_bc_;
+        BoundaryType upper_bc_;
+        
+        double L_;      //!< Length of the domain
         double step_;   //!< Spacing between mesh points
-        double origin_; //!< Origin of the mesh
+        
+        void validateBoundaryCondition() const;
     };
 
 }

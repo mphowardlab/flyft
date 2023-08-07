@@ -59,19 +59,57 @@ class Mesh(mirror.Mirror,mirrorclass=_flyft.Mesh):
         else:
             v = self._self.bin_volume(bin)
         return v
+         
+    def lower_bound(self, bin=None):
+        if bin is None:
+            l = self._self.lower_bound
+        else:
+            l = self._self.bin_lower_bound(bin)
+        return l
+    
+    def upper_bound(self, bin=None):
+        if bin is None:
+            u = self._self.upper_bound
+        else:
+            u = self._self.bin_upper_bound(bin)
+        return u
+    
+    @staticmethod
+    def _parse_boundary_condition(bc):
+        if isinstance(bc, str):
+           try:
+                return getattr(_flyft.BoundaryType, bc)
+           except AttributeError:
+                raise ValueError("Unrecognized boundary type") 
+        elif isinstance(bc, _flyft.BoundaryType):
+            return _flyft.BoundaryType(bc).name
+        else:
+            raise TypeError("Unrecognized boundary condition type") 
+
+    @property
+    def lower_boundary_condition(self):
+            return self._parse_boundary_condition(self._self.lower_boundary_condition)
+    @property
+    def upper_boundary_condition(self):
+            return self._parse_boundary_condition(self._self.upper_boundary_condition)
 
     L = mirror.Property()
-    origin = mirror.Property()
     shape = mirror.Property()
     step = mirror.Property()
 
 class CartesianMesh(Mesh,mirrorclass=_flyft.CartesianMesh):
-    def __init__(self,L,shape,area = 1.):      
-        super().__init__(L,shape,area) 
+    def __init__(self, L, shape, boundary_condition, area = 1.): 
+        if isinstance(boundary_condition,str):
+            lower_bc = upper_bc  = Mesh._parse_boundary_condition(boundary_condition)
+        elif len(boundary_condition) == 2:
+            lower_bc = Mesh._parse_boundary_condition(boundary_condition[0])
+            upper_bc = Mesh._parse_boundary_condition(boundary_condition[1])
+        super().__init__(0, L, shape, lower_bc, upper_bc, area)
 
 class SphericalMesh(Mesh,mirrorclass=_flyft.SphericalMesh):
-    def __init__(self,R,shape):
-        super().__init__(R,shape)
+    def __init__(self,R,shape,boundary_condition):
+        upper_bc = Mesh._parse_boundary_condition(boundary_condition)
+        super().__init__(0, R, shape, _flyft.BoundaryType.reflect, upper_bc)
 
 class ParallelMesh(mirror.Mirror,mirrorclass=_flyft.ParallelMesh):
     def __init__(self,mesh):

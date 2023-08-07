@@ -5,44 +5,41 @@
 namespace flyft
 {
 
-Mesh::Mesh(double L, int shape)
-    : Mesh(L,shape,0)
+Mesh::Mesh(double lower_bound, double upper_bound, int shape, BoundaryType lower_bc, BoundaryType upper_bc)
+    : lower_(lower_bound), upper_(upper_bound), shape_(shape), lower_bc_(lower_bc), upper_bc_(upper_bc), L_(upper_-lower_), step_(L_/shape_)
     {
-    }
-
-Mesh::Mesh(double L, int shape, double origin)
-    : L_(L), shape_(shape), step_(L_/shape_), origin_(origin)
-    {
-    }
-
-Mesh::Mesh(int shape, double step)
-    : Mesh(shape,step,0)
-    {
-    }
-
-Mesh::Mesh(int shape, double step, double origin)
-    : L_(shape*step), shape_(shape), step_(step), origin_(origin)
-    {
+    validateBoundaryCondition();
     }
 
 double Mesh::center(int i) const
     {
-    return origin_+static_cast<double>(i+0.5)*step_;
+    return lower_+static_cast<double>(i+0.5)*step_;
     }
 
 int Mesh::bin(double x) const
     {
-    return static_cast<int>((x-origin_)/step_);
+    return static_cast<int>((x-lower_)/step_);
     }
 
+
+double Mesh::lower_bound() const
+    {
+    return lower_;
+    }
+  
 double Mesh::lower_bound(int i) const
     {
-    return origin_+static_cast<double>(i)*step_;
+    return lower_+static_cast<double>(i)*step_;
+    }
+  
+double Mesh::upper_bound() const
+    {
+    return upper_;
     }
     
 double Mesh::upper_bound(int i) const
     {
-    return origin_+static_cast<double>(i+1)*step_;
+    return lower_+static_cast<double>(i+1)*step_;
     }
         
 double Mesh::L() const
@@ -58,11 +55,6 @@ int Mesh::shape() const
 double Mesh::step() const
     {
     return step_;
-    }
-
-double Mesh::origin() const
-    {
-    return origin_;
     }
 
 int Mesh::asShape(double dx) const
@@ -136,17 +128,36 @@ double Mesh::interpolate(double x, const DataView<const double>& f) const
 
 double Mesh::gradient(int idx, const DataView<double>& f) const
     {
-    return gradient(idx, f(idx-1), f(idx));
+    if ((idx == 0 && lower_bc_ == BoundaryType::reflect) ||
+        (idx == shape_-1 && upper_bc_ == BoundaryType::reflect))
+        {
+        return 0;
+        }
+    else
+        {
+        return gradient(idx, f(idx-1), f(idx)); 
+        }
+    
     }
 
 double Mesh::gradient(int idx, const DataView<const double>& f) const
     {
-    return gradient(idx, f(idx-1), f(idx));
+    if ((idx == 0 && lower_bc_ == BoundaryType::reflect) ||
+        (idx == shape_-1 && upper_bc_ == BoundaryType::reflect))
+        {
+        return 0;
+        }
+    else
+        {
+        return gradient(idx, f(idx-1), f(idx)); 
+        }
     }
 
 bool Mesh::operator==(const Mesh& other) const
     {
-    return (L_ == other.L_ && shape_ == other.shape_ && origin_ == other.origin_);
+    return (typeid(*this) == typeid(other) && lower_ == other.lower_ 
+            && upper_ == other.upper_ && shape_ == other.shape_ 
+            && lower_bc_ == other.lower_bc_ && upper_bc_ == other.upper_bc_);
     }
 
 bool Mesh::operator!=(const Mesh& other) const
@@ -154,4 +165,22 @@ bool Mesh::operator!=(const Mesh& other) const
     return !(*this == other);
     }
 
+BoundaryType Mesh::lower_boundary_condition() const
+    {
+    return lower_bc_;
+    }  
+
+BoundaryType Mesh::upper_boundary_condition() const
+    {
+    return upper_bc_;
+    }
+
+void Mesh::validateBoundaryCondition() const
+    {
+    if ((lower_bc_ != BoundaryType::periodic && upper_bc_ == BoundaryType::periodic) ||
+        (lower_bc_ == BoundaryType::periodic && upper_bc_ != BoundaryType::periodic))
+        {
+        throw std::invalid_argument("Both boundaries must be periodic if one is.");
+        }
+    }   
 }

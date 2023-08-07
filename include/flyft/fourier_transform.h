@@ -65,11 +65,13 @@ class FourierTransform
 
         Space getActiveSpace() const;
 
-        const Mesh& getMesh() const;
+        double getL() const;
+        int getN() const;
         const Wavevectors& getWavevectors() const;
 
     private:
-        CartesianMesh mesh_;
+        double L_;
+        int N_;
         Wavevectors kmesh_;
         Space space_;
         double* data_;

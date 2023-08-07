@@ -15,6 +15,7 @@ set(FLYFT_PY_SOURCES
 set(_FLYFT_CC_SOURCES
     _flyft.cc
     boublik_hard_sphere_functional.cc
+    boundary_type.cc
     brownian_diffusive_flux.cc
     cartesian_mesh.cc
     communicator.cc

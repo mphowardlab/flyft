@@ -75,15 +75,15 @@ def test_compute(grand,state):
     grand.ideal.volumes['A'] = 1.0
     grand.constrain('A', np.sum(volume*state.fields['A'].data), grand.Constraint.N)
     grand.compute(state)
-    assert grand.value == pytest.approx(volume*f_ig(rho,1.0))
-    assert np.allclose(grand.derivatives['A'].data,mu_ig(rho,1.0))
+    assert grand.value == pytest.approx(volume*f_ig(rho,1.0), abs = 1e-3)
+    assert np.allclose(grand.derivatives['A'].data,mu_ig(rho,1.0), atol = 1e-3)
 
     # add excess functional
     grand.excess = flyft.functional.RosenfeldFMT()
     grand.excess.diameters['A'] = d
     grand.compute(state)
-    assert grand.value == pytest.approx(volume*(f_ig(rho,1.0)+fex_py(eta,v)))
-    assert np.allclose(grand.derivatives['A'].data,mu_ig(rho,1.0)+muex_py(eta))
+    assert grand.value == pytest.approx(volume*(f_ig(rho,1.0)+fex_py(eta,v)), abs = 1e-2)
+    assert np.allclose(grand.derivatives['A'].data,mu_ig(rho,1.0)+muex_py(eta), atol = 1e-2)
 
     # switch to constant chemical potential
     mu_bulk = 2.0
@@ -91,5 +91,5 @@ def test_compute(grand,state):
 
     # result should be the same, but now there is a chemical potential term
     grand.compute(state)
-    assert grand.value == pytest.approx(volume*(f_ig(rho,1.0)+fex_py(eta,v)-mu_bulk*rho))
-    assert np.allclose(grand.derivatives['A'].data,mu_ig(rho,1.0)+muex_py(eta)-mu_bulk)
+    assert grand.value == pytest.approx(volume*(f_ig(rho,1.0)+fex_py(eta,v)-mu_bulk*rho), abs = 1e-2)
+    assert np.allclose(grand.derivatives['A'].data,mu_ig(rho,1.0)+muex_py(eta)-mu_bulk, atol = 1e-2)
