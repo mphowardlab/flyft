@@ -27,6 +27,7 @@ add_library(flyft SHARED
     parallel_mesh.cc
     picard_iteration.cc
     rosenfeld_fmt.cc
+    rpy_diffusive_flux.cc
     solver.cc
     spherical_mesh.cc
     state.cc
