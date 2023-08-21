@@ -120,4 +120,14 @@ int BrownianDiffusiveFlux::determineBufferShape(std::shared_ptr<State> /*state*/
     return 1;
     }
 
+TypeMap<double>& BrownianDiffusiveFlux::getDiffusivities()
+    {
+    return diffusivities_;
+    }
+
+const TypeMap<double>& BrownianDiffusiveFlux::getDiffusivities() const
+    {
+    return diffusivities_;
+    }
+
 }

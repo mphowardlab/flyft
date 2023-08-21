@@ -41,6 +41,7 @@ void bindFlux(py::module_&);
 void bindCompositeFlux(py::module_&);
 void bindDiffusiveFlux(py::module_&);
 void bindBrownianDiffusiveFlux(py::module_&);
+void bindRPYDiffusiveFlux(py::module_&);
 
 void bindIntegrator(py::module_&);
 void bindCrankNicolsonIntegrator(py::module_&);
@@ -101,8 +102,8 @@ PYBIND11_MODULE(_flyft, m)
 
     bindFlux(m);
     bindCompositeFlux(m);
-    bindDiffusiveFlux(m);
     bindBrownianDiffusiveFlux(m);
+    bindRPYDiffusiveFlux(m);
 
     bindIntegrator(m);
     bindCrankNicolsonIntegrator(m);

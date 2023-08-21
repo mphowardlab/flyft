@@ -23,7 +23,6 @@ set(_FLYFT_CC_SOURCES
     composite_flux.cc
     composite_functional.cc
     crank_nicolson_integrator.cc
-    diffusive_flux.cc
     explicit_euler_integrator.cc
     exponential_wall_potential.cc
     external_potential.cc
@@ -43,6 +42,7 @@ set(_FLYFT_CC_SOURCES
     parallel_mesh.cc
     parameter.cc
     picard_iteration.cc
+    rpy_diffusive_flux.cc
     rosenfeld_fmt.cc
     solver.cc
     spherical_mesh.cc

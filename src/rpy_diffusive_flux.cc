@@ -1,4 +1,3 @@
-#include "flyft/cartesian_mesh.h"
 #include "flyft/spherical_mesh.h"
 #include "flyft/rpy_diffusive_flux.h"
 
@@ -91,7 +90,7 @@ void RPYDiffusiveFlux::compute(std::shared_ptr<GrandPotential> grand, std::share
                                 // M will need the viscosity too
                                 const double M = ((a_i * a_i + 3 * a_i * a_j + a_j * a_j) * 
                                             (d_ij - x - y) * (d_ij + x - y) * (d_ij - x + y) 
-                                            * (d_ij + x + y)) / (24 * x * x * d_ij * d_ij * d_ij);
+                                            * (d_ij + x + y)) / (24 * x * x * viscosity_ * d_ij * d_ij * d_ij);
                                 ig += M * rho_dmu;
                                 }
                             // is this sign right? might be backwards
@@ -111,6 +110,24 @@ void RPYDiffusiveFlux::compute(std::shared_ptr<GrandPotential> grand, std::share
 int RPYDiffusiveFlux::determineBufferShape(std::shared_ptr<State> /*state*/, const std::string& /*type*/)
     {
     return 1;
+    }
+
+double RPYDiffusiveFlux::getViscosity()
+    {
+        return viscosity_;
+    }
+
+double RPYDiffusiveFlux::setViscosity(double viscosity)
+    {
+        if(viscosity==0)  
+            {
+            throw std::invalid_argument("Viscosity cannot be zero");
+            }
+        else
+            {
+            viscosity_ = viscosity;
+            return viscosity_; 
+            }
     }
 
 }
