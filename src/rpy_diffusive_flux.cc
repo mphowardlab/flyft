@@ -72,30 +72,46 @@ void RPYDiffusiveFlux::compute(std::shared_ptr<GrandPotential> grand, std::share
                         else
                             {
                             auto rho_x = mesh->interpolate(x, rho_i);
-
-                            const double d_ij = a_i + a_j;
-                            const int ig_low = mesh->bin(std::max(x - d_ij, 0.));
-                            const int ig_high = mesh->bin(x + d_ij);
-                            double ig = 0.;
-                            for (int ig_idx = ig_low; ig_idx <= ig_high; ++ig_idx)
+                            
+                            //BD flux calculation
+                            if(i==j)
                                 {
-                                const auto y = mesh->lower_bound(ig_idx);
-                                // total gradient of chemical potential
-                                double rho_dmu = mesh->gradient(ig_idx, rho_j);
-                                auto rho_y = mesh->interpolate(y, rho_j);
-                                if (mu_ex_j)
-                                    rho_dmu += rho_y * mesh->gradient(ig_idx, mu_ex_j);
-                                if (V_j)
-                                    rho_dmu += rho_y * mesh->gradient(ig_idx, V_j);
-                                // M will need the viscosity too
-                                const double M = ((a_i * a_i + 3 * a_i * a_j + a_j * a_j) * 
-                                            (d_ij - x - y) * (d_ij + x - y) * (d_ij - x + y) 
-                                            * (d_ij + x + y)) / (24 * x * x * viscosity_ * d_ij * d_ij * d_ij);
-                                ig += M * rho_dmu;
+                                auto dmu_ex = 0.0;
+                                if (mu_ex_j) dmu_ex += mesh->gradient(idx,mu_ex_j);
+                                if (V_j) dmu_ex += mesh->gradient(idx,V_j);
+                                double D = 1/(6*M_PI*viscosity_*a_j);
+                                flux_i(idx) += -D*(mesh->gradient(idx,rho_j) + rho_x*dmu_ex);
                                 }
-                            // is this sign right? might be backwards
-                            flux_i(idx) += -rho_x * ig * mesh->step();
+                            else
+                            //RPY flux calculation
+                                {
+                                const double d_ij = a_i + a_j;
+                                const int ig_low = mesh->bin(std::max(x - d_ij, 0.));
+                                const int ig_high = mesh->bin(x + d_ij);
+                                double ig = 0.;
+                                for (int ig_idx = ig_low; ig_idx <= ig_high; ++ig_idx)
+                                    {
+                                    const auto y = mesh->lower_bound(ig_idx);
+                                    // total gradient of chemical potential
+                                    double rho_dmu = mesh->gradient(ig_idx, rho_j);
+                                    auto rho_y = mesh->interpolate(y, rho_j);
+                                    if (mu_ex_j)
+                                        rho_dmu += rho_y * mesh->gradient(ig_idx, mu_ex_j);
+                                    if (V_j)
+                                        rho_dmu += rho_y * mesh->gradient(ig_idx, V_j);
+                                    // M will need the viscosity too
+                                    const double M = ((a_i * a_i + 3 * a_i * a_j + a_j * a_j) * 
+                                                (d_ij - x - y) * (d_ij + x - y) * (d_ij - x + y) 
+                                                * (d_ij + x + y)) / (24 * x * x * viscosity_ * d_ij * d_ij * d_ij);
+                                    ig += M * rho_dmu;
+                                    }  
+                                flux_i(idx) += -rho_x * ig * mesh->step();
+                                }
                             }
+                        }
+                    else
+                        {
+                            flux_i(idx) = 0.;
                         }
                     }
                 }
