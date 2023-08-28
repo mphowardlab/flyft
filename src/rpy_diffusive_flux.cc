@@ -90,9 +90,9 @@ void RPYDiffusiveFlux::compute(std::shared_ptr<GrandPotential> grand, std::share
                         const double d_ij = a_i + a_j;
                         
                         //To remove the concern about the lower bound value spill over the buffer sites
-                        const auto lower_ig = ceil(static_cast<int>((x-d_ij-mesh->lower_bound())/mesh->step()));
+                        double lower_ig = ceil((x-d_ij-mesh->lower_bound())/mesh->step());
                         const int ig_low = mesh->bin(std::max(lower_ig, 0.));
-                        const int ig_high = mesh->bin(x + d_ij);
+                        const int ig_high = floor((mesh->upper_bound()-x+d_ij)/mesh->step());
                         double ig = 0.;
                         for (int ig_idx = ig_low; ig_idx <= ig_high; ++ig_idx)
                             {
@@ -147,6 +147,7 @@ void RPYDiffusiveFlux::setViscosity(double viscosity)
         }
     viscosity_ = viscosity;
     }
+    
 int RPYDiffusiveFlux::determineBufferShape(std::shared_ptr<State> state, const std::string& /*type*/)
     {
     int buffer = 0;
@@ -162,5 +163,4 @@ int RPYDiffusiveFlux::determineBufferShape(std::shared_ptr<State> state, const s
         }
     return buffer;
     }
-
 }
