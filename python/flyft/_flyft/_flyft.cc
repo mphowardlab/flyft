@@ -39,7 +39,6 @@ void bindPicardIteration(py::module_&);
 
 void bindFlux(py::module_&);
 void bindCompositeFlux(py::module_&);
-void bindDiffusiveFlux(py::module_&);
 void bindBrownianDiffusiveFlux(py::module_&);
 void bindRPYDiffusiveFlux(py::module_&);
 
