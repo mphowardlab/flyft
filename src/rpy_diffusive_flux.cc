@@ -5,6 +5,11 @@
 
 namespace flyft
 {
+
+RPYDiffusiveFlux::RPYDiffusiveFlux()
+    :viscosity_(1.0)
+    {
+    }
    
 void RPYDiffusiveFlux::compute(std::shared_ptr<GrandPotential> grand, std::shared_ptr<State> state)
     {
@@ -150,6 +155,7 @@ void RPYDiffusiveFlux::setViscosity(double viscosity)
 int RPYDiffusiveFlux::determineBufferShape(std::shared_ptr<State> state, const std::string& type)
     {
     double max_diameter = 0;
+    auto mesh = state->getMesh()->full().get();
     for(const auto &i : state->getTypes()) 
     {
     const auto d_i = diameters_(i);
@@ -158,6 +164,6 @@ int RPYDiffusiveFlux::determineBufferShape(std::shared_ptr<State> state, const s
         max_diameter = d_i;
         }
     }
-    return ceil(0.5*(diameters_(type)+max_diameter));
+    return mesh->asShape(0.5*(diameters_(type)+max_diameter));
     }
 }

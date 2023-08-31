@@ -15,6 +15,8 @@ namespace flyft
 class RPYDiffusiveFlux : public Flux
     {
     public:
+        RPYDiffusiveFlux();
+        
         TypeMap<double>& getDiameters();         
         const TypeMap<double>& getDiameters() const;
         
