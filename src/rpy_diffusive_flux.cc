@@ -35,7 +35,7 @@ void RPYDiffusiveFlux::compute(std::shared_ptr<GrandPotential> grand, std::share
         const double a_i = 0.5 * diameters_(i);
         auto rho_i = state->getField(i)->const_view();
         auto flux_i = fluxes_(i)->view();
-        const double D = 1/(6*M_PI*viscosity_*a_i);
+        const double D_i = 1/(6*M_PI*viscosity_*a_i);
 
         // fill flux with zeros initially
         std::fill(flux_i.begin(), flux_i.end(), 0.);
@@ -64,7 +64,7 @@ void RPYDiffusiveFlux::compute(std::shared_ptr<GrandPotential> grand, std::share
                             }
                         }
                     }
-                if ((Vidx_inf || std::isinf(V_j(idx-1))))
+                if (Vidx_inf || std::isinf(V_j(idx-1)))
                     {
                     flux_i(idx) = 0.;
                     continue;
@@ -90,15 +90,14 @@ void RPYDiffusiveFlux::compute(std::shared_ptr<GrandPotential> grand, std::share
                     auto dmu_ex = 0.0;
                     if (mu_ex_j) dmu_ex += mesh->gradient(idx,mu_ex_j);
                     if (V_j) dmu_ex += mesh->gradient(idx,V_j);
-                    flux_i(idx) += -D*(mesh->gradient(idx,rho_j) + rho_x*dmu_ex);
+                    flux_i(idx) += -D_i*(mesh->gradient(idx,rho_j) + rho_x*dmu_ex);
                     }
                 
                 //RPY flux calculation   
                 const double d_ij = a_i + a_j;
                 
                 //To remove the concern about the lower bound value spill over the buffer sites
-                double lower_ig = ceil((x-d_ij-mesh->lower_bound())/mesh->step());
-                const int ig_low = mesh->bin(std::max(lower_ig, 0.));
+                const int ig_low = std::max(ceil((x-d_ij-mesh->lower_bound())/mesh->step()), 0.);
                 const int ig_high = mesh->bin(x+d_ij);
                 double ig = 0.;
                 for (int ig_idx = ig_low; ig_idx < ig_high; ++ig_idx)
@@ -151,16 +150,14 @@ void RPYDiffusiveFlux::setViscosity(double viscosity)
 int RPYDiffusiveFlux::determineBufferShape(std::shared_ptr<State> state, const std::string& type)
     {
     double max_diameter = 0;
-    int buffer; 
     for(const auto &i : state->getTypes()) 
+    {
+    const auto d_i = diameters_(i);
+    if(d_i>max_diameter)
         {
-        const auto d_i = 0.5*diameters_(i);
-        if(d_i>max_diameter)
-            {
-            max_diameter = d_i;
-            }
+        max_diameter = d_i;
         }
-    buffer = ceil(0.5*(diameters_(type)+max_diameter));
-    return buffer;
+    }
+    return ceil(0.5*(diameters_(type)+max_diameter));
     }
 }
