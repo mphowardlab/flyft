@@ -10,6 +10,6 @@ void bindRPYDiffusiveFlux(py::module_& m)
     py::class_<RPYDiffusiveFlux,std::shared_ptr<RPYDiffusiveFlux>,Flux>(m, "RPYDiffusiveFlux")
         .def(py::init<>())
         .def_property_readonly("diameters",py::overload_cast<>(&RPYDiffusiveFlux::getDiameters), py::return_value_policy::reference_internal)
-        .def_property_readonly("viscosity",&RPYDiffusiveFlux::getViscosity)
+        .def_property("viscosity", &RPYDiffusiveFlux::getViscosity, &RPYDiffusiveFlux::setViscosity)
         ;
     }
