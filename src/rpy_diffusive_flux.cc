@@ -14,7 +14,6 @@ RPYDiffusiveFlux::RPYDiffusiveFlux()
 void RPYDiffusiveFlux::compute(std::shared_ptr<GrandPotential> grand, std::shared_ptr<State> state)
     {
     setup(grand,state);
-    state->syncFields();
     
     auto excess = grand->getExcessFunctional();
     auto external = grand->getExternalPotential();
@@ -26,8 +25,8 @@ void RPYDiffusiveFlux::compute(std::shared_ptr<GrandPotential> grand, std::share
         {
         external->compute(state,false);
         }
-    
-    
+    state->syncFields();
+
     // compute fluxes on the left edge of the volumes (exclude the first point)
     const auto mesh = state->getMesh()->local().get();
     if (!dynamic_cast<const SphericalMesh*>(mesh))
@@ -54,9 +53,9 @@ void RPYDiffusiveFlux::compute(std::shared_ptr<GrandPotential> grand, std::share
             auto V_j = (external) ? external->getDerivative(j)->const_view() : Field::ConstantView();
             for (int idx = 0; idx < mesh->shape(); ++idx)
                 {
-                bool Vidx_inf = std::isinf(V_j(idx));
                 if (V_j)
                     {
+                    bool Vidx_inf = std::isinf(V_j(idx));
                     if (Vidx_inf)
                         {
                         if (V_j(idx) > 0 && rho_j(idx) > 0)
@@ -68,11 +67,11 @@ void RPYDiffusiveFlux::compute(std::shared_ptr<GrandPotential> grand, std::share
                             throw std::invalid_argument("Can't have V=-inf ever, it is a mass sink");
                             }
                         }
-                    }
-                if (Vidx_inf || std::isinf(V_j(idx-1)))
-                    {
-                    flux_i(idx) = 0.;
-                    continue;
+                    if (Vidx_inf || std::isinf(V_j(idx-1)))
+                        {
+                        flux_i(idx) = 0.;
+                        continue;
+                        }
                     }
 
                 const auto x = mesh->lower_bound(idx);
@@ -88,7 +87,7 @@ void RPYDiffusiveFlux::compute(std::shared_ptr<GrandPotential> grand, std::share
                     continue;
                     }
                 auto rho_x = mesh->interpolate(x, rho_i);
-                
+              
                 //BD flux calculation
                 if(i==j)
                     {
@@ -97,7 +96,7 @@ void RPYDiffusiveFlux::compute(std::shared_ptr<GrandPotential> grand, std::share
                     if (V_j) dmu_ex += mesh->gradient(idx,V_j);
                     flux_i(idx) += -D_i*(mesh->gradient(idx,rho_j) + rho_x*dmu_ex);
                     }
-                
+ 
                 //RPY flux calculation   
                 const double d_ij = a_i + a_j;
                 
@@ -124,6 +123,13 @@ void RPYDiffusiveFlux::compute(std::shared_ptr<GrandPotential> grand, std::share
                 flux_i(idx) += -rho_x * ig * mesh->step();
                 }
             }
+        state->getMesh()->startSync(fluxes_(i));
+        }
+    
+    // finalize all flux communication
+    for (const auto& i : state->getTypes())
+        {
+        state->getMesh()->endSync(fluxes_(i));
         }
     }
 
