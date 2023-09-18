@@ -33,4 +33,11 @@ void bindDoubleParameters(py::module_& m)
         .def_property("origin", &LinearParameter::getOrigin, &LinearParameter::setOrigin)
         .def_property("rate", &LinearParameter::getRate, &LinearParameter::setRate)
         ;
+    
+    py::class_<QuadraticParameter,std::shared_ptr<QuadraticParameter>,DoubleParameter>(m, "QuadraticParameter")
+        .def(py::init<double,double,double>())
+        .def_property("initial", &QuadraticParameter::getInitial, &QuadraticParameter::setInitial)
+        .def_property("origin", &QuadraticParameter::getOrigin, &QuadraticParameter::setOrigin)
+        .def_property("rate", &QuadraticParameter::getRate, &QuadraticParameter::setRate)
+        ;
     }
