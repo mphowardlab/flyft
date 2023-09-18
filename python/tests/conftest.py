@@ -61,3 +61,7 @@ def walls():
 @pytest.fixture
 def bd():
     return flyft.dynamics.BrownianDiffusiveFlux()
+
+@pytest.fixture
+def rpy():
+    return flyft.dynamics.RPYDiffusiveFlux()

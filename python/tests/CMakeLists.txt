@@ -23,6 +23,7 @@ set(FLYFT_PYTEST_SOURCES
     test_parameter.py
     test_picard_iteration.py
     test_rosenfeld_fmt.py
+    test_rpy_diffusive_flux.py
     test_state.py
     test_virial_expansion.py
     test_white_bear.py
