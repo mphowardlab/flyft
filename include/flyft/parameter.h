@@ -133,10 +133,10 @@ class LinearParameter : public DoubleParameter
         double value_;
     };
     
-class QuadraticParameter : public DoubleParameter
+class SquareRootParameter : public DoubleParameter
     {
     public:
-        QuadraticParameter(double initial, double origin, double rate)
+        SquareRootParameter(double initial, double origin, double rate)
             : initial_(initial), origin_(origin), rate_(rate), time_(std::nan("")), value_(std::nan(""))
             {
             }
