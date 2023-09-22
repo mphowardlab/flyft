@@ -26,12 +26,17 @@ def test_linear(state):
 
 def test_squareroot(state):
     state.time = 2.0
-
     squareroot = flyft.parameter.SquareRootParameter(3.0, 1.0, 4.5)
     assert squareroot(state) == pytest.approx(np.sqrt(3.0*3.0+4.5*(2.0-1.0)))
 
 def test_squareroot_exception(state):
+    state.time = -3.0
+    squareroot = flyft.parameter.SquareRootParameter(1.0, 1.0, 1.0)
     with pytest.raises(ValueError):
-        state.time = -1.0
-        squareroot = flyft.parameter.SquareRootParameter(3.0, 1.0, 4.5)
         squareroot(state)
+    state.time = 2.0
+    squareroot = flyft.parameter.SquareRootParameter(1.0, 1.0, -3.0)
+    with pytest.raises(ValueError):
+        squareroot(state)
+
+    
