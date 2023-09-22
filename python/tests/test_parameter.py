@@ -29,3 +29,9 @@ def test_squareroot(state):
 
     squareroot = flyft.parameter.SquareRootParameter(3.0, 1.0, 4.5)
     assert squareroot(state) == pytest.approx(np.sqrt(3.0*3.0+4.5*(2.0-1.0)))
+
+def test_squareroot_exception(state):
+    with pytest.raises(ValueError):
+        state.time = -1.0
+        squareroot = flyft.parameter.SquareRootParameter(3.0, 1.0, 4.5)
+        squareroot(state)

@@ -154,6 +154,10 @@ class SquareRootParameter : public DoubleParameter
             // if anything has changed, evaluate and store
             if (this->token_.dirty())
                 {
+                if(time_ < 0)
+                    {
+                    throw std::invalid_argument("Complex numbers not allowed");
+                    }
                 value_ = sqrt(initial_*initial_+rate_*(time_-origin_));
                 this->token_.commit();
                 }

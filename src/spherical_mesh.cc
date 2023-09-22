@@ -53,7 +53,7 @@ void SphericalMesh::validateBoundaryCondition() const
     
     if(lower_bc_ == BoundaryType::periodic || upper_bc_ == BoundaryType::periodic)
         {
-         throw std::invalid_argument("Periodic boundary conditions invalid in spherical geometry");
+        throw std::invalid_argument("Periodic boundary conditions invalid in spherical geometry");
         }
     else if  (upper_bc_ == BoundaryType::reflect)
         {
