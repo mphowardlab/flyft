@@ -33,9 +33,10 @@ def test_squareroot_exception(state):
     state.time = -3.0
     squareroot = flyft.parameter.SquareRootParameter(1.0, 1.0, 1.0)
     with pytest.raises(ValueError):
-        squareroot(state)
+        squareroot(state)  
+    
     state.time = 2.0
-    squareroot = flyft.parameter.SquareRootParameter(1.0, 1.0, -3.0)
+    squareroot.rate = -3.0
     with pytest.raises(ValueError):
         squareroot(state)
 
