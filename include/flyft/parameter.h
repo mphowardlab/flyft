@@ -132,7 +132,78 @@ class LinearParameter : public DoubleParameter
         double time_;
         double value_;
     };
+    
+class SquareRootParameter : public DoubleParameter
+    {
+    public:
+        SquareRootParameter(double initial, double origin, double rate)
+            : initial_(initial), origin_(origin), rate_(rate), time_(std::nan("")), value_(std::nan(""))
+            {
+            }
+
+        double operator()(std::shared_ptr<State> state) override
+            {
+            // record time for evaluation
+            const double time = state->getTime();
+            if (time != time_)
+                {
+                time_ = time;
+                this->token_.stage();
+                }
+
+            // if anything has changed, evaluate and store
+            if (this->token_.dirty())
+                {
+                const double value_sq = initial_*initial_+rate_*(time_-origin_);
+                if(value_sq < 0)
+                    {
+                    throw std::invalid_argument("Time makes argument of square root negative");
+                    }
+                value_ = std::sqrt(value_sq);
+                this->token_.commit();
+                }
+            return value_;
+            }
+
+        double getInitial() const
+            {
+            return initial_;
+            }
+
+        void setInitial(double initial)
+            {
+            initial_ = initial;
+            this->token_.stage();
+            }
+
+        double getOrigin() const
+            {
+            return origin_;
+            }
+
+        void setOrigin(double origin)
+            {
+            origin_ = origin;
+            this->token_.stage();
+            }
+
+        double getRate() const
+            {
+            return rate_;
+            }
+
+        void setRate(double rate)
+            {
+            rate_ = rate;
+            this->token_.stage();
+            }
+    private:
+        double initial_;
+        double origin_;
+        double rate_;
+        double time_;
+        double value_;
+    };
 
 }
-
 #endif // FLYFT_PARAMETER_H_
