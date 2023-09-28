@@ -161,4 +161,4 @@ def test_binary_ideal(grand,ig,rpy,binary_state_grand):
             M = -0.081/left_edge+0.12*left_edge
         flux[i] = (M+bd)
         print(left_edge,rpy.fluxes['A'][i],flux[i])
-    assert np.allclose(rpy.fluxes['A'][10:90], flux[10:90],rtol = 2.5e-2, atol = 1e-1)
+    assert np.allclose(rpy.fluxes['A'][:90], flux[:90],rtol = 2e-2, atol = 2e-2)
