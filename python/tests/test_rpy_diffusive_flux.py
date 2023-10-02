@@ -19,7 +19,9 @@ def binary_state_grand(spherical_mesh_grand):
 
 def test_ideal(grand,ig,rpy,state_grand):
     state = state_grand
-
+    ai = 0.5
+    R = state.mesh.full.L
+    
     volume = state.mesh.full.volume()
     ig.volumes['A'] = 1.0
     grand.ideal = ig
@@ -40,8 +42,8 @@ def test_ideal(grand,ig,rpy,state_grand):
     assert np.allclose(rpy.fluxes['A'], 0.)
     
     x = state.mesh.local.centers
-    state.fields['A'][:] = 3.0/state.mesh.full.L*(x[:])
-    grand.constrain('A', state.mesh.full.L*1.5, grand.Constraint.N)
+    state.fields['A'][:] = 3.0/R*(x[:])
+    grand.constrain('A', R*1.5, grand.Constraint.N)
     rpy.compute(grand,state)
     flux = np.zeros(len(x))
     """The chemical potential of the ideal gas equation of state given by:            
@@ -67,10 +69,10 @@ def test_ideal(grand,ig,rpy,state_grand):
         if left_edge==0:
             M = 0
             bd = 0
-        elif left_edge>0 and left_edge<1:            
+        elif left_edge>0 and left_edge< ai+ai:            
             #Limits of integration (ai+ak)-x to x+(ai+ak), where ai = ak = 0.5
-            bd = 1/(3*np.pi*1.*1.)*3.0/state.mesh.full.L
-            M = left_edge*(-5+left_edge**2)/(18)*3.0/state.mesh.full.L
+            bd = 1/(3*np.pi*1.*1.)*3.0/R
+            M = left_edge*(-5+left_edge**2)/(18)*3.0/R
         else:
             #Limits of integration x-(ai+ak) to x+(ai+ak), where ai = ak = 0.5
             bd = 1/(3*np.pi*1.*1.)*3.0/state.mesh.full.L
@@ -79,12 +81,16 @@ def test_ideal(grand,ig,rpy,state_grand):
             M = -(1/18)*(5-1/(left_edge**2))*3.0/state.mesh.full.L
         # Multiplying rho(x) into M at the end
         flux[i] = -((3.0/state.mesh.full.L)*left_edge*M+bd)
-        print(rpy.fluxes['A'][i],flux[i])
-    assert np.allclose(rpy.fluxes['A'][:850], flux[:850],atol = 5e-3)
+        
+    #Shifting bin centers to the lower bound of each of bin
+    flags = x-0.5*R/state.mesh.full.shape < R-(ai+ai)
+    assert np.allclose(rpy.fluxes['A'][flags], flux[flags],atol = 1e-3)
 
 def test_excess(grand,ig,rpy,state_grand):
     state = state_grand
     virial = flyft.functional.VirialExpansion()
+    ai = 0.5
+    R = state.mesh.full.L
     
     B = 5.0
 
@@ -113,8 +119,8 @@ def test_excess(grand,ig,rpy,state_grand):
     assert np.allclose(rpy.fluxes['A'], 0.)
     
     x = state.mesh.local.centers
-    state.fields['A'][:] = 3.0/state.mesh.full.L*(x[:])
-    grand.constrain('A', state.mesh.full.L*1.5, grand.Constraint.N)
+    state.fields['A'][:] = 3.0/R*(x[:])
+    grand.constrain('A', R*1.5, grand.Constraint.N)
     rpy.compute(grand,state)
     flux = np.zeros(len(x))
     for i in range(len(x)):
@@ -122,7 +128,7 @@ def test_excess(grand,ig,rpy,state_grand):
         if left_edge==0:
             M = 0
             bd = 0
-        elif left_edge>0 and left_edge<1:
+        elif left_edge>0 and left_edge<ai+ai:
         
             """The chemical potential of the virial equation of state given by:
             
@@ -156,7 +162,10 @@ def test_excess(grand,ig,rpy,state_grand):
             bd = -0.031831*(1 + 3*left_edge)
             M =  (1/left_edge)*(-0.005+left_edge*(left_edge*(0.025+left_edge*(0.075))))
         flux[i] = (M+bd)
-    assert np.allclose(rpy.fluxes['A'][:900], flux[:900],atol = 1e-2)
+        
+    #Shifting bin centers to the lower bound of each of bin   
+    flags = x-0.5*R/state.mesh.full.shape < R-(ai+ai)
+    assert np.allclose(rpy.fluxes['A'][flags], flux[flags],atol = 1e-2)
 
 def test_binary_ideal_one(grand,ig,rpy,binary_state_grand):
 
@@ -169,7 +178,10 @@ def test_binary_ideal_one(grand,ig,rpy,binary_state_grand):
     in Mathematica and implemented below"""
     
     state = binary_state_grand
-
+    ai = 0.5 #Type A
+    ak = 0.5 #Type B
+    R = state.mesh.full.L
+    
     volume = state.mesh.full.volume()
     ig.volumes['A'] = 1.0
     ig.volumes['B'] = 1.0
@@ -179,8 +191,8 @@ def test_binary_ideal_one(grand,ig,rpy,binary_state_grand):
     rpy.viscosity = 1.0
 
     x = state.mesh.local.centers
-    state.fields['A'][:] = 3/state.mesh.full.L*(x[:])
-    state.fields['B'][:] = 3/state.mesh.full.L*(x[:])
+    state.fields['A'][:] = 3/R*(x[:])
+    state.fields['B'][:] = 3/R*(x[:])
     grand.constrain('A', volume, grand.Constraint.N)
     grand.constrain('B', volume, grand.Constraint.N)
     rpy.compute(grand,state)
@@ -188,40 +200,42 @@ def test_binary_ideal_one(grand,ig,rpy,binary_state_grand):
     flux = np.zeros(len(x))
     M1 = 0
     M2 = 0
-    bd1 = 0
-    bd2 = 0
+    bd = 0
 
     for i in range(len(x)):
         left_edge = state.mesh.local.lower_bound(i)
         if left_edge==0:
             M1 = 0
-            bd1 = 0
-        elif left_edge>0 and left_edge<1:
-            bd1 = -0.0159155
+            bd = 0
+        elif left_edge>0 and left_edge<ai+ai:
+            bd = -0.031831
             M1 = 0.025*left_edge**2-0.005*left_edge**4
         else:
-            bd1 =  -0.0159155
+            bd =  -0.031831
             M1 = -0.005/left_edge+0.025*left_edge
         
         if left_edge==0:
             M2 = 0
-            bd2 = 0
-        elif left_edge>0 and left_edge<1:
-            bd2 =  -0.0159155
+            bd = 0
+        elif left_edge>0 and left_edge<ai+ak:
+            bd =  -0.031831
             M2 = 0.025*left_edge**2-0.005*left_edge**4
         else:
-            bd2 =  -0.0159155
-            #Integrated form of the mobility is equal to \int M dy
+            bd =  -0.031831
             M2 = -0.005/left_edge+0.025*left_edge
-        # Multiplying rho(x) into M at the end
-        flux[i] = (M1+M2+bd1+bd2)
-    assert np.allclose(rpy.fluxes['A'][:900], flux[:900],atol = 1e-3)
+        flux[i] = (M1+M2+bd)
+    #Shifting bin centers to the lower bound of each of bin
+    flags = x-0.5*R/state.mesh.full.shape < R-(ai+ak)
+    assert np.allclose(rpy.fluxes['A'][flags], flux[flags],atol = 1e-3)
        
 
 
 def test_binary_ideal(grand,ig,rpy,binary_state_grand):
     state = binary_state_grand
-
+    ai = 0.5 #Small particle radius (Type A)
+    ak = 1.5 #Big particle radius (Type B)
+    R = state.mesh.full.L
+    
     volume = state.mesh.full.volume()
     ig.volumes['A'] = 1.0
     ig.volumes['B'] = 1.0
@@ -249,16 +263,15 @@ def test_binary_ideal(grand,ig,rpy,binary_state_grand):
     assert np.allclose(rpy.fluxes['B'], 0.)
     
     x = state.mesh.local.centers
-    state.fields['A'][:] = 3.0/state.mesh.full.L*(x[:])
-    state.fields['B'][:] = 3.0/state.mesh.full.L*(x[:])
+    state.fields['A'][:] = 3.0/R*(x[:])
+    state.fields['B'][:] = 3.0/R*(x[:])
     grand.constrain('A', volume, grand.Constraint.N)
     grand.constrain('B', volume, grand.Constraint.N)
     rpy.compute(grand,state)
     flux = np.zeros(len(x))
     M1 = 0
     M2 = 0
-    bd1 = 0
-    bd2 = 0
+    bd = 0
     
     """Same procedure followed as shown in the ideal gas equation of state 
     calculation however in this case two different radii of particles are 
@@ -273,22 +286,25 @@ def test_binary_ideal(grand,ig,rpy,binary_state_grand):
         3 d_B """ 
         if left_edge==0:
             M1 = 0
-            bd1 = 0
-        elif left_edge > 0 and left_edge < 1:
-            bd1 = -0.031831
+            bd = 0
+        elif left_edge > 0 and left_edge < ai+ai:
+            bd = -0.031831
             M1 = 0.025*left_edge**2-0.005*left_edge**4
         else:
-            bd1 = -0.031831
+            bd = -0.031831
             M1 = -0.005/left_edge+0.025*left_edge
         
         if left_edge==0:
             M2 = 0
-            bd2 = 0
-        elif left_edge > 0 and left_edge < 3:
-            bd2 = 0
+            bd = 0
+        elif left_edge > 0 and left_edge < ai+ak:
+            bd = -0.031831
             M2= 0.0475*left_edge**2-0.002375*left_edge**4
         else:
-            bd2 = -0.0106103
+            bd = -0.031831
             M2 = -0.076/left_edge+0.095*left_edge
-        flux[i] = (M1+M2+bd1+bd2)
-    assert np.allclose(rpy.fluxes['A'][:850], flux[:850], atol = 3e-2)
+        flux[i] = (M1+M2+bd)
+        
+    #Shifting bin centers to the lower bound of each of bin
+    flags = x-0.5*R/state.mesh.full.shape < R-(ai+ak)
+    assert np.allclose(rpy.fluxes['A'][flags], flux[flags], atol = 1e-3)
