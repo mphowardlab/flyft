@@ -7,7 +7,7 @@ from pytest_lazyfixture import lazy_fixture
 
 @pytest.fixture
 def spherical_mesh_grand():
-    return flyft.state.SphericalMesh(10.,100, "repeat") 
+    return flyft.state.SphericalMesh(10.,1000, "repeat") 
 
 @pytest.fixture
 def state_grand(spherical_mesh_grand):
@@ -64,10 +64,10 @@ def test_ideal(grand,ig,rpy,state_grand):
     calculation are implemented below."""
     for i in range(len(x)):
         left_edge = state.mesh.local.lower_bound(i)
-        if i==0:
+        if left_edge==0:
             M = 0
             bd = 0
-        elif i>0 and i<10:            
+        elif left_edge>0 and left_edge<1:            
             #Limits of integration (ai+ak)-x to x+(ai+ak), where ai = ak = 0.5
             bd = 1/(3*np.pi*1.*1.)*3.0/state.mesh.full.L
             M = left_edge*(-5+left_edge**2)/(18)*3.0/state.mesh.full.L
@@ -79,7 +79,8 @@ def test_ideal(grand,ig,rpy,state_grand):
             M = -(1/18)*(5-1/(left_edge**2))*3.0/state.mesh.full.L
         # Multiplying rho(x) into M at the end
         flux[i] = -((3.0/state.mesh.full.L)*left_edge*M+bd)
-    assert np.allclose(rpy.fluxes['A'][:90], flux[:90],atol = 5e-3)
+        print(rpy.fluxes['A'][i],flux[i])
+    assert np.allclose(rpy.fluxes['A'][:850], flux[:850],atol = 5e-3)
 
 def test_excess(grand,ig,rpy,state_grand):
     state = state_grand
@@ -155,7 +156,7 @@ def test_excess(grand,ig,rpy,state_grand):
             bd = -0.031831*(1 + 3*left_edge)
             M =  (1/left_edge)*(-0.005+left_edge*(left_edge*(0.025+left_edge*(0.075))))
         flux[i] = (M+bd)
-    assert np.allclose(rpy.fluxes['A'][:90], flux[:90],rtol = 2e-2,atol = 2e-2)
+    assert np.allclose(rpy.fluxes['A'][:900], flux[:900],atol = 1e-2)
 
 def test_binary_ideal_one(grand,ig,rpy,binary_state_grand):
 
@@ -214,7 +215,7 @@ def test_binary_ideal_one(grand,ig,rpy,binary_state_grand):
             M2 = -0.005/left_edge+0.025*left_edge
         # Multiplying rho(x) into M at the end
         flux[i] = (M1+M2+bd1+bd2)
-    assert np.allclose(rpy.fluxes['A'][:90], flux[:90],atol = 8e-3)
+    assert np.allclose(rpy.fluxes['A'][:900], flux[:900],atol = 1e-3)
        
 
 
@@ -290,4 +291,4 @@ def test_binary_ideal(grand,ig,rpy,binary_state_grand):
             bd2 = -0.0106103
             M2 = -0.076/left_edge+0.095*left_edge
         flux[i] = (M1+M2+bd1+bd2)
-    assert np.allclose(rpy.fluxes['A'][:85], flux[:85], atol = 3e-2)
+    assert np.allclose(rpy.fluxes['A'][:850], flux[:850], atol = 3e-2)
