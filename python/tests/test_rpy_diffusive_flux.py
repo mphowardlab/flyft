@@ -25,7 +25,7 @@ def test_ideal(grand,ig,rpy,state_grand):
     volume = state.mesh.full.volume()
     ig.volumes['A'] = 1.0
     grand.ideal = ig
-    rpy.diameters['A'] = 1.0
+    rpy.diameters['A'] = 2 * ai
     rpy.viscosity = 1.0
 
     # first check OK with all zeros
@@ -35,7 +35,6 @@ def test_ideal(grand,ig,rpy,state_grand):
     assert np.allclose(rpy.fluxes['A'], 0.)
 
     # same thing with all ones
-    x = state.mesh.local.centers
     state.fields['A'][:] = 1
     grand.constrain('A', volume, grand.Constraint.N)
     rpy.compute(grand,state)
@@ -98,11 +97,7 @@ def test_excess(grand,ig,rpy,state_grand):
     virial.coefficients['A','A'] = B
     grand.ideal = ig
     grand.excess = virial
-    
-    volume = state.mesh.full.volume()
-    ig.volumes['A'] = 1.0
-    grand.ideal = ig
-    rpy.diameters['A'] = 1.0
+    rpy.diameters['A'] = 2 * ai
     rpy.viscosity = 1
 
     # first check OK with all zeros
@@ -112,9 +107,8 @@ def test_excess(grand,ig,rpy,state_grand):
     assert np.allclose(rpy.fluxes['A'], 0.)
 
     # same thing with all ones
-    x = state.mesh.local.centers
     state.fields['A'][:] = 1
-    grand.constrain('A', volume, grand.Constraint.N)
+    grand.constrain('A', state.mesh.full.volume(), grand.Constraint.N)
     rpy.compute(grand,state)
     assert np.allclose(rpy.fluxes['A'], 0.)
     
@@ -186,8 +180,8 @@ def test_binary_ideal_one(grand,ig,rpy,binary_state_grand):
     ig.volumes['A'] = 1.0
     ig.volumes['B'] = 1.0
     grand.ideal = ig
-    rpy.diameters['A'] = 1.0
-    rpy.diameters['B'] = 1.0
+    rpy.diameters['A'] = 2 * ai
+    rpy.diameters['B'] = 2 * ak
     rpy.viscosity = 1.0
 
     x = state.mesh.local.centers
@@ -236,12 +230,11 @@ def test_binary_ideal(grand,ig,rpy,binary_state_grand):
     ak = 1.5 #Big particle radius (Type B)
     R = state.mesh.full.L
     
-    volume = state.mesh.full.volume()
     ig.volumes['A'] = 1.0
     ig.volumes['B'] = 1.0
     grand.ideal = ig
-    rpy.diameters['A'] = 1.0
-    rpy.diameters['B'] = 3.0
+    rpy.diameters['A'] = 2 * ai
+    rpy.diameters['B'] = 2 * ak
     rpy.viscosity = 1.0
 
     # first check OK with all zeros
@@ -256,8 +249,8 @@ def test_binary_ideal(grand,ig,rpy,binary_state_grand):
     # same thing with all ones
     state.fields['A'][:] = 1.
     state.fields['B'][:] = 1.
-    grand.constrain('A', 0, grand.Constraint.N)
-    grand.constrain('B', 0, grand.Constraint.N)
+    grand.constrain('A', state.mesh.full.volume(), grand.Constraint.N)
+    grand.constrain('B', state.mesh.full.volume(), grand.Constraint.N)
     rpy.compute(grand,state)
     assert np.allclose(rpy.fluxes['A'], 0.)
     assert np.allclose(rpy.fluxes['B'], 0.)

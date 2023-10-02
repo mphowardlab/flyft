@@ -1,5 +1,5 @@
-#include "flyft/spherical_mesh.h"
 #include "flyft/rpy_diffusive_flux.h"
+#include "flyft/spherical_mesh.h"
 
 #include <exception>
 
@@ -7,7 +7,7 @@ namespace flyft
 {
 
 RPYDiffusiveFlux::RPYDiffusiveFlux()
-    :viscosity_(1.0)
+    : viscosity_(1.0)
     {
     }
    
@@ -148,12 +148,11 @@ double RPYDiffusiveFlux::getViscosity() const
     return viscosity_;
     }
 
-
 void RPYDiffusiveFlux::setViscosity(double viscosity)
     {
-    if(viscosity <=0)  
+    if(viscosity <= 0)
         {
-        throw std::invalid_argument("Viscosity cannot be zero");
+        throw std::invalid_argument("Viscosity must be positive");
         }
     viscosity_ = viscosity;
     }
@@ -164,11 +163,11 @@ int RPYDiffusiveFlux::determineBufferShape(std::shared_ptr<State> state, const s
     auto mesh = state->getMesh()->full().get();
     for(const auto &i : state->getTypes()) 
     {
-    const auto d_i = diameters_(i);
-    if(d_i>max_diameter)
-        {
-        max_diameter = d_i;
-        }
+        const auto d_i = diameters_(i);
+        if(d_i > max_diameter)
+            {
+            max_diameter = d_i;
+            }
     }
     return mesh->asShape(0.5*(diameters_(type)+max_diameter));
     }
