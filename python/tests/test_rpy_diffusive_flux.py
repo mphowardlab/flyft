@@ -22,7 +22,6 @@ def test_ideal(grand,ig,rpy,state_grand):
     ai = 0.5
     R = state.mesh.full.L
     
-    volume = state.mesh.full.volume()
     ig.volumes['A'] = 1.0
     grand.ideal = ig
     rpy.diameters['A'] = 2 * ai
@@ -30,13 +29,13 @@ def test_ideal(grand,ig,rpy,state_grand):
 
     # first check OK with all zeros
     state.fields['A'][:] = 0.
-    grand.constrain('A', 0, grand.Constraint.N)
+    grand.constrain('A', np.pi * R**3 * 3.0, grand.Constraint.N)
     rpy.compute(grand,state)
     assert np.allclose(rpy.fluxes['A'], 0.)
 
     # same thing with all ones
     state.fields['A'][:] = 1
-    grand.constrain('A', volume, grand.Constraint.N)
+    grand.constrain('A', np.pi * R**3 * 3.0, grand.Constraint.N)
     rpy.compute(grand,state)
     assert np.allclose(rpy.fluxes['A'], 0.)
     
@@ -45,6 +44,7 @@ def test_ideal(grand,ig,rpy,state_grand):
     grand.constrain('A', R*1.5, grand.Constraint.N)
     rpy.compute(grand,state)
     flux = np.zeros(len(x))
+    lower_bounds = np.zeros_like(flux)
     """The chemical potential of the ideal gas equation of state given by:            
     \beta \mu = \ln\lambda \rho(y)  
     
@@ -80,9 +80,9 @@ def test_ideal(grand,ig,rpy,state_grand):
             M = -(1/18)*(5-1/(left_edge**2))*3.0/state.mesh.full.L
         # Multiplying rho(x) into M at the end
         flux[i] = -((3.0/state.mesh.full.L)*left_edge*M+bd)
-        
-    #Shifting bin centers to the lower bound of each of bin
-    flags = x-0.5*R/state.mesh.full.shape < R-(ai+ai)
+        lower_bounds[i] = left_edge
+ 
+    flags = lower_bounds < R-(ai+ai)
     assert np.allclose(rpy.fluxes['A'][flags], flux[flags],atol = 1e-3)
 
 def test_excess(grand,ig,rpy,state_grand):
@@ -102,13 +102,13 @@ def test_excess(grand,ig,rpy,state_grand):
 
     # first check OK with all zeros
     state.fields['A'][:] = 0.
-    grand.constrain('A', 0, grand.Constraint.N)
+    grand.constrain('A', np.pi * R**3 * 3.0, grand.Constraint.N)
     rpy.compute(grand,state)
     assert np.allclose(rpy.fluxes['A'], 0.)
 
     # same thing with all ones
     state.fields['A'][:] = 1
-    grand.constrain('A', state.mesh.full.volume(), grand.Constraint.N)
+    grand.constrain('A', np.pi * R**3 * 3.0, grand.Constraint.N)
     rpy.compute(grand,state)
     assert np.allclose(rpy.fluxes['A'], 0.)
     
@@ -116,7 +116,9 @@ def test_excess(grand,ig,rpy,state_grand):
     state.fields['A'][:] = 3.0/R*(x[:])
     grand.constrain('A', R*1.5, grand.Constraint.N)
     rpy.compute(grand,state)
+    
     flux = np.zeros(len(x))
+    lower_bounds = np.zeros_like(flux)
     for i in range(len(x)):
         left_edge = state.mesh.local.lower_bound(i)
         if left_edge==0:
@@ -156,9 +158,9 @@ def test_excess(grand,ig,rpy,state_grand):
             bd = -0.031831*(1 + 3*left_edge)
             M =  (1/left_edge)*(-0.005+left_edge*(left_edge*(0.025+left_edge*(0.075))))
         flux[i] = (M+bd)
-        
-    #Shifting bin centers to the lower bound of each of bin   
-    flags = x-0.5*R/state.mesh.full.shape < R-(ai+ai)
+        lower_bounds[i] = left_edge
+   
+    flags = lower_bounds < R-(ai+ai)
     assert np.allclose(rpy.fluxes['A'][flags], flux[flags],atol = 2e-3)
 
 def test_binary_ideal_one(grand,ig,rpy,binary_state_grand):
@@ -176,7 +178,6 @@ def test_binary_ideal_one(grand,ig,rpy,binary_state_grand):
     ak = 0.5 #Type B
     R = state.mesh.full.L
     
-    volume = state.mesh.full.volume()
     ig.volumes['A'] = 1.0
     ig.volumes['B'] = 1.0
     grand.ideal = ig
@@ -187,11 +188,12 @@ def test_binary_ideal_one(grand,ig,rpy,binary_state_grand):
     x = state.mesh.local.centers
     state.fields['A'][:] = 3/R*(x[:])
     state.fields['B'][:] = 3/R*(x[:])
-    grand.constrain('A', volume, grand.Constraint.N)
-    grand.constrain('B', volume, grand.Constraint.N)
+    grand.constrain('A', np.pi * R**3 * 3.0, grand.Constraint.N)
+    grand.constrain('B', np.pi * R**3 * 3.0, grand.Constraint.N)
     rpy.compute(grand,state)
     
     flux = np.zeros(len(x))
+    lower_bounds = np.zeros_like(flux)
     M1 = 0
     M2 = 0
     bd = 0
@@ -218,8 +220,9 @@ def test_binary_ideal_one(grand,ig,rpy,binary_state_grand):
             bd =  -0.031831
             M2 = -0.005/left_edge+0.025*left_edge
         flux[i] = (M1+M2+bd)
-    #Shifting bin centers to the lower bound of each of bin
-    flags = x-0.5*R/state.mesh.full.shape < R-(ai+ak)
+        lower_bounds[i] = left_edge
+    
+    flags = lower_bounds < R-(ai+ak)
     assert np.allclose(rpy.fluxes['A'][flags], flux[flags],atol = 1e-3)
        
 
@@ -240,8 +243,8 @@ def test_binary_ideal(grand,ig,rpy,binary_state_grand):
     # first check OK with all zeros
     state.fields['A'][:] = 0.
     state.fields['B'][:] = 0.
-    grand.constrain('A', 0, grand.Constraint.N)
-    grand.constrain('B', 0, grand.Constraint.N)
+    grand.constrain('A', np.pi * R**3 * 3.0, grand.Constraint.N)
+    grand.constrain('B', np.pi * R**3 * 3.0, grand.Constraint.N)
     rpy.compute(grand,state)
     assert np.allclose(rpy.fluxes['A'], 0.)
     assert np.allclose(rpy.fluxes['B'], 0.)
@@ -249,8 +252,8 @@ def test_binary_ideal(grand,ig,rpy,binary_state_grand):
     # same thing with all ones
     state.fields['A'][:] = 1.
     state.fields['B'][:] = 1.
-    grand.constrain('A', state.mesh.full.volume(), grand.Constraint.N)
-    grand.constrain('B', state.mesh.full.volume(), grand.Constraint.N)
+    grand.constrain('A', np.pi * R**3 * 3.0, grand.Constraint.N)
+    grand.constrain('B', np.pi * R**3 * 3.0, grand.Constraint.N)
     rpy.compute(grand,state)
     assert np.allclose(rpy.fluxes['A'], 0.)
     assert np.allclose(rpy.fluxes['B'], 0.)
@@ -258,10 +261,11 @@ def test_binary_ideal(grand,ig,rpy,binary_state_grand):
     x = state.mesh.local.centers
     state.fields['A'][:] = 3.0/R*(x[:])
     state.fields['B'][:] = 3.0/R*(x[:])
-    grand.constrain('A', volume, grand.Constraint.N)
-    grand.constrain('B', volume, grand.Constraint.N)
+    grand.constrain('A', np.pi * R**3 * 3.0, grand.Constraint.N)
+    grand.constrain('B', np.pi * R**3 * 3.0, grand.Constraint.N)
     rpy.compute(grand,state)
     flux = np.zeros(len(x))
+    lower_bounds = np.zeros_like(flux)
     M1 = 0
     M2 = 0
     bd = 0
@@ -297,7 +301,8 @@ def test_binary_ideal(grand,ig,rpy,binary_state_grand):
             bd = -0.031831
             M2 = -0.076/left_edge+0.095*left_edge
         flux[i] = (M1+M2+bd)
+        lower_bounds[i] = left_edge
         
     #Shifting bin centers to the lower bound of each of bin
-    flags = x-0.5*R/state.mesh.full.shape < R-(ai+ak)
+    flags = lower_bounds < R-(ai+ak)
     assert np.allclose(rpy.fluxes['A'][flags], flux[flags], atol = 1e-3)

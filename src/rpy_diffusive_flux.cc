@@ -104,6 +104,8 @@ void RPYDiffusiveFlux::compute(std::shared_ptr<GrandPotential> grand, std::share
                 const int ig_low = std::ceil((std::abs(x-d_ij)-mesh->lower_bound())/mesh->step());
                 const int ig_high = mesh->bin(x+d_ij);
                 double ig = 0.;
+                const double prefactor = (a_i * a_i + 3 * a_i * a_j + a_j * a_j)
+                                            /(24 * x * x * viscosity_ * d_ij * d_ij * d_ij);
                 for (int ig_idx = ig_low; ig_idx < ig_high; ++ig_idx)
                     {
                     const auto y = mesh->lower_bound(ig_idx);
@@ -115,9 +117,8 @@ void RPYDiffusiveFlux::compute(std::shared_ptr<GrandPotential> grand, std::share
                     if (V_j)
                         rho_dmu += rho_y * mesh->gradient(ig_idx, V_j);
                     
-                    const double M = ((a_i * a_i + 3 * a_i * a_j + a_j * a_j) * 
-                                (d_ij - x - y) * (d_ij + x - y) * (d_ij - x + y) 
-                                * (d_ij + x + y)) / (24 * x * x * viscosity_ * d_ij * d_ij * d_ij);
+                    const double M =  prefactor * (d_ij - x - y) * (d_ij + x - y) * (d_ij - x + y) 
+                                        * (d_ij + x + y);
                     ig += M * rho_dmu;
                     }
                 flux_i(idx) += -rho_x * ig * mesh->step();
