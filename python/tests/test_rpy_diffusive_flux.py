@@ -165,7 +165,7 @@ def test_excess(grand,ig,rpy,state_grand):
         
     #Shifting bin centers to the lower bound of each of bin   
     flags = x-0.5*R/state.mesh.full.shape < R-(ai+ai)
-    assert np.allclose(rpy.fluxes['A'][flags], flux[flags],atol = 1e-2)
+    assert np.allclose(rpy.fluxes['A'][flags], flux[flags],atol = 2e-3)
 
 def test_binary_ideal_one(grand,ig,rpy,binary_state_grand):
 
