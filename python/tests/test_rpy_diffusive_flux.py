@@ -29,19 +29,19 @@ def test_ideal(grand,ig,rpy,state_grand):
 
     # first check OK with all zeros
     state.fields['A'][:] = 0.
-    grand.constrain('A', np.pi * R**3 * 3.0, grand.Constraint.N)
+    grand.constrain('A', 0, grand.Constraint.N)
     rpy.compute(grand,state)
     assert np.allclose(rpy.fluxes['A'], 0.)
 
     # same thing with all ones
     state.fields['A'][:] = 1
-    grand.constrain('A', np.pi * R**3 * 3.0, grand.Constraint.N)
+    grand.constrain('A', state.mesh.full.volume(), grand.Constraint.N)
     rpy.compute(grand,state)
     assert np.allclose(rpy.fluxes['A'], 0.)
     
     x = state.mesh.local.centers
     state.fields['A'][:] = 3.0/R*(x[:])
-    grand.constrain('A', R*1.5, grand.Constraint.N)
+    grand.constrain('A', np.pi * R**3 * 3.0, grand.Constraint.N)
     rpy.compute(grand,state)
     flux = np.zeros(len(x))
     lower_bounds = np.zeros_like(flux)
@@ -102,19 +102,19 @@ def test_excess(grand,ig,rpy,state_grand):
 
     # first check OK with all zeros
     state.fields['A'][:] = 0.
-    grand.constrain('A', np.pi * R**3 * 3.0, grand.Constraint.N)
+    grand.constrain('A', 0, grand.Constraint.N)
     rpy.compute(grand,state)
     assert np.allclose(rpy.fluxes['A'], 0.)
 
     # same thing with all ones
     state.fields['A'][:] = 1
-    grand.constrain('A', np.pi * R**3 * 3.0, grand.Constraint.N)
+    grand.constrain('A', state.mesh.full.volume(), grand.Constraint.N)
     rpy.compute(grand,state)
     assert np.allclose(rpy.fluxes['A'], 0.)
     
     x = state.mesh.local.centers
     state.fields['A'][:] = 3.0/R*(x[:])
-    grand.constrain('A', R*1.5, grand.Constraint.N)
+    grand.constrain('A', np.pi * R**3 * 3.0, grand.Constraint.N)
     rpy.compute(grand,state)
     
     flux = np.zeros(len(x))
@@ -243,8 +243,8 @@ def test_binary_ideal(grand,ig,rpy,binary_state_grand):
     # first check OK with all zeros
     state.fields['A'][:] = 0.
     state.fields['B'][:] = 0.
-    grand.constrain('A', np.pi * R**3 * 3.0, grand.Constraint.N)
-    grand.constrain('B', np.pi * R**3 * 3.0, grand.Constraint.N)
+    grand.constrain('A', 0, grand.Constraint.N)
+    grand.constrain('B', 0, grand.Constraint.N)
     rpy.compute(grand,state)
     assert np.allclose(rpy.fluxes['A'], 0.)
     assert np.allclose(rpy.fluxes['B'], 0.)
@@ -252,8 +252,8 @@ def test_binary_ideal(grand,ig,rpy,binary_state_grand):
     # same thing with all ones
     state.fields['A'][:] = 1.
     state.fields['B'][:] = 1.
-    grand.constrain('A', np.pi * R**3 * 3.0, grand.Constraint.N)
-    grand.constrain('B', np.pi * R**3 * 3.0, grand.Constraint.N)
+    grand.constrain('A', state.mesh.full.volume(), grand.Constraint.N)
+    grand.constrain('B', state.mesh.full.volume(), grand.Constraint.N)
     rpy.compute(grand,state)
     assert np.allclose(rpy.fluxes['A'], 0.)
     assert np.allclose(rpy.fluxes['B'], 0.)
