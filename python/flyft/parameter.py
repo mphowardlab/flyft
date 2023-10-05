@@ -14,3 +14,11 @@ class LinearParameter(_DoubleParameter,mirrorclass=_flyft.LinearParameter):
     initial = mirror.Property()
     origin = mirror.Property()
     rate = mirror.Property()
+
+class SquareRootParameter(_DoubleParameter,mirrorclass=_flyft.SquareRootParameter):
+    def __init__(self, initial, origin, rate):
+        super().__init__(initial, origin, rate)
+
+    initial = mirror.Property()
+    origin = mirror.Property()
+    rate = mirror.Property()
