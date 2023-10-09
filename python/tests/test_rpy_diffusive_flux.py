@@ -293,12 +293,9 @@ def test_binary_ideal(grand,ig,rpy,binary_state_grand):
         
         if left_edge==0:
             M2 = 0
-            bd = 0
         elif left_edge > 0 and left_edge < ai+ak:
-            bd = -0.031831
             M2= 0.0475*left_edge**2-0.002375*left_edge**4
         else:
-            bd = -0.031831
             M2 = -0.076/left_edge+0.095*left_edge
         flux[i] = (M1+M2+bd)
         lower_bounds[i] = left_edge

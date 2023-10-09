@@ -62,11 +62,9 @@ void RPYDiffusiveFlux::compute(std::shared_ptr<GrandPotential> grand, std::share
                 
                 if (x==0)
                     {
-                    flux_i(idx) = 0.;
                     continue;
                     }
-                auto rho_x = mesh->interpolate(x, rho_i);
-              
+                auto rho_x = mesh->interpolate(x, rho_i); 
                 //BD flux calculation
                 if(i==j)
                     {
@@ -74,22 +72,9 @@ void RPYDiffusiveFlux::compute(std::shared_ptr<GrandPotential> grand, std::share
                     if (mu_ex_j) dmu_ex += mesh->gradient(idx,mu_ex_j);
                     if (V_j)
                         {
-                        bool Vidx_inf = std::isinf(V_j(idx));
-                        if (Vidx_inf)
+                        if (std::isinf(V_j(idx)))
                             {
-                            if (V_j(idx) > 0 && rho_j(idx) > 0)
-                                {
-                                throw std::invalid_argument("Can't be V=+inf and have positive rho");
-                                }
-                            else if(V_j(idx) < 0)
-                                {
-                                throw std::invalid_argument("Can't have V=-inf ever, it is a mass sink");
-                                }
-                            }
-                        if (Vidx_inf || std::isinf(V_j(idx-1)))
-                            {
-                            flux_i(idx) = 0.;
-                            continue;
+                            throw std::invalid_argument("RPY is incompatible with infinite potentials");
                             }
                         dmu_ex += mesh->gradient(idx,V_j);
                         }
