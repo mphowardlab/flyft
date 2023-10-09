@@ -53,27 +53,6 @@ void RPYDiffusiveFlux::compute(std::shared_ptr<GrandPotential> grand, std::share
             auto V_j = (external) ? external->getDerivative(j)->const_view() : Field::ConstantView();
             for (int idx = 0; idx < mesh->shape(); ++idx)
                 {
-                if (V_j)
-                    {
-                    bool Vidx_inf = std::isinf(V_j(idx));
-                    if (Vidx_inf)
-                        {
-                        if (V_j(idx) > 0 && rho_j(idx) > 0)
-                            {
-                            throw std::invalid_argument("Can't be V=+inf and have positive rho");
-                            }
-                        else if(V_j(idx) < 0)
-                            {
-                            throw std::invalid_argument("Can't have V=-inf ever, it is a mass sink");
-                            }
-                        }
-                    if (Vidx_inf || std::isinf(V_j(idx-1)))
-                        {
-                        flux_i(idx) = 0.;
-                        continue;
-                        }
-                    }
-
                 const auto x = mesh->lower_bound(idx);
                 
                 /* Considering symmetry about the center of the sphere and concentration gradient 
@@ -93,7 +72,27 @@ void RPYDiffusiveFlux::compute(std::shared_ptr<GrandPotential> grand, std::share
                     {
                     auto dmu_ex = 0.0;
                     if (mu_ex_j) dmu_ex += mesh->gradient(idx,mu_ex_j);
-                    if (V_j) dmu_ex += mesh->gradient(idx,V_j);
+                    if (V_j)
+                        {
+                        bool Vidx_inf = std::isinf(V_j(idx));
+                        if (Vidx_inf)
+                            {
+                            if (V_j(idx) > 0 && rho_j(idx) > 0)
+                                {
+                                throw std::invalid_argument("Can't be V=+inf and have positive rho");
+                                }
+                            else if(V_j(idx) < 0)
+                                {
+                                throw std::invalid_argument("Can't have V=-inf ever, it is a mass sink");
+                                }
+                            }
+                        if (Vidx_inf || std::isinf(V_j(idx-1)))
+                            {
+                            flux_i(idx) = 0.;
+                            continue;
+                            }
+                        dmu_ex += mesh->gradient(idx,V_j);
+                        }
                     flux_i(idx) += -D_i*(mesh->gradient(idx,rho_j) + rho_x*dmu_ex);
                     }
  
