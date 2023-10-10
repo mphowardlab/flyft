@@ -9,6 +9,7 @@
 #include "flyft/type_map.h"
 
 #include <complex>
+#include <map>
 #include <memory>
 #include <string>
 #include <vector>
