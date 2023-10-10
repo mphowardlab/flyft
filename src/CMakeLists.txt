@@ -8,7 +8,6 @@ add_library(flyft SHARED
     communicator.cc
     crank_nicolson_integrator.cc
     data_layout.cc
-    diffusive_flux.cc
     explicit_euler_integrator.cc
     exponential_wall_potential.cc
     external_potential.cc
@@ -27,6 +26,7 @@ add_library(flyft SHARED
     parallel_mesh.cc
     picard_iteration.cc
     rosenfeld_fmt.cc
+    rpy_diffusive_flux.cc
     solver.cc
     spherical_mesh.cc
     state.cc

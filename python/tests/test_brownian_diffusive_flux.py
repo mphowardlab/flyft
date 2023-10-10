@@ -10,7 +10,7 @@ def cartesian_mesh_grand():
 
 @pytest.fixture
 def spherical_mesh_grand():
-    return flyft.state.SphericalMesh(10.,100, "zero") 
+    return flyft.state.SphericalMesh(10.,100, "repeat") 
     
 @pytest.fixture(params=[lazy_fixture("cartesian_mesh_grand"), lazy_fixture("spherical_mesh_grand")])
 def mesh_grand(request):

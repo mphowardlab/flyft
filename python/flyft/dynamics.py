@@ -13,11 +13,12 @@ class CompositeFlux(Flux,CompositeMixin,mirrorclass=_flyft.CompositeFlux):
         if objects is not None:
             self.objects = objects
 
-class DiffusiveFlux(Flux,mirrorclass=_flyft.DiffusiveFlux):
+class BrownianDiffusiveFlux(Flux,mirrorclass=_flyft.BrownianDiffusiveFlux):
     diffusivities = mirror.WrappedProperty(mirror.MutableMapping)
 
-class BrownianDiffusiveFlux(DiffusiveFlux,mirrorclass=_flyft.BrownianDiffusiveFlux):
-    pass
+class RPYDiffusiveFlux(Flux,mirrorclass=_flyft.RPYDiffusiveFlux):
+    diameters = mirror.WrappedProperty(mirror.MutableMapping)
+    viscosity = mirror.Property()
 
 class Integrator(mirror.Mirror,mirrorclass=_flyft.Integrator):
     advance = mirror.Method()

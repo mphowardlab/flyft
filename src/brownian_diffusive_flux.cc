@@ -115,6 +115,16 @@ void BrownianDiffusiveFlux::compute(std::shared_ptr<GrandPotential> grand, std::
         }
     }
 
+TypeMap<double>& BrownianDiffusiveFlux::getDiffusivities()
+    {
+    return diffusivities_;
+    }
+
+const TypeMap<double>& BrownianDiffusiveFlux::getDiffusivities() const
+    {
+    return diffusivities_;
+    }
+
 int BrownianDiffusiveFlux::determineBufferShape(std::shared_ptr<State> /*state*/, const std::string& /*type*/)
     {
     return 1;
