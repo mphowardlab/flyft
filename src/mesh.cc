@@ -177,8 +177,8 @@ BoundaryType Mesh::upper_boundary_condition() const
 
 void Mesh::validateBoundaryCondition() const
     {
-    if ((lower_bc_ != BoundaryType::periodic && upper_bc_ == BoundaryType::periodic) ||
-        (lower_bc_ == BoundaryType::periodic && upper_bc_ != BoundaryType::periodic))
+    if ((upper_bc_ == BoundaryType::periodic && !(lower_bc_ == BoundaryType::periodic || lower_bc_ == BoundaryType::internal)) ||
+        (lower_bc_ == BoundaryType::periodic && !(upper_bc_ == BoundaryType::periodic || upper_bc_ == BoundaryType::internal)))
         {
         throw std::invalid_argument("Both boundaries must be periodic if one is.");
         }
