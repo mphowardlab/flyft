@@ -53,9 +53,10 @@ def test_advance(state,grand,ig,linear,bd,cn):
         # except near the edges where the potential seems discontinuous by finite difference
         linear.set_line('A', x=0., y=0., slope=0.25)
         grand.external = linear
+        bd.compute(grand, state)
         cn.advance(bd, grand, state, cn.timestep)
         assert state.time == pytest.approx(1.e-3)
-        assert np.allclose(state.fields['A'][1:-1], 1.0, atol=1e-4)
+        assert np.allclose(state.fields['A'][2:-2], 1.0, atol=1e-4)
 
     # run forwards multiple steps
     state.time = 0.

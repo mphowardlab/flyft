@@ -15,7 +15,7 @@ class Mesh
         Mesh() = delete;
         Mesh(double lower_bound, double upper_bound, int shape, BoundaryType lower_bc, BoundaryType upper_bc);
 
-        virtual std::shared_ptr<Mesh> slice(int start, int end) const = 0;
+        std::shared_ptr<Mesh> slice(int start, int end) const;
 
         //! Get position on the mesh, defined as center of bin
         double center(int i) const;
@@ -83,16 +83,16 @@ class Mesh
         bool operator!=(const Mesh& other) const;
 
     protected:
-        double lower_;    
-        double upper_;
+        double lower_;
         int shape_;     //!< Shape of the mesh
         BoundaryType lower_bc_;
         BoundaryType upper_bc_;
-        
-        double L_;      //!< Length of the domain
         double step_;   //!< Spacing between mesh points
+        int start_;
         
         void validateBoundaryCondition() const;
+
+        virtual std::shared_ptr<Mesh> clone() const = 0;
     };
 
 }

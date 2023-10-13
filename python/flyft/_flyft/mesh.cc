@@ -9,11 +9,6 @@ class MeshTrampoline : public Mesh
     {
     public:
         using Mesh::Mesh;
-
-        std::shared_ptr<Mesh> slice(int start, int end) const override
-            {
-            PYBIND11_OVERRIDE_PURE(std::shared_ptr<Mesh>, Mesh, slice, start, end);
-            }
         
         double area(int i) const override
             {
@@ -33,6 +28,12 @@ class MeshTrampoline : public Mesh
         double gradient(int idx, double f_lo, double f_hi) const override
             {
             PYBIND11_OVERRIDE_PURE(double, Mesh, gradient, idx, f_lo, f_hi);
+            }
+
+    protected:
+        std::shared_ptr<Mesh> clone() const override
+            {
+            PYBIND11_OVERRIDE_PURE(std::shared_ptr<Mesh>, Mesh, clone);
             }
     };
 

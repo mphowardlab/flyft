@@ -144,7 +144,9 @@ def test_external(state,grand,ig,walls,linear,bd):
     state.fields['A'][inside] = 1.0+slope*(x[inside]-walls[0].origin)
     grand.constrain('A', np.sum(state.fields['A'])*state.mesh.full.step, grand.Constraint.N)
     bd.compute(grand,state)
-    assert np.allclose(bd.fluxes['A'][3:-2], -2.0*slope)
+    lower = np.array([state.mesh.local.lower_bound(i) for i in range(state.mesh.local.shape)])
+    flags = np.logical_and(lower > walls[0].origin, lower < walls[1].origin)
+    assert np.allclose(bd.fluxes['A'][flags], -2.0*slope)
 
     # use linear potential to check gradient calculation between walls
     state.fields['A'][inside] = 3.
@@ -152,4 +154,4 @@ def test_external(state,grand,ig,walls,linear,bd):
     linear.set_line('A', x=walls[0].origin, y=0., slope=0.25)
     grand.external.append(linear)
     bd.compute(grand,state)
-    assert np.allclose(bd.fluxes['A'][3:-2], 3.*2.*-0.25)
+    assert np.allclose(bd.fluxes['A'][flags], 3.*2.*-0.25)
