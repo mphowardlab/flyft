@@ -12,33 +12,28 @@ SphericalMesh::SphericalMesh(double lower_bound, double upper_bound,int shape, B
     }
 
 
-std::shared_ptr<Mesh> SphericalMesh::slice(int start, int end) const
+std::shared_ptr<Mesh> SphericalMesh::clone() const
     {
-    return std::shared_ptr<Mesh>(new SphericalMesh(
-        lower_bound(start),
-        lower_bound(end),
-        end-start, 
-        (start > 0) ? BoundaryType::internal : lower_bc_, 
-        (end < shape_) ? BoundaryType::internal : upper_bc_));
+    return std::make_shared<SphericalMesh>(*this);
     }
 
 double SphericalMesh::area(int i) const
     {
-    const double r = lower_bound(i);
+    const double r = lower_bound(start_ + i);
     return 4.*M_PI*r*r;
     }
 
 double SphericalMesh::volume() const
     {
-    const double rlo = lower_;
-    const double rhi = upper_;
+    const double rlo = lower_bound();
+    const double rhi = upper_bound();
     return (4.*M_PI/3.)*(rhi*rhi*rhi - rlo*rlo*rlo);
     }
     
 double SphericalMesh::volume(int i) const
     {
-    const double r_out = upper_bound(i);
-    const double r_in = lower_bound(i);
+    const double r_out = upper_bound(start_+i);
+    const double r_in = lower_bound(start_+i);
     return (4.*M_PI/3.)*(r_out*r_out*r_out - r_in*r_in*r_in);
     }
 

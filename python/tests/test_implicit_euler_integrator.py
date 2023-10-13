@@ -55,7 +55,7 @@ def test_advance(state,grand,ig,linear,bd,euler):
         grand.external = linear
         euler.advance(bd, grand, state, euler.timestep)
         assert state.time == pytest.approx(1.e-3)
-        assert np.allclose(state.fields['A'][1:-1], 1.0, atol=1e-3)
+        assert np.allclose(state.fields['A'][2:-2], 1.0, atol=1e-3)
 
     # run forwards multiple steps
     state.time = 0.

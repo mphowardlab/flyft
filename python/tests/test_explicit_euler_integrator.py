@@ -41,12 +41,10 @@ def test_advance(state,grand,ig,linear,bd,euler):
         grand.external = linear
         euler.advance(bd, grand, state, euler.timestep)
         assert state.time == pytest.approx(1.e-3)
-
-        x = state.mesh.local.centers
-        flags = np.logical_and(x >= state.mesh.full.centers[1], x <= state.mesh.full.centers[-2])
-        assert np.allclose(state.fields['A'][flags], 1.0)
+        assert np.allclose(state.fields['A'][1:-1], 1.0)
 
         # check everywhere using the flux computed by bd
+        x = state.mesh.local.centers
         state.fields['A'][:] = 1.0
         bd.compute(grand,state)
         xfull = state.mesh.full.centers
