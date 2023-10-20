@@ -19,7 +19,7 @@ std::shared_ptr<Mesh> SphericalMesh::clone() const
 
 double SphericalMesh::area(int i) const
     {
-    const double r = lower_bound(start_ + i);
+    const double r = lower_bound(i);
     return 4.*M_PI*r*r;
     }
 
@@ -32,8 +32,8 @@ double SphericalMesh::volume() const
     
 double SphericalMesh::volume(int i) const
     {
-    const double r_out = upper_bound(start_+i);
-    const double r_in = lower_bound(start_+i);
+    const double r_out = upper_bound(i);
+    const double r_in = lower_bound(i);
     return (4.*M_PI/3.)*(r_out*r_out*r_out - r_in*r_in*r_in);
     }
 

@@ -55,7 +55,7 @@ double Mesh::lower_bound(int i) const
   
 double Mesh::upper_bound() const
     {
-    return lower_bound(start_ + shape_);
+    return lower_bound(shape_);
     }
     
 double Mesh::upper_bound(int i) const
