@@ -48,7 +48,7 @@ def test_ideal(grand,ig,rpy,state_grand):
         elif left_edge > 2 * ai and left_edge <= 24:
             BD = 0
             f = 0
-        elif left_edge >24 and left_edge < 25:
+        elif left_edge >24 and left_edge <= 25:
             BD = 0
             f = -(0.868056*((-24+left_edge)**3)*(-3504+left_edge*(-438+(-8+left_edge)*left_edge)))/(left_edge**2)
         elif left_edge >25 and left_edge < 26:
