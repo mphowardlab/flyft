@@ -3,8 +3,8 @@
 
 namespace flyft
 {
-ThreeDimensionIndex::ThreeDimensionIndex(int ni , int nj, int nk):
-    ni_(ni), nj_(nj), nk_(nk)
+ThreeDimensionIndex::ThreeDimensionIndex(int ni , int nj, int nk)
+    :ni_(ni), nj_(nj), nk_(nk)
     {        
     }
 
@@ -15,7 +15,7 @@ int ThreeDimensionIndex::operator()(int i, int j, int k) const
 
 int ThreeDimensionIndex::size() const
     {
-    return i*j*k;
+    return ni_*nj_*nk_;
     }
 
 

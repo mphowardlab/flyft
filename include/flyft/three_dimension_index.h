@@ -11,9 +11,8 @@ class ThreeDimensionIndex
         ThreeDimensionIndex(int ni, int nj, int nk);
         int size() const;
         int operator()(int i, int j, int k) const;
-    protected:
+    private:
         int ni_, nj_, nk_;
-        int i, j, k;
     };
     
 }
