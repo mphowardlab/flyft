@@ -11,11 +11,17 @@ namespace flyft
 class GridInterpolator
     {  
     public:
-        GridInterpolator(ThreeDimensionIndex n, const double* data, double dx, double dy, double dz);
+        GridInterpolator(int ni, int nj, int nk, double dx, double dy, double dz);
+        ~GridInterpolator();
+        
         double operator()(double x, double y, double z) const;   
+        double getData();
+        
+        ThreeDimensionIndex getIndex();
+        
     protected:
         ThreeDimensionIndex n_;
-        const double* data_;
+        double* data_;
         double dx_;
         double dy_;
         double dz_;
