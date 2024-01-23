@@ -2,7 +2,8 @@
 #define FLYFT_GRID_INTERPOLATOR_H_
 
 #include "flyft/three_dimension_index.h"
-
+#include <iostream>
+#include <tuple>
 #include <cmath>
 
 namespace flyft
@@ -11,13 +12,15 @@ namespace flyft
 class GridInterpolator
     {  
     public:
-        GridInterpolator(int ni, int nj, int nk, double dx, double dy, double dz);
+        GridInterpolator(int ni, int nj, int nk, double dx, double dy, double dz, std::string s);
         ~GridInterpolator();
         
         double operator()(double x, double y, double z) const;   
-        double getData();
+        double* getData() const;
         
-        ThreeDimensionIndex getIndex();
+        std::tuple<int, int, int> getIndex();
+        
+        int ni, nj ,nk;
         
     protected:
         ThreeDimensionIndex n_;

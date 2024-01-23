@@ -1,19 +1,48 @@
 #include "flyft/grid_interpolator.h"
 
+#include <fstream> 
+#include <cassert>
 
 namespace flyft
 {
-GridInterpolator::GridInterpolator(int ni, int nj, int nk, double dx, double dy, double dz):
+GridInterpolator::GridInterpolator(int ni, int nj, int nk, double dx, double dy, double dz, std::string s):
     n_(ni, nj, nk), dx_(dx), dy_(dy), dz_(dz)
     {
     data_ = new double[n_.size()];     
+    std::ifstream indata;
+    indata.open(s);
+    if(!indata.is_open())
+        {
+        std::cout<<"File failed to open"<<std::endl;
+        }
+    while(!indata.good()) 
+        {
+        for (int i = 0; i < ni; i++)
+            {
+            for (int j = 0; j < nj; j++)
+                {
+                for (int k = 0; k < nk; k++)
+                    {
+                    indata >> data_[n_(i, j, k)];
+                    }
+                }
+            }
+        }
+        // Close the file.
+        indata.close();
     }
 
 double GridInterpolator::operator()(double x, double y, double z) const
     {
+    
     int bin_x = std::floor(x/dx_); 
     int bin_y = std::floor(y/dy_); 
     int bin_z = std::floor(z/dz_); 
+    int ni, nj , nk;
+    std::tie(ni, nj, nk) = n_.getIndex();
+    assert(bin_x >= 0 || bin_x < ni);
+    assert(bin_y >= 0 || bin_y < nj);
+    assert(bin_z >= 0 || bin_z < nk);
     
     double xd = (x-(bin_x*dx_))/dx_;
     double yd = (y-(bin_y*dy_))/dy_;
@@ -39,14 +68,14 @@ double GridInterpolator::operator()(double x, double y, double z) const
     return c0*(1-zd)+c1*zd;
     }
 
-double GridInterpolator::getData()  
+double* GridInterpolator::getData() const
     {
-    return *data_;
+    return data_;
     }
 
-ThreeDimensionIndex GridInterpolator::getIndex()
+std::tuple<int, int, int> GridInterpolator::getIndex() 
     {
-    return n_;
+    return n_.getIndex();
     }
 
 GridInterpolator::~GridInterpolator()

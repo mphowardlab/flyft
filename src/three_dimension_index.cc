@@ -18,6 +18,17 @@ int ThreeDimensionIndex::size() const
     return ni_*nj_*nk_;
     }
 
+std::tuple<int, int, int>ThreeDimensionIndex::getIndex() const
+    {
+    return std::make_tuple(ni_, nj_, nk_);
+    }
 
+std::tuple<int, int, int> ThreeDimensionIndex::backmapping(int k) const
+    {
+    int z = k%(nk_);
+    int y = ((k-z)/nk_)%nj_;
+    int x =  (((k-z)/nk_)-y)/nj_;
+    return std::make_tuple(x,y,z);
+    }
 
 }
