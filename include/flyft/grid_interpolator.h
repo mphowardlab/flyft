@@ -20,9 +20,6 @@ class GridInterpolator
         double operator()(double x, double y, double z) const;   
         double* getData() const;
         
-        std::tuple<int, int, int> getIndex();
-        
-        
     protected:
         ThreeDimensionIndex n_;
         double* data_;

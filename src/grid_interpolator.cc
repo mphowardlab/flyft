@@ -62,7 +62,7 @@ double GridInterpolator::operator()(double x, double y, double z) const
     int bin_y = std::floor(y/dy_); 
     int bin_z = std::floor(z/dz_); 
     int ni, nj , nk;
-    std::tie(ni, nj, nk) = n_.getIndex();
+    std::tie(ni, nj, nk) = n_.getBounds();
     assert(bin_x >= 0 || bin_x < ni);
     assert(bin_y >= 0 || bin_y < nj);
     assert(bin_z >= 0 || bin_z < nk);
@@ -94,11 +94,6 @@ double GridInterpolator::operator()(double x, double y, double z) const
 double* GridInterpolator::getData() const
     {
     return data_;
-    }
-
-std::tuple<int, int, int> GridInterpolator::getIndex() 
-    {
-    return n_.getIndex();
     }
 
 GridInterpolator::~GridInterpolator()

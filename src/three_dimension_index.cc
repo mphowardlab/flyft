@@ -18,7 +18,7 @@ int ThreeDimensionIndex::size() const
     return ni_*nj_*nk_;
     }
 
-std::tuple<int, int, int>ThreeDimensionIndex::getIndex() const
+std::tuple<int, int, int>ThreeDimensionIndex::getBounds() const
     {
     return std::make_tuple(ni_, nj_, nk_);
     }
