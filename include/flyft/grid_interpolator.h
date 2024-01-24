@@ -12,7 +12,9 @@ namespace flyft
 class GridInterpolator
     {  
     public:
-        GridInterpolator(int ni, int nj, int nk, double dx, double dy, double dz, std::string s);
+        GridInterpolator(std::string s);
+        GridInterpolator(std::string s, int ni, int nj, int nk);
+        GridInterpolator(std::string s,int ni, int nj, int nk, double dx, double dy, double dz);
         ~GridInterpolator();
         
         double operator()(double x, double y, double z) const;   
@@ -20,7 +22,6 @@ class GridInterpolator
         
         std::tuple<int, int, int> getIndex();
         
-        int ni, nj ,nk;
         
     protected:
         ThreeDimensionIndex n_;

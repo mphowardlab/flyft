@@ -5,31 +5,54 @@
 
 namespace flyft
 {
-GridInterpolator::GridInterpolator(int ni, int nj, int nk, double dx, double dy, double dz, std::string s):
-    n_(ni, nj, nk), dx_(dx), dy_(dy), dz_(dz)
+GridInterpolator::GridInterpolator(std::string s)
+    :GridInterpolator(s, 0, 0, 0)
     {
-    data_ = new double[n_.size()];     
+    // Default constructor for the ThreeDimensionIndex
+    }
+
+GridInterpolator::GridInterpolator(std::string s, int ni, int nj, int nk):
+    n_(ni, nj ,nk)
+    {
+    double dx, dy, dz;
     std::ifstream indata;
     indata.open(s);
     if(!indata.is_open())
         {
         std::cout<<"File failed to open"<<std::endl;
         }
-    while(!indata.good()) 
+    indata>>ni>>nj>>nk>>dx>>dy>>dz;
+    indata.close();
+    GridInterpolator(s, ni, nj, nk, dx, dy, dz);
+    }    
+
+GridInterpolator::GridInterpolator(std::string s, int ni, int nj, int nk, double dx, double dy, double dz):
+    n_(ni, nj, nk), dx_(dx), dy_(dy), dz_(dz)
+    {
+    data_ = new double[n_.size()];  
+    std::ifstream indata;
+    indata.open(s);
+    while(indata.good()) 
         {
-        for (int i = 0; i < ni; i++)
+        double value;
+        // Ignore the first line of the input file
+        indata.ignore(6,'\n');
+        while(indata >> value)
             {
-            for (int j = 0; j < nj; j++)
+            for (int i = 0; i < ni; i++)
                 {
-                for (int k = 0; k < nk; k++)
+                for (int j = 0; j < nj; j++)
                     {
-                    indata >> data_[n_(i, j, k)];
+                    for (int k = 0; k < nk; k++)
+                        {
+                        data_[n_(i, j, k)] = value;
+                        }
                     }
                 }
             }
         }
-        // Close the file.
-        indata.close();
+    // Close the file.
+    indata.close();
     }
 
 double GridInterpolator::operator()(double x, double y, double z) const

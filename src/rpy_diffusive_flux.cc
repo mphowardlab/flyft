@@ -16,7 +16,7 @@ void RPYDiffusiveFlux::compute(std::shared_ptr<GrandPotential> grand, std::share
     setup(grand,state);
     
     //Interpolation of the rdf and mobility integral
-    GridInterpolator grid(101, 121, 7, 0.05, 0.05, 0.1,"m.dat");
+    GridInterpolator grid("m.dat");
 
     auto excess = grand->getExcessFunctional();
     auto external = grand->getExternalPotential();
