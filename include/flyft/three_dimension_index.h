@@ -11,16 +11,19 @@ class ThreeDimensionIndex
     public:
         ThreeDimensionIndex();
         ThreeDimensionIndex(int nx, int ny, int nz);
+        
         int size() const;
         
         int operator()(int i, int j, int k) const;
         
         std::tuple<int, int, int> getBounds() const;
 
-        std::tuple<int, int, int> backmapping(int k) const;
+        std::tuple<int, int, int> asTuple(int k) const;
         
     private:
-        int nx_, ny_, nz_;
+        int nx_;
+        int ny_;
+        int nz_;
     };
     
 }
