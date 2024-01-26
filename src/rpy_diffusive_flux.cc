@@ -14,6 +14,7 @@ RPYDiffusiveFlux::RPYDiffusiveFlux()
 void RPYDiffusiveFlux::compute(std::shared_ptr<GrandPotential> grand, std::shared_ptr<State> state)
     {
     setup(grand,state);
+    
     auto excess = grand->getExcessFunctional();
     auto external = grand->getExternalPotential();
     if (excess)
