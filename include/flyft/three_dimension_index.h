@@ -9,7 +9,8 @@ namespace flyft
 class ThreeDimensionIndex
     {
     public:
-        ThreeDimensionIndex(int ni, int nj, int nk);
+        ThreeDimensionIndex();
+        ThreeDimensionIndex(int nx, int ny, int nz);
         int size() const;
         
         int operator()(int i, int j, int k) const;
@@ -17,9 +18,9 @@ class ThreeDimensionIndex
         std::tuple<int, int, int> getBounds() const;
 
         std::tuple<int, int, int> backmapping(int k) const;
-    protected:
-        int index_;
-        int ni_, nj_, nk_;
+        
+    private:
+        int nx_, ny_, nz_;
     };
     
 }

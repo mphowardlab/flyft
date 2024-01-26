@@ -5,55 +5,54 @@
 
 namespace flyft
 {
-GridInterpolator::GridInterpolator(std::string s)
-    :GridInterpolator(s, 0, 0, 0)
+GridInterpolator::GridInterpolator():
+    n_(0,0,0)
     {
-    // Default constructor for the ThreeDimensionIndex
     }
-
-GridInterpolator::GridInterpolator(std::string s, int ni, int nj, int nk):
-    n_(ni, nj ,nk)
+    
+GridInterpolator::GridInterpolator(const std::string& s)
     {
+    int nx, ny, nz;
     double dx, dy, dz;
-    std::ifstream indata;
-    indata.open(s);
-    if(!indata.is_open())
+    
+    std::ifstream indata(s);
+    if(!indata)
         {
-        std::cout<<"File failed to open"<<std::endl;
+        throw std::runtime_error("File failed to open");
         }
-    indata>>ni>>nj>>nk>>dx>>dy>>dz;
-    indata.close();
-    GridInterpolator(s, ni, nj, nk, dx, dy, dz);
-    }    
-
-GridInterpolator::GridInterpolator(std::string s, int ni, int nj, int nk, double dx, double dy, double dz):
-    n_(ni, nj, nk), dx_(dx), dy_(dy), dz_(dz)
-    {
+        
+    indata>>nx>>ny>>nz>>dx>>dy>>dz;
+    n_ = ThreeDimensionIndex(nx,ny,nz);
+    
+    if (n_.size() == 0)
+        {
+        throw std::runtime_error("Grid has zero size");
+        }
+        
     data_ = new double[n_.size()];  
-    std::ifstream indata;
-    indata.open(s);
-    while(indata.good()) 
+    double value;
+    
+    int idx = 0;
+    while (indata >> value)
         {
-        double value;
-        // Ignore the first line of the input file
-        indata.ignore(6,'\n');
-        while(indata >> value)
-            {
-            for (int i = 0; i < ni; i++)
-                {
-                for (int j = 0; j < nj; j++)
-                    {
-                    for (int k = 0; k < nk; k++)
-                        {
-                        data_[n_(i, j, k)] = value;
-                        }
-                    }
-                }
-            }
+        data_[idx++] = value;
         }
-    // Close the file.
+        
+    if (idx != n_.size() || !indata.eof())
+        {
+        throw std::runtime_error("File did not right number of elements");
+        }
+        
     indata.close();
     }
+    
+   
+
+GridInterpolator::~GridInterpolator()
+    {
+    delete[] data_;
+    }
+    
 
 double GridInterpolator::operator()(double x, double y, double z) const
     {
@@ -63,9 +62,9 @@ double GridInterpolator::operator()(double x, double y, double z) const
     int bin_z = std::floor(z/dz_); 
     int ni, nj , nk;
     std::tie(ni, nj, nk) = n_.getBounds();
-    assert(bin_x >= 0 || bin_x < ni);
-    assert(bin_y >= 0 || bin_y < nj);
-    assert(bin_z >= 0 || bin_z < nk);
+    assert(bin_x >= 0 && bin_x < ni);
+    assert(bin_y >= 0 && bin_y < nj);
+    assert(bin_z >= 0 && bin_z < nk);
     
     double xd = (x-(bin_x*dx_))/dx_;
     double yd = (y-(bin_y*dy_))/dy_;
@@ -96,9 +95,5 @@ double* GridInterpolator::getData() const
     return data_;
     }
 
-GridInterpolator::~GridInterpolator()
-    {
-    delete[] data_;
-    }
 
 }

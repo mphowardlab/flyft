@@ -12,9 +12,8 @@ namespace flyft
 class GridInterpolator
     {  
     public:
-        GridInterpolator(std::string s);
-        GridInterpolator(std::string s, int ni, int nj, int nk);
-        GridInterpolator(std::string s,int ni, int nj, int nk, double dx, double dy, double dz);
+        GridInterpolator();
+        GridInterpolator(const std::string& s);
         ~GridInterpolator();
         
         double operator()(double x, double y, double z) const;   
