@@ -17,7 +17,7 @@ GridInterpolator::GridInterpolator(const std::string& s)
         
     int nx, ny, nz;   
     indata >> nx >> ny >> nz >> dx_ >> dy_ >> dz_;
-    n_ = ThreeDimensionIndex(nx,ny,nz);
+    n_ = ThreeDimensionalIndex(nx, ny, nz);
     
     if (n_.size() == 0)
         {
