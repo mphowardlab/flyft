@@ -31,7 +31,7 @@ add_library(flyft SHARED
     solver.cc
     spherical_mesh.cc
     state.cc
-    three_dimension_index.cc
+    three_dimensional_index.cc
     tracked_object.cc
     virial_expansion.cc
     white_bear.cc
