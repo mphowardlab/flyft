@@ -56,12 +56,14 @@ double GridInterpolator::operator()(double x, double y, double z) const
     const double xd = fx - bin_x;
     const double yd = fy - bin_y;
     const double zd = fz - bin_z;
+    
     #ifndef NDEBUG
     const auto bounds = n_.getBounds();
     assert(bin_x >= 0 && bin_x < std::get<0>(bounds));
     assert(bin_y >= 0 && bin_y < std::get<1>(bounds));
     assert(bin_z >= 0 && bin_z < std::get<2>(bounds));
     #endif
+    
     const double c000 = data_[n_(bin_x,bin_y,bin_z)];
     const double c001 = data_[n_(bin_x,bin_y,bin_z+1)];
     const double c010 = data_[n_(bin_x,bin_y+1,bin_z)];

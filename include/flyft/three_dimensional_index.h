@@ -1,7 +1,6 @@
 #ifndef FLYFT_THREE_DIMENSIONAL_INDEX_H_
 #define FLYFT_THREE_DIMENSIONAL_INDEX_H_
 
-#include <cmath>
 #include <tuple>
 
 namespace flyft
