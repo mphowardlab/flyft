@@ -3,6 +3,7 @@
 
 #include "flyft/flux.h"
 #include "flyft/grand_potential.h"
+#include "flyft/grid_interpolator.h"
 #include "flyft/state.h"
 #include "flyft/type_map.h"
 

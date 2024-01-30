@@ -33,7 +33,9 @@ void RPYDiffusiveFlux::compute(std::shared_ptr<GrandPotential> grand, std::share
         {
         throw std::invalid_argument("Spherical geometry required");
         }
-
+        
+    GridInterpolator g("/scratch2/mzk0148/projects/ddft_droplet/data/rdf_surrogate/m.dat");
+    
     for (const auto &i : state->getTypes())
         {
         const double a_i = 0.5 * diameters_(i);
@@ -103,7 +105,10 @@ void RPYDiffusiveFlux::compute(std::shared_ptr<GrandPotential> grand, std::share
                     
                     const double M =  prefactor * (d_ij - x - y) * (d_ij + x - y) * (d_ij - x + y) 
                                         * (d_ij + x + y);
-                    ig += M * rho_dmu;
+                    const double dx = y-x;
+                    const double phi = (M_PI/6)*rho_y;                
+                    const auto M_ex = g(x,dx,phi);
+                    ig += (M + M_ex) * rho_dmu;
                     }
                 flux_i(idx) += -rho_x * ig * mesh->step();
                 }
