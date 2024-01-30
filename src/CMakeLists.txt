@@ -15,6 +15,7 @@ add_library(flyft SHARED
     fourier_transform.cc
     functional.cc
     grand_potential.cc
+    grid_interpolator.cc
     hard_wall_potential.cc
     harmonic_wall_potential.cc
     ideal_gas_functional.cc
@@ -30,6 +31,7 @@ add_library(flyft SHARED
     solver.cc
     spherical_mesh.cc
     state.cc
+    three_dimensional_index.cc
     tracked_object.cc
     virial_expansion.cc
     white_bear.cc
