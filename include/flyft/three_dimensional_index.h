@@ -1,8 +1,8 @@
-#ifndef FLYFT_THREE_DIMENSION_INDEX_H_
-#define FLYFT_THREE_DIMENSION_INDEX_H_
+#ifndef FLYFT_THREE_DIMENSIONAL_INDEX_H_
+#define FLYFT_THREE_DIMENSIONAL_INDEX_H_
 
-#include<cmath>
-#include<tuple>
+#include <cmath>
+#include <tuple>
 
 namespace flyft
 {
@@ -28,4 +28,4 @@ class ThreeDimensionalIndex
     
 }
 
-#endif // FLYFT_THREE_DIMENSION_INDEX_H_
+#endif // FLYFT_THREE_DIMENSIONAL_INDEX_H_

@@ -16,7 +16,7 @@ class GridInterpolator
         
         double operator()(double x, double y, double z) const;   
         
-    protected:
+    private:
         ThreeDimensionalIndex n_;
         double* data_;
         double dx_;
