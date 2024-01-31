@@ -34,7 +34,16 @@ void RPYDiffusiveFlux::compute(std::shared_ptr<GrandPotential> grand, std::share
         throw std::invalid_argument("Spherical geometry required");
         }
         
-    GridInterpolator g("/scratch2/mzk0148/projects/ddft_droplet/data/rdf_surrogate/m.dat");
+    std::shared_ptr<GridInterpolator> m_mobility;
+    m_mobility = std::make_shared<GridInterpolator>("/scratch2/mzk0148/projects/ddft_droplet/data/rdf_surrogate/m.dat"); 
+    const double max_density = (3.6/M_PI*0.6);
+    const int max_x = 5;
+    const int max_d_ij = 3; 
+    
+    if(state->getNumFields() > 1)
+        {
+        throw std::invalid_argument("Only one type of particle is supported");
+        }
     
     for (const auto &i : state->getTypes())
         {
@@ -49,11 +58,11 @@ void RPYDiffusiveFlux::compute(std::shared_ptr<GrandPotential> grand, std::share
         // RPY flux from all species
         for (const auto &j : state->getTypes())
             {
-            const double a_j = 0.5 * diameters_(j);
+            // const double a_j = 0.5 * diameters_(j);
             auto rho_j = state->getField(j)->const_view();
             auto mu_ex_j = (excess) ? excess->getDerivative(j)->const_view() : Field::ConstantView();
             auto V_j = (external) ? external->getDerivative(j)->const_view() : Field::ConstantView();
-            for (int idx = 0; idx < mesh->shape(); ++idx)
+            for (int idx = 0; idx <= max_x; ++idx)
                 {
                 const auto x = mesh->lower_bound(idx);
                 
@@ -84,14 +93,15 @@ void RPYDiffusiveFlux::compute(std::shared_ptr<GrandPotential> grand, std::share
                     }
  
                 //RPY flux calculation   
-                const double d_ij = a_i + a_j;
+                // const double d_ij = a_i + a_j;
+                const double d_ij = max_d_ij;
                 
                 //To remove the concern about the lower bound value spill over the buffer sites
                 const int ig_low = std::ceil((std::abs(x-d_ij)-mesh->lower_bound())/mesh->step());
                 const int ig_high = mesh->bin(x+d_ij);
                 double ig = 0.;
-                const double prefactor = (a_i * a_i + 3 * a_i * a_j + a_j * a_j)
-                                            /(24 * x * x * viscosity_ * d_ij * d_ij * d_ij);
+                // const double prefactor = (a_i * a_i + 3 * a_i * a_j + a_j * a_j)
+                                        //    /(24 * x * x * viscosity_ * d_ij * d_ij * d_ij);
                 for (int ig_idx = ig_low; ig_idx < ig_high; ++ig_idx)
                     {
                     const auto y = mesh->lower_bound(ig_idx);
@@ -103,12 +113,21 @@ void RPYDiffusiveFlux::compute(std::shared_ptr<GrandPotential> grand, std::share
                     if (V_j)
                         rho_dmu += rho_y * mesh->gradient(ig_idx, V_j);
                     
-                    const double M =  prefactor * (d_ij - x - y) * (d_ij + x - y) * (d_ij - x + y) 
-                                        * (d_ij + x + y);
-                    const double dx = y-x;
-                    const double phi = (M_PI/6)*rho_y;                
-                    const auto M_ex = g(x,dx,phi);
-                    ig += (M + M_ex) * rho_dmu;
+                    // const double M = prefactor * (d_ij - x - y) * (d_ij + x - y) * (d_ij - x + y) 
+                    //                     * (d_ij + x + y);
+                    double M; 
+                    if (rho_y <= max_density)
+                        {
+                        const double dx = y-x;
+                        const double phi = (M_PI/6)*rho_y;                        
+                        M = m_mobility->operator()(x,dx,phi);
+                        }
+                    else 
+                        {
+                        throw std::invalid_argument("Volume fraction value beyond interpolation domain");
+                        }
+                    
+                    ig += M * rho_dmu;
                     }
                 flux_i(idx) += -rho_x * ig * mesh->step();
                 }
