@@ -62,7 +62,7 @@ void RPYDiffusiveFlux::compute(std::shared_ptr<GrandPotential> grand, std::share
             auto rho_j = state->getField(j)->const_view();
             auto mu_ex_j = (excess) ? excess->getDerivative(j)->const_view() : Field::ConstantView();
             auto V_j = (external) ? external->getDerivative(j)->const_view() : Field::ConstantView();
-            for (int idx = 0; idx <= max_x; ++idx)
+            for (int idx = 0; idx < mesh->shape(); ++idx)
                 {
                 const auto x = mesh->lower_bound(idx);
                 
@@ -94,42 +94,45 @@ void RPYDiffusiveFlux::compute(std::shared_ptr<GrandPotential> grand, std::share
  
                 //RPY flux calculation   
                 // const double d_ij = a_i + a_j;
-                const double d_ij = max_d_ij;
-                
-                //To remove the concern about the lower bound value spill over the buffer sites
-                const int ig_low = std::ceil((std::abs(x-d_ij)-mesh->lower_bound())/mesh->step());
-                const int ig_high = mesh->bin(x+d_ij);
-                double ig = 0.;
-                // const double prefactor = (a_i * a_i + 3 * a_i * a_j + a_j * a_j)
-                                        //    /(24 * x * x * viscosity_ * d_ij * d_ij * d_ij);
-                for (int ig_idx = ig_low; ig_idx < ig_high; ++ig_idx)
+                if(x <= max_x)
                     {
-                    const auto y = mesh->lower_bound(ig_idx);
-                    // total gradient of chemical potential
-                    double rho_dmu = mesh->gradient(ig_idx, rho_j);
-                    auto rho_y = mesh->interpolate(y, rho_j);
-                    if (mu_ex_j)
-                        rho_dmu += rho_y * mesh->gradient(ig_idx, mu_ex_j);
-                    if (V_j)
-                        rho_dmu += rho_y * mesh->gradient(ig_idx, V_j);
+                    const double d_ij = max_d_ij;
                     
-                    // const double M = prefactor * (d_ij - x - y) * (d_ij + x - y) * (d_ij - x + y) 
-                    //                     * (d_ij + x + y);
-                    double M; 
-                    if (rho_y <= max_density)
+                    //To remove the concern about the lower bound value spill over the buffer sites
+                    const int ig_low = std::ceil((std::abs(x-d_ij)-mesh->lower_bound())/mesh->step());
+                    const int ig_high = mesh->bin(x+d_ij);
+                    double ig = 0.;
+                    // const double prefactor = (a_i * a_i + 3 * a_i * a_j + a_j * a_j)
+                                            //    /(24 * x * x * viscosity_ * d_ij * d_ij * d_ij);
+                    for (int ig_idx = ig_low; ig_idx < ig_high; ++ig_idx)
                         {
-                        const double dx = y-x;
-                        const double phi = (M_PI/6)*rho_y;                        
-                        M = m_mobility->operator()(x,dx,phi);
+                        const auto y = mesh->lower_bound(ig_idx);
+                        // total gradient of chemical potential
+                        double rho_dmu = mesh->gradient(ig_idx, rho_j);
+                        auto rho_y = mesh->interpolate(y, rho_j);
+                        if (mu_ex_j)
+                            rho_dmu += rho_y * mesh->gradient(ig_idx, mu_ex_j);
+                        if (V_j)
+                            rho_dmu += rho_y * mesh->gradient(ig_idx, V_j);
+                        
+                        // const double M = prefactor * (d_ij - x - y) * (d_ij + x - y) * (d_ij - x + y) 
+                        //                     * (d_ij + x + y);
+                        double M; 
+                        if (rho_y <= max_density)
+                            {
+                            const double dx = y-x;
+                            const double phi = (M_PI/6)*rho_y;                        
+                            M = m_mobility->operator()(x,dx,phi);
+                            }
+                        else 
+                            {
+                            throw std::invalid_argument("Volume fraction value beyond interpolation domain");
+                            }
+                        
+                        ig += M * rho_dmu;
                         }
-                    else 
-                        {
-                        throw std::invalid_argument("Volume fraction value beyond interpolation domain");
-                        }
-                    
-                    ig += M * rho_dmu;
+                    flux_i(idx) += -rho_x * ig * mesh->step();
                     }
-                flux_i(idx) += -rho_x * ig * mesh->step();
                 }
             }
         state->getMesh()->startSync(fluxes_(i));
