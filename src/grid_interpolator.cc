@@ -3,7 +3,7 @@
 #include <cmath>
 #include <cassert>
 #include <fstream>
-#include <tuple> 
+
 
 namespace flyft
 {
@@ -16,7 +16,7 @@ GridInterpolator::GridInterpolator(const std::string& s)
         }
         
     int nx, ny, nz;   
-    indata >> nx >> ny >> nz >> dx_ >> dy_ >> dz_;
+    indata >> x_ >> cutoff_ >> rho_ >> nx >> ny >> nz >> dx_ >> dy_ >> dz_;
     n_ = ThreeDimensionalIndex(nx, ny, nz);
     if (n_.size() == 0)
         {
@@ -82,5 +82,10 @@ double GridInterpolator::operator()(double x, double y, double z) const
     const double c1 = c01*(1-yd)+c11*yd;
     
     return c0*(1-zd)+c1*zd;
+    }
+
+std::tuple<double, double, double> GridInterpolator::getBounds() const
+    {
+    return std::make_tuple(x_, dx_, rho_);
     }
 }
