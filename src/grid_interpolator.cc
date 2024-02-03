@@ -3,7 +3,7 @@
 #include <cmath>
 #include <cassert>
 #include <fstream>
-
+#include <iostream>
 
 namespace flyft
 {
@@ -14,9 +14,17 @@ GridInterpolator::GridInterpolator(const std::string& s)
         {
         throw std::runtime_error("File failed to open");
         }
-        
-    int nx, ny, nz;   
-    indata >> x_ >> cutoff_ >> rho_ >> nx >> ny >> nz >> dx_ >> dy_ >> dz_;
+    
+    double x_low, x_high, dx_low, dx_high, phi_low, phi_high;
+    int nx, ny, nz;
+    
+    indata >> x_low >> x_high >> dx_low >> dx_high >> phi_low >> phi_high >>nx >> ny >> nz;
+    bounds_ = std::make_tuple(x_low, x_high, dx_low, dx_high, phi_low, phi_high);
+   
+    dx_ = (x_high - x_low)/(nx - 1);
+    dy_ = (dx_high - dx_low)/(ny - 1);
+    dz_ = (phi_high - phi_low)/(nz - 1);
+    
     n_ = ThreeDimensionalIndex(nx, ny, nz);
     if (n_.size() == 0)
         {
@@ -34,6 +42,8 @@ GridInterpolator::GridInterpolator(const std::string& s)
         
     if (idx != n_.size() || !indata.eof())
         {
+        std::cout << "idx " << idx << std::endl;
+        std::cout << "End of line index " << n_.size() << std::endl;
         throw std::runtime_error("File did not right number of elements");
         }
         
@@ -84,8 +94,8 @@ double GridInterpolator::operator()(double x, double y, double z) const
     return c0*(1-zd)+c1*zd;
     }
 
-std::tuple<double, double, double> GridInterpolator::getBounds() const
+std::tuple<double, double, double, double, double, double> GridInterpolator::getBounds() const
     {
-    return std::make_tuple(x_, dx_, rho_);
+    return bounds_;
     }
 }

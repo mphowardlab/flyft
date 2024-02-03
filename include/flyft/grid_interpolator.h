@@ -16,7 +16,7 @@ class GridInterpolator
         ~GridInterpolator();
         
         double operator()(double x, double y, double z) const;   
-        std::tuple<double, double , double> getBounds() const;
+        std::tuple<double, double, double, double, double, double> getBounds() const;
         
     private:
         ThreeDimensionalIndex n_;
@@ -24,9 +24,7 @@ class GridInterpolator
         double dx_;
         double dy_;
         double dz_;
-        double x_;
-        double cutoff_;
-        double rho_;
+        std::tuple<double, double, double, double, double, double> bounds_ ;
     };
 }
 
