@@ -42,8 +42,6 @@ GridInterpolator::GridInterpolator(const std::string& s)
         
     if (idx != n_.size() || !indata.eof())
         {
-        std::cout << "idx " << idx << std::endl;
-        std::cout << "End of line index " << n_.size() << std::endl;
         throw std::runtime_error("File did not right number of elements");
         }
         

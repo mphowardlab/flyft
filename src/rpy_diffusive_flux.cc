@@ -11,10 +11,7 @@ namespace flyft
 RPYDiffusiveFlux::RPYDiffusiveFlux()
     : viscosity_(1.0)
     {
-    if(!mobility_)
-        {
-        mobility_ = std::make_shared<GridInterpolator>("/scratch2/mzk0148/projects/ddft_droplet/data/rdf_surrogate/m.dat"); 
-        }
+    mobility_ = std::make_shared<GridInterpolator>("/scratch2/mzk0148/projects/ddft_droplet/data/rdf_surrogate/m.dat"); 
     }
    
 void RPYDiffusiveFlux::compute(std::shared_ptr<GrandPotential> grand, std::shared_ptr<State> state)
@@ -47,12 +44,13 @@ void RPYDiffusiveFlux::compute(std::shared_ptr<GrandPotential> grand, std::share
         
     const GridInterpolator& g = *mobility_;
     
-    double max_x = std::get<0>(g.getBounds());
-    double max_density = std::get<2>(g.getBounds());
-    
+    const double max_x = std::get<1>(g.getBounds());
+    const double cutoff = std::get<3>(g.getBounds());
+    const double max_density = (6/M_PI)*std::get<5>(g.getBounds());
+   
     for (const auto &i : state->getTypes())
         {
-        if(diameters_(i) > 1)
+        if(diameters_(i) != 1)
             {
             throw std::invalid_argument("Diameter greater than 1 not supported");
             }
@@ -104,13 +102,13 @@ void RPYDiffusiveFlux::compute(std::shared_ptr<GrandPotential> grand, std::share
                 //RPY flux calculation   
                 const double d_ij = a_i + a_j;
                 const double x_int = std::min<double>(x, max_x);
-            
+ 
                 //To remove the concern about the lower bound value spill over the buffer sites
-                const double cutoff = std::get<1>(g.getBounds())*d_ij;
-                const int ig_low = (x_int >= 1)?(0):std::ceil(((d_ij-x_int)-mesh->lower_bound())/mesh->step());
-                const int ig_high = mesh->bin(x_int+cutoff);
+                const int ig_low_near_center = std::ceil(((d_ij-x)-mesh->lower_bound())/mesh->step());
+                const int ig_low = (x >= 1) ? (0): ig_low_near_center;
+                const int ig_high = mesh->bin(x + cutoff);
+                
                 double ig = 0.;
-
                 for (int ig_idx = ig_low; ig_idx < ig_high; ++ig_idx)
                     {
                     const auto y = mesh->lower_bound(ig_idx);
@@ -121,12 +119,12 @@ void RPYDiffusiveFlux::compute(std::shared_ptr<GrandPotential> grand, std::share
                         rho_dmu += rho_y * mesh->gradient(ig_idx, mu_ex_j);
                     if (V_j)
                         rho_dmu += rho_y * mesh->gradient(ig_idx, V_j);
-                
-                    const double rho_y_int = std::min(rho_y, max_density);
-                    const double rho_x_int = std::min(rho_x, max_density);
+
                     const double dx = y-x;
-                    const double phi = (M_PI/6)*(rho_y_int+rho_x_int)/2;                        
-                    const double M = g(x_int, dx, phi);
+                    const double mean_rho = (rho_y+rho_x)/2;
+                    const double mean_rho_int = std::min(mean_rho, max_density);
+                    const double mean_phi = mean_rho_int * (M_PI/6);
+                    const double M = g(x_int, dx, mean_phi);
                     
                     ig += M * rho_dmu;
                     }
@@ -173,7 +171,7 @@ int RPYDiffusiveFlux::determineBufferShape(std::shared_ptr<State> state, const s
     auto mesh = state->getMesh()->full().get();
     
     const GridInterpolator& g = *mobility_;
-    const double del = std::get<1>(g.getBounds());
+    const double cutoff = std::get<1>(g.getBounds());
     
     for(const auto &i : state->getTypes()) 
         {
@@ -183,6 +181,6 @@ int RPYDiffusiveFlux::determineBufferShape(std::shared_ptr<State> state, const s
             max_diameter = d_i;
             }
         }
-    return mesh->asShape(del*0.5*(diameters_(type)+max_diameter));
+    return mesh->asShape(cutoff*0.5*(diameters_(type)+max_diameter));
     }
 }
