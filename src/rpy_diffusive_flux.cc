@@ -52,7 +52,7 @@ void RPYDiffusiveFlux::compute(std::shared_ptr<GrandPotential> grand, std::share
         {
         if(diameters_(i) != 1)
             {
-            throw std::invalid_argument("Diameter greater than 1 not supported");
+            throw std::invalid_argument("Diameters should be 1 for all types");
             }
         const double a_i = 0.5 * diameters_(i);
         auto rho_i = state->getField(i)->const_view();
