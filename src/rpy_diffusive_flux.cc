@@ -44,9 +44,9 @@ void RPYDiffusiveFlux::compute(std::shared_ptr<GrandPotential> grand, std::share
         
     const GridInterpolator& g = *mobility_;
     
-    const double max_x = std::get<1>(g.getBounds());
-    const double cutoff = std::get<3>(g.getBounds());
-    const double max_density = (6/M_PI)*std::get<5>(g.getBounds());
+    const double max_x = std::get<0>(g.getUpperBounds());
+    const double cutoff = std::get<1>(g.getUpperBounds());
+    const double max_density = (6/M_PI)*std::get<2>(g.getUpperBounds());
    
     for (const auto &i : state->getTypes())
         {
@@ -121,8 +121,7 @@ void RPYDiffusiveFlux::compute(std::shared_ptr<GrandPotential> grand, std::share
                         rho_dmu += rho_y * mesh->gradient(ig_idx, V_j);
 
                     const double dx = y-x;
-                    const double mean_rho = (rho_y+rho_x)/2;
-                    const double mean_rho_int = std::min(mean_rho, max_density);
+                    const double mean_rho_int = std::min((rho_y+rho_x)/2, max_density);
                     const double mean_phi = mean_rho_int * (M_PI/6);
                     const double M = g(x_int, dx, mean_phi);
                     
@@ -165,22 +164,11 @@ void RPYDiffusiveFlux::setViscosity(double viscosity)
     viscosity_ = viscosity;
     }
     
-int RPYDiffusiveFlux::determineBufferShape(std::shared_ptr<State> state, const std::string& type)
+int RPYDiffusiveFlux::determineBufferShape(std::shared_ptr<State> state, const std::string&)
     {
-    double max_diameter = 0;
     auto mesh = state->getMesh()->full().get();
-    
     const GridInterpolator& g = *mobility_;
-    const double cutoff = std::get<1>(g.getBounds());
-    
-    for(const auto &i : state->getTypes()) 
-        {
-        const auto d_i = diameters_(i);
-        if(d_i > max_diameter)
-            {
-            max_diameter = d_i;
-            }
-        }
-    return mesh->asShape(cutoff*0.5*(diameters_(type)+max_diameter));
+    const double cutoff = std::get<1>(g.getUpperBounds()); 
+    return mesh->asShape(cutoff);
     }
 }
