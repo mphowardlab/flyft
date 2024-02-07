@@ -1,7 +1,6 @@
 #include "flyft/rpy_diffusive_flux.h"
 #include "flyft/spherical_mesh.h"
 
-#include <algorithm>
 #include <exception>
 #include <tuple>
 
@@ -46,6 +45,12 @@ void RPYDiffusiveFlux::compute(std::shared_ptr<GrandPotential> grand, std::share
     
     const double max_x = std::get<0>(g.getUpperBounds());
     const double cutoff = std::get<1>(g.getUpperBounds());
+    
+    if(std::get<1>(g.getLowerBounds()) != -cutoff)
+        {
+        throw std::invalid_argument("Cutoff bounds for integration are not valid");
+        }
+    
     const double max_density = (6/M_PI)*std::get<2>(g.getUpperBounds());
    
     for (const auto &i : state->getTypes())
@@ -104,8 +109,8 @@ void RPYDiffusiveFlux::compute(std::shared_ptr<GrandPotential> grand, std::share
                 const double x_int = std::min<double>(x, max_x);
  
                 //To remove the concern about the lower bound value spill over the buffer sites
-                const double x_low = std::max(x - cutoff, (x >= 1) ? 0 : d_ij-x); 
-                const int ig_low = std::ceil((x_low-mesh->lower_bound())/mesh->step());
+                const double y_low = std::max(x - cutoff, (x >= 1) ? 0 : d_ij-x); 
+                const int ig_low = std::ceil((y_low-mesh->lower_bound())/mesh->step());
                 const int ig_high = mesh->bin(x + cutoff);
                 
                 double ig = 0.;
@@ -122,8 +127,7 @@ void RPYDiffusiveFlux::compute(std::shared_ptr<GrandPotential> grand, std::share
 
                     const double dx = y-x;
                     const double mean_rho_int = std::min((rho_y+rho_x)/2, max_density);
-                    const double mean_phi = mean_rho_int * (M_PI/6);
-                    const double M = g(x_int, dx, mean_phi);
+                    const double M = g(x_int, dx, mean_rho_int);
                     
                     ig += M * rho_dmu;
                     }
@@ -164,7 +168,7 @@ void RPYDiffusiveFlux::setViscosity(double viscosity)
     viscosity_ = viscosity;
     }
     
-int RPYDiffusiveFlux::determineBufferShape(std::shared_ptr<State> state, const std::string&)
+int RPYDiffusiveFlux::determineBufferShape(std::shared_ptr<State> state, const std::string& /* type */)
     {
     auto mesh = state->getMesh()->full().get();
     const GridInterpolator& g = *mobility_;

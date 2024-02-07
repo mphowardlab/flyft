@@ -16,7 +16,7 @@ class GridInterpolator
         ~GridInterpolator();
         
         double operator()(double x, double y, double z) const;   
-        std::tuple<double, double, double> getLowerBounds() const ;
+        std::tuple<double, double, double> getLowerBounds() const;
         std::tuple<double, double, double> getUpperBounds() const;
         
     private:

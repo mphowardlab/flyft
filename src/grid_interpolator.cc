@@ -17,7 +17,7 @@ GridInterpolator::GridInterpolator(const std::string& s)
     double x_low, x_high, y_low, y_high, z_low, z_high;
     int nx, ny, nz;
     
-    indata >> x_low >> x_high >> y_low >> y_high >> z_low >> z_high >>nx >> ny >> nz;
+    indata >> x_low >> x_high >> y_low >> y_high >> z_low >> z_high >> nx >> ny >> nz;
     lower_bounds_ = std::make_tuple(x_low, y_low, z_low);
     upper_bounds_ = std::make_tuple(x_high, y_high, z_high);
     if(nx < 2 || ny < 2 || nz < 2)
