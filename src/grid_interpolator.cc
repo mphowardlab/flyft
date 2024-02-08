@@ -59,21 +59,23 @@ GridInterpolator::~GridInterpolator()
 
 double GridInterpolator::operator()(double x, double y, double z) const
     {
-    const double fx = x/dx_;
-    const double fy = y/dy_;
-    const double fz = z/dz_;
-    const int bin_x = std::floor(fx); 
-    const int bin_y = std::floor(fy); 
-    const int bin_z = std::floor(fz); 
+    const double fx = (x - std::get<0>(lower_bounds_))/dx_;
+    const double fy = (y - std::get<1>(lower_bounds_))/dy_;
+    const double fz = (z - std::get<2>(lower_bounds_))/dz_;
+    
+    const auto bounds = n_.getBounds();
+    const int bin_x = (std::abs(std::floor(fx) - (std::get<0>(bounds) - 1)) == 0) ? std::floor(fx) - 1 : std::floor(fx); 
+    const int bin_y = (std::abs(std::floor(fy) - (std::get<1>(bounds) - 1)) == 0) ? std::floor(fy) - 1 : std::floor(fy); 
+    const int bin_z = (std::abs(std::floor(fz) - (std::get<2>(bounds) - 1)) == 0) ? std::floor(fz) - 1 : std::floor(fz); 
+    
     const double xd = fx - bin_x;
     const double yd = fy - bin_y;
     const double zd = fz - bin_z;
     
     #ifndef NDEBUG
-    const auto bounds = n_.getBounds();
-    assert(bin_x >= 0 && bin_x < std::get<0>(bounds));
-    assert(bin_y >= 0 && bin_y < std::get<1>(bounds));
-    assert(bin_z >= 0 && bin_z < std::get<2>(bounds));
+    assert(bin_x >= 0 && bin_x < std::get<0>(bounds) - 1);
+    assert(bin_y >= 0 && bin_y < std::get<1>(bounds) - 1);
+    assert(bin_z >= 0 && bin_z < std::get<2>(bounds) - 1);
     #endif
     
     const double c000 = data_[n_(bin_x,bin_y,bin_z)];
