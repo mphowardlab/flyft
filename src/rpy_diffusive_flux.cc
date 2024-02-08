@@ -51,7 +51,7 @@ void RPYDiffusiveFlux::compute(std::shared_ptr<GrandPotential> grand, std::share
         throw std::invalid_argument("Cutoff bounds for integration are not valid");
         }
     
-    const double max_density = (6/M_PI)*std::get<2>(g.getUpperBounds());
+    const double max_density = std::get<2>(g.getUpperBounds());
    
     for (const auto &i : state->getTypes())
         {
@@ -125,7 +125,7 @@ void RPYDiffusiveFlux::compute(std::shared_ptr<GrandPotential> grand, std::share
                     if (V_j)
                         rho_dmu += rho_y * mesh->gradient(ig_idx, V_j);
 
-                    const double dx = y-x;
+                    const double dx = y - x;
                     const double mean_rho_int = std::min((rho_y+rho_x)/2, max_density);
                     const double M = g(x_int, dx, mean_rho_int);
                     
