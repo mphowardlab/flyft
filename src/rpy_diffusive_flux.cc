@@ -108,7 +108,7 @@ void RPYDiffusiveFlux::compute(std::shared_ptr<GrandPotential> grand, std::share
                 const double x_int = std::min<double>(x, max_x);
  
                 //To remove the concern about the lower bound value spill over the buffer sites
-                const double y_low = std::max(x - cutoff, (x >= 1) ? 0 : d_ij-x); 
+                const double y_low = std::max(x - cutoff, (x >= d_ij) ? 0 : d_ij-x); 
                 const int ig_low = std::ceil((y_low-mesh->lower_bound())/mesh->step());
                 const int ig_high = mesh->bin(x + cutoff);
                 
