@@ -63,24 +63,30 @@ double GridInterpolator::operator()(double x, double y, double z) const
     const double fy = (y - std::get<1>(lower_bounds_))/dy_;
     const double fz = (z - std::get<2>(lower_bounds_))/dz_;
     
-    int bin_x = std::floor(fx);
-    int bin_y = std::floor(fy);
-    int bin_z = std::floor(fz);
-    
     const auto bounds = n_.getBounds();
+    // x
+    int bin_x = std::floor(fx);
     if(fx == std::get<0>(bounds) - 1 && x == std::get<0>(upper_bounds_))
        {
+       /* for points exactly on the upper boundary, decrease by 1 to put it in
+          bin below. this makes sure we only access bins within the bounds
+          during interpolation
+       */
        --bin_x;
        }
+    // y
+    int bin_y = std::floor(fy);
     if(fy == std::get<1>(bounds) - 1 && x == std::get<1>(upper_bounds_))
        {
        --bin_y;
        }
+    // z
+    int bin_z = std::floor(fz);
     if(fz == std::get<2>(bounds) - 1 && x == std::get<2>(upper_bounds_))
        {
        --bin_z;
        }
-    
+
     const double xd = fx - bin_x;
     const double yd = fy - bin_y;
     const double zd = fz - bin_z;

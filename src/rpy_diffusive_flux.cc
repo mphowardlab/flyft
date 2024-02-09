@@ -45,14 +45,13 @@ void RPYDiffusiveFlux::compute(std::shared_ptr<GrandPotential> grand, std::share
     
     const double max_x = std::get<0>(g.getUpperBounds());
     const double cutoff = std::get<1>(g.getUpperBounds());
+    const double max_density = std::get<2>(g.getUpperBounds());
     
     if(std::get<1>(g.getLowerBounds()) != -cutoff)
         {
         throw std::invalid_argument("Cutoff bounds for integration are not valid");
         }
-    
-    const double max_density = std::get<2>(g.getUpperBounds());
-   
+
     for (const auto &i : state->getTypes())
         {
         if(diameters_(i) != 1)
