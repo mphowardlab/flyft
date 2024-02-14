@@ -76,13 +76,13 @@ double GridInterpolator::operator()(double x, double y, double z) const
        }
     // y
     int bin_y = std::floor(fy);
-    if(fy == std::get<1>(bounds) - 1 && x == std::get<1>(upper_bounds_))
+    if(fy == std::get<1>(bounds) - 1 && y == std::get<1>(upper_bounds_))
        {
        --bin_y;
        }
     // z
     int bin_z = std::floor(fz);
-    if(fz == std::get<2>(bounds) - 1 && x == std::get<2>(upper_bounds_))
+    if(fz == std::get<2>(bounds) - 1 && z == std::get<2>(upper_bounds_))
        {
        --bin_z;
        }

@@ -3,6 +3,7 @@
 
 #include <exception>
 #include <tuple>
+#include <fstream>
 
 namespace flyft
 {
@@ -51,7 +52,10 @@ void RPYDiffusiveFlux::compute(std::shared_ptr<GrandPotential> grand, std::share
         {
         throw std::invalid_argument("Cutoff bounds for integration are not valid");
         }
-
+    //To store the coordinates in a file
+    std::ofstream outfile;
+    outfile.open ("output.txt");
+    
     for (const auto &i : state->getTypes())
         {
         if(diameters_(i) != 1)
@@ -126,16 +130,18 @@ void RPYDiffusiveFlux::compute(std::shared_ptr<GrandPotential> grand, std::share
 
                     const double dx = y - x;
                     const double mean_rho_int = std::min((rho_y+rho_x)/2, max_density);
-                    const double M = g(x_int, dx, mean_rho_int);
                     
+                    outfile << x_int <<" "<< dx << " "<< mean_rho_int<< "\n";
+                    const double M = g(x_int, dx, mean_rho_int);
+        
                     ig += M * rho_dmu;
                     }
                 flux_i(idx) += -rho_x * ig * mesh->step();
                 }
             }
         state->getMesh()->startSync(fluxes_(i));
-        }
-    
+        }    
+        outfile.close();
     // finalize all flux communication
     for (const auto& i : state->getTypes())
         {
