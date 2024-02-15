@@ -52,10 +52,7 @@ void RPYDiffusiveFlux::compute(std::shared_ptr<GrandPotential> grand, std::share
         {
         throw std::invalid_argument("Cutoff bounds for integration are not valid");
         }
-    //To store the coordinates in a file
-    std::ofstream outfile;
-    outfile.open ("output.txt");
-    
+        
     for (const auto &i : state->getTypes())
         {
         if(diameters_(i) != 1)
@@ -111,15 +108,22 @@ void RPYDiffusiveFlux::compute(std::shared_ptr<GrandPotential> grand, std::share
                 const double d_ij = a_i + a_j;
                 const double x_int = std::min<double>(x, max_x);
  
-                //To remove the concern about the lower bound value spill over the buffer sites
-                const double y_low = std::max(x - cutoff, (x >= d_ij) ? 0 : d_ij-x); 
-                const int ig_low = std::ceil((y_low-mesh->lower_bound())/mesh->step());
-                const int ig_high = mesh->bin(x + cutoff);
-                
                 double ig = 0.;
-                for (int ig_idx = ig_low; ig_idx < ig_high; ++ig_idx)
+                double y = 0;
+                int ig_idx = 0;
+                for (double dx = -cutoff; dx < cutoff; dx += mesh->step())
                     {
-                    const auto y = mesh->lower_bound(ig_idx);
+                    if (dx == -cutoff)
+                        {
+                        const double y_low = std::max(x + dx, (x >= d_ij) ? 0 : d_ij-x); 
+                        //To remove the concern about the lower bound value spill over the buffer sites
+                        ig_idx = std::ceil((y_low-mesh->lower_bound())/mesh->step());
+                        }
+                    else
+                        {
+                        y = x + dx;
+                        ig_idx = mesh->bin(y);
+                        }
                     // total gradient of chemical potential
                     double rho_dmu = mesh->gradient(ig_idx, rho_j);
                     auto rho_y = mesh->interpolate(y, rho_j);
@@ -128,12 +132,8 @@ void RPYDiffusiveFlux::compute(std::shared_ptr<GrandPotential> grand, std::share
                     if (V_j)
                         rho_dmu += rho_y * mesh->gradient(ig_idx, V_j);
 
-                    const double dx = y - x;
                     const double mean_rho_int = std::min((rho_y+rho_x)/2, max_density);
-                    
-                    outfile << x_int <<" "<< dx << " "<< mean_rho_int<< "\n";
                     const double M = g(x_int, dx, mean_rho_int);
-        
                     ig += M * rho_dmu;
                     }
                 flux_i(idx) += -rho_x * ig * mesh->step();
@@ -141,7 +141,7 @@ void RPYDiffusiveFlux::compute(std::shared_ptr<GrandPotential> grand, std::share
             }
         state->getMesh()->startSync(fluxes_(i));
         }    
-        outfile.close();
+
     // finalize all flux communication
     for (const auto& i : state->getTypes())
         {
