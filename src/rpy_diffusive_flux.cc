@@ -109,20 +109,13 @@ void RPYDiffusiveFlux::compute(std::shared_ptr<GrandPotential> grand, std::share
                 const double x_int = std::min<double>(x, max_x);
  
                 double ig = 0.;
-                double y = 0;
-                int ig_idx = 0;
-                for (double dx = -cutoff; dx < cutoff; dx += mesh->step())
+                const int cutoff_bins = mesh->asShape(cutoff);
+                for (int ig_idx = idx - cutoff_bins; ig_idx <= idx + cutoff_bins; ++ig_idx)
                     {
-                    if (dx == -cutoff)
+                    double y = mesh->lower_bound(ig_idx);
+                    if (y < ((x >= 1)? 0 : d_ij - x))
                         {
-                        const double y_low = std::max(x + dx, (x >= d_ij) ? 0 : d_ij-x); 
-                        //To remove the concern about the lower bound value spill over the buffer sites
-                        ig_idx = std::ceil((y_low-mesh->lower_bound())/mesh->step());
-                        }
-                    else
-                        {
-                        y = x + dx;
-                        ig_idx = mesh->bin(y);
+                        continue;
                         }
                     // total gradient of chemical potential
                     double rho_dmu = mesh->gradient(ig_idx, rho_j);
@@ -131,8 +124,9 @@ void RPYDiffusiveFlux::compute(std::shared_ptr<GrandPotential> grand, std::share
                         rho_dmu += rho_y * mesh->gradient(ig_idx, mu_ex_j);
                     if (V_j)
                         rho_dmu += rho_y * mesh->gradient(ig_idx, V_j);
-
-                    const double mean_rho_int = std::min((rho_y+rho_x)/2, max_density);
+                        
+                    const double dx = std::max(std::min(y-x, cutoff), -cutoff);
+                    const double mean_rho_int = std::max(std::min((rho_y+rho_x)/2, max_density), 0.);
                     const double M = g(x_int, dx, mean_rho_int);
                     ig += M * rho_dmu;
                     }
@@ -178,6 +172,6 @@ int RPYDiffusiveFlux::determineBufferShape(std::shared_ptr<State> state, const s
     auto mesh = state->getMesh()->full().get();
     const GridInterpolator& g = *mobility_;
     const double cutoff = std::get<1>(g.getUpperBounds()); 
-    return mesh->asShape(cutoff);
+    return mesh->asShape(cutoff) + 1;
     }
 }
