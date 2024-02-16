@@ -172,6 +172,6 @@ int RPYDiffusiveFlux::determineBufferShape(std::shared_ptr<State> state, const s
     auto mesh = state->getMesh()->full().get();
     const GridInterpolator& g = *mobility_;
     const double cutoff = std::get<1>(g.getUpperBounds()); 
-    return mesh->asShape(cutoff) + 1;
+    return mesh->asShape(cutoff + 1);
     }
 }
