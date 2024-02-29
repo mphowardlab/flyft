@@ -11,7 +11,7 @@ namespace flyft
 RPYDiffusiveFlux::RPYDiffusiveFlux()
     : viscosity_(1.0)
     {
-    mobility_ = std::make_shared<GridInterpolator>("/home/che_h2/mzk0148/m.dat"); 
+    mobility_ = std::make_shared<GridInterpolator>("/scratch2/mzk0148/projects/ddft_droplet/data/rdf_surrogate/m.dat"); 
     }
    
 void RPYDiffusiveFlux::compute(std::shared_ptr<GrandPotential> grand, std::shared_ptr<State> state)
@@ -128,7 +128,7 @@ void RPYDiffusiveFlux::compute(std::shared_ptr<GrandPotential> grand, std::share
                     const double dx = std::max(std::min(y-x, cutoff), -cutoff);
                     const double mean_rho_int = std::max(std::min((rho_y+rho_x)/2, max_density), 0.);
                     const double M = g(x_int, dx, mean_rho_int);
-                    ig += M * rho_dmu;
+                    ig += (M / viscosity_) * rho_dmu;
                     }
                 flux_i(idx) += -rho_x * ig * mesh->step();
                 }
