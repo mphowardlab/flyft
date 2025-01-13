@@ -59,7 +59,7 @@ def test_ideal(grand,ig,rpy,state_grand):
     
     \rho(x) = 3/10*x
     
-    Using this the above mentioned procedure, calculation can be done analytically 
+    Using the above mentioned procedure, calculation can be done analytically 
     for a given density field. The calculation of the integration of the mobility 
     was done in Mathematica and the equations for the two different limits of integration 
     calculation are implemented below."""
