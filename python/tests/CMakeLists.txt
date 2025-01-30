@@ -10,6 +10,7 @@ set(FLYFT_PYTEST_SOURCES
     test_crank_nicolson_integrator.py
     test_explicit_euler_integrator.py
     test_exponential_wall_potential.py
+    test_external_field.py
     test_field.py
     test_grand_potential.py
     test_hard_wall_potential.py
