@@ -4,14 +4,15 @@
 #include <cmath>
 
 namespace flyft
-{
+    {
 
 State::State(std::shared_ptr<ParallelMesh> mesh, const std::string& type)
     : State(mesh, std::vector<std::string>({type}))
-    {}
+    {
+    }
 
 State::State(std::shared_ptr<ParallelMesh> mesh, const std::vector<std::string>& types)
-    : mesh_(mesh),types_(types),time_(0)
+    : mesh_(mesh), types_(types), time_(0)
     {
     for (const auto& t : types_)
         {
@@ -21,26 +22,22 @@ State::State(std::shared_ptr<ParallelMesh> mesh, const std::vector<std::string>&
     }
 
 State::State(const State& other)
-    : TrackedObject(other),
-      mesh_(other.mesh_),
-      types_(other.types_),
-      time_(other.time_)
+    : TrackedObject(other), mesh_(other.mesh_), types_(other.types_), time_(other.time_)
     {
     for (const auto& t : types_)
         {
         auto other_field = other.fields_(t);
-        fields_[t] = std::make_shared<Field>(other_field->shape(),other_field->buffer_shape());
-        std::copy(other_field->const_full_view().begin(),other_field->const_full_view().end(),fields_[t]->full_view().begin());
+        fields_[t] = std::make_shared<Field>(other_field->shape(), other_field->buffer_shape());
+        std::copy(other_field->const_full_view().begin(),
+                  other_field->const_full_view().end(),
+                  fields_[t]->full_view().begin());
         depends_.add(fields_[t].get());
         }
     }
 
 State::State(State&& other)
-    : TrackedObject(other),
-      mesh_(std::move(other.mesh_)),
-      types_(std::move(other.types_)),
-      fields_(std::move(other.fields_)),
-      time_(std::move(other.time_))
+    : TrackedObject(other), mesh_(std::move(other.mesh_)), types_(std::move(other.types_)),
+      fields_(std::move(other.fields_)), time_(std::move(other.time_))
     {
     }
 
@@ -59,14 +56,16 @@ State& State::operator=(const State& other)
             {
             buffers[t] = other.fields_(t)->buffer_shape();
             }
-        other.matchFields(fields_,buffers);
+        other.matchFields(fields_, buffers);
 
         // copy contents of other fields
         depends_.clear();
         for (const auto& t : types_)
             {
             auto other_field = other.fields_(t);
-            std::copy(other_field->const_full_view().begin(),other_field->const_full_view().end(),fields_[t]->full_view().begin());
+            std::copy(other_field->const_full_view().begin(),
+                      other_field->const_full_view().end(),
+                      fields_[t]->full_view().begin());
             depends_.add(fields_[t].get());
             }
         }
@@ -153,14 +152,14 @@ TypeMap<std::shared_ptr<Field>> State::gatherFields(int rank) const
     TypeMap<std::shared_ptr<Field>> fields;
     for (const auto& t : types_)
         {
-        fields[t] = gatherField(t,rank);
+        fields[t] = gatherField(t, rank);
         }
     return fields;
     }
 
 std::shared_ptr<Field> State::gatherField(const std::string& type, int rank) const
     {
-    return mesh_->gather(fields_(type),rank);
+    return mesh_->gather(fields_(type), rank);
     }
 
 void State::syncFields()
@@ -186,7 +185,7 @@ void State::syncFields(const TypeMap<std::shared_ptr<Field>>& fields) const
 
 void State::startSyncFields(const TypeMap<std::shared_ptr<Field>>& fields) const
     {
-    for (auto it=fields.cbegin(); it != fields.cend(); ++it)
+    for (auto it = fields.cbegin(); it != fields.cend(); ++it)
         {
         if (std::find(types_.begin(), types_.end(), it->first) == types_.end())
             {
@@ -201,7 +200,7 @@ void State::startSyncFields(const TypeMap<std::shared_ptr<Field>>& fields) const
 
 void State::endSyncFields(const TypeMap<std::shared_ptr<Field>>& fields) const
     {
-    for (auto it=fields.cbegin(); it != fields.cend(); ++it)
+    for (auto it = fields.cbegin(); it != fields.cend(); ++it)
         {
         if (std::find(types_.begin(), types_.end(), it->first) == types_.end())
             {
@@ -221,13 +220,14 @@ void State::endSyncAll() const
 
 void State::matchFields(TypeMap<std::shared_ptr<Field>>& fields) const
     {
-    matchFields(fields,TypeMap<int>());
+    matchFields(fields, TypeMap<int>());
     }
 
-void State::matchFields(TypeMap<std::shared_ptr<Field>>& fields, const TypeMap<int>& buffer_requests) const
+void State::matchFields(TypeMap<std::shared_ptr<Field>>& fields,
+                        const TypeMap<int>& buffer_requests) const
     {
     // purge stored types that are not in the state
-    for (auto it=fields.cbegin(); it != fields.cend(); /* no increment here */)
+    for (auto it = fields.cbegin(); it != fields.cend(); /* no increment here */)
         {
         const auto t = it->first;
         if (std::find(types_.begin(), types_.end(), t) == types_.end())
@@ -287,7 +287,7 @@ void State::setTime(double time)
 
 void State::advanceTime(double timestep)
     {
-    setTime(time_+timestep);
+    setTime(time_ + timestep);
     }
 
 State::Token State::token()
@@ -300,4 +300,4 @@ State::Token State::token()
     return token_;
     }
 
-}
+    } // namespace flyft

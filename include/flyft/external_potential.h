@@ -10,23 +10,23 @@
 #include <string>
 
 namespace flyft
-{
+    {
 
 class ExternalPotential : public Functional
     {
     public:
-        ExternalPotential();
+    ExternalPotential();
 
     protected:
-        bool setup(std::shared_ptr<State> state, bool compute_value) override;
-        void _compute(std::shared_ptr<State> state, bool compute_value) override;
-        virtual void computePotentials(std::shared_ptr<State> state) = 0;
+    bool setup(std::shared_ptr<State> state, bool compute_value) override;
+    void _compute(std::shared_ptr<State> state, bool compute_value) override;
+    virtual void computePotentials(std::shared_ptr<State> state) = 0;
 
     private:
-        bool compute_potentials_;
-        std::weak_ptr<const Mesh> compute_potentials_mesh_;
+    bool compute_potentials_;
+    std::weak_ptr<const Mesh> compute_potentials_mesh_;
     };
 
-}
+    } // namespace flyft
 
 #endif // FLYFT_EXTERNAL_POTENTIAL_H_

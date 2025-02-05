@@ -1,5 +1,6 @@
-#include "_flyft.h"
 #include "flyft/pair_map.h"
+
+#include "_flyft.h"
 
 #include <pybind11/stl_bind.h>
 

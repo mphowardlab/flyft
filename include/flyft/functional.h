@@ -10,45 +10,45 @@
 #include <string>
 
 namespace flyft
-{
+    {
 
 class Functional : public TrackedObject
     {
     public:
-        Functional();
-        virtual ~Functional();
+    Functional();
+    virtual ~Functional();
 
-        // noncopyable / nonmovable
-        Functional(const Functional&) = delete;
-        Functional(Functional&&) = delete;
-        Functional& operator=(const Functional&) = delete;
-        Functional& operator=(Functional&&) = delete;
+    // noncopyable / nonmovable
+    Functional(const Functional&) = delete;
+    Functional(Functional&&) = delete;
+    Functional& operator=(const Functional&) = delete;
+    Functional& operator=(Functional&&) = delete;
 
-        virtual Token compute(std::shared_ptr<State> state, bool compute_value);
+    virtual Token compute(std::shared_ptr<State> state, bool compute_value);
 
-        double getValue() const;
+    double getValue() const;
 
-        const TypeMap<std::shared_ptr<Field>>& getDerivatives();
-        std::shared_ptr<Field> getDerivative(const std::string& type);
-        std::shared_ptr<const Field> getDerivative(const std::string& type) const;
-        virtual void requestDerivativeBuffer(const std::string& type, int buffer_request);
+    const TypeMap<std::shared_ptr<Field>>& getDerivatives();
+    std::shared_ptr<Field> getDerivative(const std::string& type);
+    std::shared_ptr<const Field> getDerivative(const std::string& type) const;
+    virtual void requestDerivativeBuffer(const std::string& type, int buffer_request);
 
-        bool needsBuffer(std::shared_ptr<State> state);
-        virtual int determineBufferShape(std::shared_ptr<State> state, const std::string& type);
+    bool needsBuffer(std::shared_ptr<State> state);
+    virtual int determineBufferShape(std::shared_ptr<State> state, const std::string& type);
 
     protected:
-        double value_;
-        TypeMap<std::shared_ptr<Field>> derivatives_;
-        TypeMap<int> buffer_requests_;
-        Dependencies compute_depends_;
-        Token compute_token_;
-        Token compute_state_token_;
+    double value_;
+    TypeMap<std::shared_ptr<Field>> derivatives_;
+    TypeMap<int> buffer_requests_;
+    Dependencies compute_depends_;
+    Token compute_token_;
+    Token compute_state_token_;
 
-        virtual bool setup(std::shared_ptr<State> state, bool compute_value);
-        virtual void _compute(std::shared_ptr<State> state, bool compute_value) = 0;
-        virtual Token finalize(std::shared_ptr<State> state, bool compute_value);
+    virtual bool setup(std::shared_ptr<State> state, bool compute_value);
+    virtual void _compute(std::shared_ptr<State> state, bool compute_value) = 0;
+    virtual Token finalize(std::shared_ptr<State> state, bool compute_value);
     };
 
-}
+    } // namespace flyft
 
 #endif // FLYFT_FUNCTIONAL_H_

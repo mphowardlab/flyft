@@ -3,19 +3,17 @@
 #include <algorithm>
 
 namespace flyft
-{
-
-CompositeExternalPotential::CompositeExternalPotential()
     {
-    }
+
+CompositeExternalPotential::CompositeExternalPotential() {}
 
 bool CompositeExternalPotential::setup(std::shared_ptr<State> state, bool compute_value)
     {
     for (const auto& o : objects_)
         {
-        o->compute(state,compute_value);
+        o->compute(state, compute_value);
         }
-    return ExternalPotential::setup(state,compute_value);
+    return ExternalPotential::setup(state, compute_value);
     }
 
 void CompositeExternalPotential::computePotentials(std::shared_ptr<State> state)
@@ -23,7 +21,7 @@ void CompositeExternalPotential::computePotentials(std::shared_ptr<State> state)
     // ensure objects are up-to-date, this will do nothing if nothing has changed
     for (const auto& o : objects_)
         {
-        o->compute(state,false);
+        o->compute(state, false);
         }
 
     // fill total potential with zeros and accumulate
@@ -39,12 +37,13 @@ void CompositeExternalPotential::computePotentials(std::shared_ptr<State> state)
         }
     }
 
-void CompositeExternalPotential::requestDerivativeBuffer(const std::string& type, int buffer_request)
+void CompositeExternalPotential::requestDerivativeBuffer(const std::string& type,
+                                                         int buffer_request)
     {
-    ExternalPotential::requestDerivativeBuffer(type,buffer_request);
+    ExternalPotential::requestDerivativeBuffer(type, buffer_request);
     for (const auto& o : objects_)
         {
-        o->requestDerivativeBuffer(type,buffer_request);
+        o->requestDerivativeBuffer(type, buffer_request);
         }
     }
 
@@ -70,7 +69,7 @@ bool CompositeExternalPotential::removeObject(std::shared_ptr<ExternalPotential>
 
 void CompositeExternalPotential::clearObjects()
     {
-   if (objects_.size() > 0)
+    if (objects_.size() > 0)
         {
         for (const auto& o : objects_)
             {
@@ -80,4 +79,4 @@ void CompositeExternalPotential::clearObjects()
         }
     }
 
-}
+    } // namespace flyft

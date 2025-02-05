@@ -1,19 +1,18 @@
 #include "flyft/integrator.h"
+
 #include <stdexcept>
 
 namespace flyft
-{
+    {
 
 Integrator::Integrator(double timestep)
-    : use_adaptive_timestep_(false), adaptive_timestep_delay_(0),
-      adaptive_timestep_tol_(1e-8), adaptive_timestep_min_(1e-8)
+    : use_adaptive_timestep_(false), adaptive_timestep_delay_(0), adaptive_timestep_tol_(1e-8),
+      adaptive_timestep_min_(1e-8)
     {
     setTimestep(timestep);
     }
 
-Integrator::~Integrator()
-    {
-    }
+Integrator::~Integrator() {}
 
 bool Integrator::advance(std::shared_ptr<Flux> flux,
                          std::shared_ptr<GrandPotential> grand,
@@ -23,7 +22,7 @@ bool Integrator::advance(std::shared_ptr<Flux> flux,
     // request flux buffers
     for (const auto& t : state->getTypes())
         {
-        flux->requestFluxBuffer(t,determineBufferShape(state,t));
+        flux->requestFluxBuffer(t, determineBufferShape(state, t));
         }
 
     // alloc adaptive step state memory
@@ -50,9 +49,9 @@ bool Integrator::advance(std::shared_ptr<Flux> flux,
     double adaptive_last_remain = time_remain;
     while (time_remain > 0)
         {
-        if (use_adaptive_timestep_ &&
-            std::abs(adaptive_last_remain-time_remain) >= adaptive_timestep_delay_ &&
-            2.*timestep_ < time_remain)
+        if (use_adaptive_timestep_
+            && std::abs(adaptive_last_remain - time_remain) >= adaptive_timestep_delay_
+            && 2. * timestep_ < time_remain)
             {
             adaptive_last_remain = time_remain;
             const auto mesh = state->getMesh()->local().get();
@@ -70,12 +69,12 @@ bool Integrator::advance(std::shared_ptr<Flux> flux,
                     }
 
                 // take two normal steps
-                step(flux,grand,state,time_sign*dt_try);
-                step(flux,grand,state,time_sign*dt_try);
+                step(flux, grand, state, time_sign * dt_try);
+                step(flux, grand, state, time_sign * dt_try);
 
                 // then take double-sized step
                 *adaptive_err_state_ = *adaptive_cur_state_;
-                step(flux,grand,adaptive_err_state_,2*time_sign*dt_try);
+                step(flux, grand, adaptive_err_state_, 2 * time_sign * dt_try);
 
                 // compute error between the two
                 double max_err = 0.;
@@ -85,13 +84,13 @@ bool Integrator::advance(std::shared_ptr<Flux> flux,
                     auto rho_err = adaptive_err_state_->getField(t)->const_view();
                     // find max error on mesh
                     double type_max_err = 0.;
-                    #ifdef FLYFT_OPENMP
-                    #pragma omp parallel for schedule(static) default(none) firstprivate(mesh,rho,rho_err) \
-                        reduction(max:type_max_err)
-                    #endif
-                    for (int idx=0; idx < mesh->shape(); ++idx)
+#ifdef FLYFT_OPENMP
+#pragma omp parallel for schedule(static) default(none) firstprivate(mesh, rho, rho_err) \
+    reduction(max : type_max_err)
+#endif
+                    for (int idx = 0; idx < mesh->shape(); ++idx)
                         {
-                        const double err = std::abs(rho_err(idx)-rho(idx));
+                        const double err = std::abs(rho_err(idx) - rho(idx));
                         if (err > type_max_err)
                             {
                             type_max_err = err;
@@ -110,7 +109,10 @@ bool Integrator::advance(std::shared_ptr<Flux> flux,
                 if (max_err > adaptive_timestep_tol_)
                     {
                     converged = false;
-                    dt_try *= std::max(0.9*std::pow(adaptive_timestep_tol_/max_err,1./getLocalErrorExponent()),0.1);
+                    dt_try *= std::max(0.9
+                                           * std::pow(adaptive_timestep_tol_ / max_err,
+                                                      1. / getLocalErrorExponent()),
+                                       0.1);
                     *state = *adaptive_cur_state_;
                     }
                 else
@@ -119,11 +121,15 @@ bool Integrator::advance(std::shared_ptr<Flux> flux,
                     // success, set next timestep and guard against divide by zero
                     if (max_err > 0)
                         {
-                        dt_next = dt_try*std::min(0.9*std::pow(adaptive_timestep_tol_/max_err,1./getLocalErrorExponent()),5.);
+                        dt_next = dt_try
+                                  * std::min(0.9
+                                                 * std::pow(adaptive_timestep_tol_ / max_err,
+                                                            1. / getLocalErrorExponent()),
+                                             5.);
                         }
                     else
                         {
-                        dt_next = 5.*dt_try;
+                        dt_next = 5. * dt_try;
                         }
                     }
                 }
@@ -132,13 +138,13 @@ bool Integrator::advance(std::shared_ptr<Flux> flux,
                 {
                 throw std::runtime_error("failed to converge");
                 }
-            time_remain -= 2*dt_try;
+            time_remain -= 2 * dt_try;
             timestep_ = dt_next;
             }
         else
             {
-            const double dt = std::min(timestep_,time_remain);
-            step(flux,grand,state,time_sign*dt);
+            const double dt = std::min(timestep_, time_remain);
+            step(flux, grand, state, time_sign * dt);
             time_remain -= dt;
             }
         }
@@ -216,4 +222,4 @@ int Integrator::determineBufferShape(std::shared_ptr<State> /*state*/, const std
     return 1;
     }
 
-}
+    } // namespace flyft

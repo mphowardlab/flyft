@@ -4,13 +4,13 @@
 #include <cmath>
 
 namespace flyft
-{
+    {
 
 ImplicitEulerIntegrator::ImplicitEulerIntegrator(double timestep,
                                                  double mix_param,
                                                  int max_iterations,
                                                  double tolerance)
-    : Integrator(timestep), FixedPointAlgorithmMixin(mix_param,max_iterations,tolerance)
+    : Integrator(timestep), FixedPointAlgorithmMixin(mix_param, max_iterations, tolerance)
     {
     }
 
@@ -20,7 +20,7 @@ bool ImplicitEulerIntegrator::advance(std::shared_ptr<Flux> flux,
                                       double time)
     {
     state->matchFields(last_fields_);
-    return Integrator::advance(flux,grand,state,time);
+    return Integrator::advance(flux, grand, state, time);
     }
 
 void ImplicitEulerIntegrator::step(std::shared_ptr<Flux> flux,
@@ -32,7 +32,7 @@ void ImplicitEulerIntegrator::step(std::shared_ptr<Flux> flux,
     for (const auto& t : state->getTypes())
         {
         auto f = state->getField(t)->const_view();
-        std::copy(f.begin(),f.end(),last_fields_(t)->view().begin());
+        std::copy(f.begin(), f.end(), last_fields_(t)->view().begin());
         }
 
     // advance time of state to *next* point
@@ -43,13 +43,13 @@ void ImplicitEulerIntegrator::step(std::shared_ptr<Flux> flux,
     const auto alpha = getMixParameter();
     const auto tol = getTolerance();
     bool converged = false;
-    for (int iter=0; iter < max_iterations_ && !converged; ++iter)
+    for (int iter = 0; iter < max_iterations_ && !converged; ++iter)
         {
         // propose converged, and invalidate if any change is too big
         converged = true;
 
         // get flux of the new state
-        flux->compute(grand,state);
+        flux->compute(grand, state);
 
         // apply update
         for (const auto& t : state->getTypes())
@@ -58,14 +58,15 @@ void ImplicitEulerIntegrator::step(std::shared_ptr<Flux> flux,
             auto next_rho = state->getField(t)->view();
             auto next_j = flux->getFlux(t)->const_view();
 
-            #ifdef FLYFT_OPENMP
-            #pragma omp parallel for schedule(static) default(none) firstprivate(timestep,mesh,alpha,tol) shared(next_rho,next_j,last_rho,converged)
-            #endif
-            for (int idx=0; idx < mesh->shape(); ++idx)
+#ifdef FLYFT_OPENMP
+#pragma omp parallel for schedule(static) default(none) firstprivate(timestep, mesh, alpha, tol) \
+    shared(next_rho, next_j, last_rho, converged)
+#endif
+            for (int idx = 0; idx < mesh->shape(); ++idx)
                 {
-                const double next_rate = mesh->integrateSurface(idx,next_j)/mesh->volume(idx);
-                double try_rho = last_rho(idx) + timestep*next_rate;
-                const double drho = alpha*(try_rho-next_rho(idx));
+                const double next_rate = mesh->integrateSurface(idx, next_j) / mesh->volume(idx);
+                double try_rho = last_rho(idx) + timestep * next_rate;
+                const double drho = alpha * (try_rho - next_rho(idx));
                 next_rho(idx) += drho;
                 if (drho > tol)
                     {
@@ -82,4 +83,4 @@ void ImplicitEulerIntegrator::step(std::shared_ptr<Flux> flux,
         }
     }
 
-}
+    } // namespace flyft

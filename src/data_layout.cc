@@ -1,18 +1,13 @@
 #include "flyft/data_layout.h"
+
 #include <utility>
 
 namespace flyft
-{
-
-DataLayout::DataLayout()
-    : shape_(0)
     {
-    }
 
-DataLayout::DataLayout(int shape)
-    : shape_(shape)
-    {
-    }
+DataLayout::DataLayout() : shape_(0) {}
+
+DataLayout::DataLayout(int shape) : shape_(shape) {}
 
 int DataLayout::operator()(int idx) const
     {
@@ -39,4 +34,4 @@ bool DataLayout::operator!=(const DataLayout& other) const
     return !(*this == other);
     }
 
-}
+    } // namespace flyft

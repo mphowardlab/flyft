@@ -1,23 +1,21 @@
 #include "flyft/external_potential.h"
 
 namespace flyft
-{
-
-ExternalPotential::ExternalPotential()
     {
-    }
+
+ExternalPotential::ExternalPotential() {}
 
 bool ExternalPotential::setup(std::shared_ptr<State> state, bool compute_value)
     {
-    bool compute = Functional::setup(state,compute_value);
-    // only compute potentials if a compute is needed and one of the internal dependencies has changed
+    bool compute = Functional::setup(state, compute_value);
+    // only compute potentials if a compute is needed and one of the internal dependencies has
+    // changed
     if (compute)
         {
         auto compute_potentials_mesh = compute_potentials_mesh_.lock();
-        compute_potentials_ = (!compute_token_ ||
-                               compute_depends_.changed() ||
-                               !compute_potentials_mesh ||
-                               *compute_potentials_mesh != *state->getMesh()->local());
+        compute_potentials_
+            = (!compute_token_ || compute_depends_.changed() || !compute_potentials_mesh
+               || *compute_potentials_mesh != *state->getMesh()->local());
         }
     else
         {
@@ -25,7 +23,6 @@ bool ExternalPotential::setup(std::shared_ptr<State> state, bool compute_value)
         }
     return compute;
     }
-
 
 void ExternalPotential::_compute(std::shared_ptr<State> state, bool compute_value)
     {
@@ -47,7 +44,7 @@ void ExternalPotential::_compute(std::shared_ptr<State> state, bool compute_valu
             {
             auto f = state->getField(t)->const_view();
             auto d = derivatives_(t)->const_view();
-            for (int idx=0; idx < mesh->shape(); ++idx)
+            for (int idx = 0; idx < mesh->shape(); ++idx)
                 {
                 const double V = d(idx);
                 const double rho = f(idx);
@@ -66,7 +63,7 @@ void ExternalPotential::_compute(std::shared_ptr<State> state, bool compute_valu
                     }
                 else if (compute_value)
                     {
-                    value_ += mesh->integrateVolume(idx, rho*V);
+                    value_ += mesh->integrateVolume(idx, rho * V);
                     }
                 }
             }
@@ -74,4 +71,4 @@ void ExternalPotential::_compute(std::shared_ptr<State> state, bool compute_valu
         }
     }
 
-}
+    } // namespace flyft

@@ -1,7 +1,7 @@
 #include "flyft/linear_potential.h"
 
 namespace flyft
-{
+    {
 
 LinearPotential::LinearPotential()
     {
@@ -40,12 +40,13 @@ const TypeMap<double>& LinearPotential::getSlopes() const
     return slopes_;
     }
 
-LinearPotential::Function LinearPotential::makePotentialFunction(std::shared_ptr<State> /*state*/, const std::string& type)
+LinearPotential::Function LinearPotential::makePotentialFunction(std::shared_ptr<State> /*state*/,
+                                                                 const std::string& type)
     {
     const auto x0 = xs_(type);
     const auto y0 = ys_(type);
     const auto slope = slopes_(type);
-    return Function(x0,y0,slope);
+    return Function(x0, y0, slope);
     }
 
-}
+    } // namespace flyft

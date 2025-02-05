@@ -9,50 +9,47 @@ template<typename T>
 class CompositeMixin
     {
     public:
-        CompositeMixin()
-            {
-            }
+    CompositeMixin() {}
 
-        bool addObject(std::shared_ptr<T> object)
+    bool addObject(std::shared_ptr<T> object)
+        {
+        if (std::find(objects_.begin(), objects_.end(), object) == objects_.end())
             {
-            if(std::find(objects_.begin(), objects_.end(), object) == objects_.end())
-                {
-                objects_.push_back(object);
-                return true;
-                }
-            else
-                {
-                return false;
-                }
+            objects_.push_back(object);
+            return true;
             }
+        else
+            {
+            return false;
+            }
+        }
 
-        bool removeObject(std::shared_ptr<T> object)
+    bool removeObject(std::shared_ptr<T> object)
+        {
+        auto it = std::find(objects_.begin(), objects_.end(), object);
+        if (it != objects_.end())
             {
-            auto it = std::find(objects_.begin(), objects_.end(), object);
-            if (it != objects_.end())
-                {
-                objects_.erase(it);
-                return true;
-                }
-            else
-                {
-                return false;
-                }
+            objects_.erase(it);
+            return true;
             }
+        else
+            {
+            return false;
+            }
+        }
 
-        void clearObjects()
-            {
-            objects_.clear();
-            }
+    void clearObjects()
+        {
+        objects_.clear();
+        }
 
-        const std::vector<std::shared_ptr<T>>& getObjects()
-            {
-            return objects_;
-            }
+    const std::vector<std::shared_ptr<T>>& getObjects()
+        {
+        return objects_;
+        }
 
     protected:
-        std::vector<std::shared_ptr<T>> objects_;
-
+    std::vector<std::shared_ptr<T>> objects_;
     };
 
 #endif // FLYFT_COMPOSITE_MIXIN_H_
