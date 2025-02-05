@@ -28,7 +28,7 @@ class Field(mirror.Mirror,mirrorclass=_flyft.Field):
 
     @data.setter
     def data(self, value):
-        v = np.array(value, dtype=np.float64, ndmin=1, copy=False)
+        v = np.array(value, dtype=np.float64, ndmin=1, copy=None if np.lib.NumpyVersion(np.__version__) >= "2.0.0" else False)
         if v.shape != (self.shape,):
             raise TypeError('Array shapes must match')
         np.copyto(self.data, v)
