@@ -5,24 +5,24 @@
 #include <type_traits>
 
 namespace flyft
-{
+    {
 class DataLayout
     {
     public:
-        DataLayout();
-        explicit DataLayout(int shape_);
+    DataLayout();
+    explicit DataLayout(int shape_);
 
-        int operator()(int idx) const;
-        int shape() const;
-        int size() const;
+    int operator()(int idx) const;
+    int shape() const;
+    int size() const;
 
-        bool operator==(const DataLayout& other) const;
-        bool operator!=(const DataLayout& other) const;
+    bool operator==(const DataLayout& other) const;
+    bool operator!=(const DataLayout& other) const;
 
     private:
-        int shape_;
+    int shape_;
     };
 
-}
+    } // namespace flyft
 
 #endif // FLYFT_DATA_LAYOUT_H_

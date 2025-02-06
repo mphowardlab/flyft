@@ -1,7 +1,7 @@
 #include "flyft/ideal_gas_functional.h"
 
 namespace flyft
-{
+    {
 
 IdealGasFunctional::IdealGasFunctional()
     {
@@ -20,10 +20,10 @@ static void computeFunctional(int idx,
     double energy;
     if (rho > 0)
         {
-        d(idx) = std::log(vol*rho);
+        d(idx) = std::log(vol * rho);
         if (compute_value)
             {
-            energy = mesh->integrateVolume(idx, rho*(d(idx)-1.));
+            energy = mesh->integrateVolume(idx, rho * (d(idx) - 1.));
             }
         else
             {
@@ -53,24 +53,24 @@ void IdealGasFunctional::_compute(std::shared_ptr<State> state, bool compute_val
 
         // compute edges of each derivative first and put in flight
         const auto deriv_buffer = deriv->buffer_shape();
-        for (int idx=0; idx < deriv_buffer; ++idx)
+        for (int idx = 0; idx < deriv_buffer; ++idx)
             {
-            computeFunctional(idx,d,value_,f,vol,mesh,compute_value);
+            computeFunctional(idx, d, value_, f, vol, mesh, compute_value);
             }
-        for (int idx=mesh->shape()-deriv_buffer; idx < mesh->shape(); ++idx)
+        for (int idx = mesh->shape() - deriv_buffer; idx < mesh->shape(); ++idx)
             {
-            computeFunctional(idx,d,value_,f,vol,mesh,compute_value);
+            computeFunctional(idx, d, value_, f, vol, mesh, compute_value);
             }
         state->getMesh()->startSync(deriv);
 
-        // compute on interior points
-        #ifdef FLYFT_OPENMP
-        #pragma omp parallel for schedule(static) default(none) firstprivate(mesh,vol) \
-        shared(f,d,compute_value,deriv_buffer) reduction(+:value_)
-        #endif
-        for (int idx=deriv_buffer; idx < mesh->shape()-deriv_buffer; ++idx)
+// compute on interior points
+#ifdef FLYFT_OPENMP
+#pragma omp parallel for schedule(static) default(none) firstprivate(mesh, vol) \
+    shared(f, d, compute_value, deriv_buffer) reduction(+ : value_)
+#endif
+        for (int idx = deriv_buffer; idx < mesh->shape() - deriv_buffer; ++idx)
             {
-            computeFunctional(idx,d,value_,f,vol,mesh,compute_value);
+            computeFunctional(idx, d, value_, f, vol, mesh, compute_value);
             }
         }
 
@@ -97,4 +97,4 @@ const TypeMap<double>& IdealGasFunctional::getVolumes() const
     return volumes_;
     }
 
-}
+    } // namespace flyft

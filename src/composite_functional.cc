@@ -3,19 +3,17 @@
 #include <algorithm>
 
 namespace flyft
-{
-
-CompositeFunctional::CompositeFunctional()
     {
-    }
+
+CompositeFunctional::CompositeFunctional() {}
 
 bool CompositeFunctional::setup(std::shared_ptr<State> state, bool compute_value)
     {
     for (const auto& o : objects_)
         {
-        o->compute(state,compute_value);
+        o->compute(state, compute_value);
         }
-    return Functional::setup(state,compute_value);
+    return Functional::setup(state, compute_value);
     }
 
 void CompositeFunctional::_compute(std::shared_ptr<State> state, bool compute_value)
@@ -25,7 +23,7 @@ void CompositeFunctional::_compute(std::shared_ptr<State> state, bool compute_va
     for (const auto& t : state->getTypes())
         {
         auto d = derivatives_(t)->full_view();
-        std::fill(d.begin(),d.end(),0.);
+        std::fill(d.begin(), d.end(), 0.);
         }
 
     // combine
@@ -50,10 +48,10 @@ void CompositeFunctional::_compute(std::shared_ptr<State> state, bool compute_va
 
 void CompositeFunctional::requestDerivativeBuffer(const std::string& type, int buffer_request)
     {
-    Functional::requestDerivativeBuffer(type,buffer_request);
+    Functional::requestDerivativeBuffer(type, buffer_request);
     for (const auto& f : objects_)
         {
-        f->requestDerivativeBuffer(type,buffer_request);
+        f->requestDerivativeBuffer(type, buffer_request);
         }
     }
 
@@ -62,8 +60,8 @@ int CompositeFunctional::determineBufferShape(std::shared_ptr<State> state, cons
     int max_buffer_shape = 0;
     for (const auto& f : objects_)
         {
-        int buffer_shape = f->determineBufferShape(state,type);
-        max_buffer_shape = std::max(buffer_shape,max_buffer_shape);
+        int buffer_shape = f->determineBufferShape(state, type);
+        max_buffer_shape = std::max(buffer_shape, max_buffer_shape);
         }
     return max_buffer_shape;
     }
@@ -100,4 +98,4 @@ void CompositeFunctional::clearObjects()
         }
     }
 
-}
+    } // namespace flyft

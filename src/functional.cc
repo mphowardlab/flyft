@@ -3,20 +3,15 @@
 #include <algorithm>
 
 namespace flyft
-{
-
-Functional::Functional()
-    : value_(std::nan(""))
     {
-    }
 
-Functional::~Functional()
-    {
-    }
+Functional::Functional() : value_(std::nan("")) {}
+
+Functional::~Functional() {}
 
 Functional::Token Functional::compute(std::shared_ptr<State> state, bool compute_value)
     {
-    bool needs_compute = setup(state,compute_value);
+    bool needs_compute = setup(state, compute_value);
     if (!needs_compute)
         {
         return token_;
@@ -31,13 +26,13 @@ Functional::Token Functional::compute(std::shared_ptr<State> state, bool compute
             state->startSyncFields();
             }
 
-        _compute(state,compute_value);
+        _compute(state, compute_value);
 
         if (force_sync)
             {
             state->endSyncFields();
             }
-        return finalize(state,compute_value);
+        return finalize(state, compute_value);
         }
     }
 
@@ -75,7 +70,7 @@ bool Functional::needsBuffer(std::shared_ptr<State> state)
     bool needs_buffer = false;
     for (const auto& t : state->getTypes())
         {
-        int field_buffer = determineBufferShape(state,t);
+        int field_buffer = determineBufferShape(state, t);
         if (field_buffer != 0)
             {
             needs_buffer = true;
@@ -95,7 +90,7 @@ bool Functional::setup(std::shared_ptr<State> state, bool compute_value)
     // sync required fields
     for (const auto& t : state->getTypes())
         {
-        state->requestFieldBuffer(t,determineBufferShape(state,t));
+        state->requestFieldBuffer(t, determineBufferShape(state, t));
         }
 
     // match derivatives to state types, and attach as dependencies
@@ -104,7 +99,7 @@ bool Functional::setup(std::shared_ptr<State> state, bool compute_value)
         {
         deriv_ids[it.first] = it.second->id();
         }
-    state->matchFields(derivatives_,buffer_requests_);
+    state->matchFields(derivatives_, buffer_requests_);
     for (const auto& it : deriv_ids)
         {
         // type removed or field is a new object
@@ -120,10 +115,9 @@ bool Functional::setup(std::shared_ptr<State> state, bool compute_value)
         }
 
     // return whether evaluation is required
-    bool compute = ((!compute_token_ || token_ != compute_token_) ||
-                    (!compute_state_token_ || state->token() != compute_state_token_) ||
-                    compute_depends_.changed() ||
-                    (compute_value && std::isnan(value_)));
+    bool compute = ((!compute_token_ || token_ != compute_token_)
+                    || (!compute_state_token_ || state->token() != compute_state_token_)
+                    || compute_depends_.changed() || (compute_value && std::isnan(value_)));
 
     return compute;
     }
@@ -147,4 +141,4 @@ Functional::Token Functional::finalize(std::shared_ptr<State> state, bool comput
     return compute_token_;
     }
 
-}
+    } // namespace flyft

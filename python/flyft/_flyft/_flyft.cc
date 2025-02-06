@@ -53,22 +53,22 @@ void bindImplicitEulerIntegrator(py::module_&);
 
 PYBIND11_MODULE(_flyft, m)
     {
-    #ifdef FLYFT_MPI
+#ifdef FLYFT_MPI
     int mpi_init = 0;
     MPI_Initialized(&mpi_init);
     if (!mpi_init)
         {
-        MPI_Init(NULL,NULL);
-        Py_AtExit([](){ MPI_Finalize(); });
+        MPI_Init(NULL, NULL);
+        Py_AtExit([]() { MPI_Finalize(); });
         }
-    #endif
+#endif
 
     bindTrackedObject(m);
     bindPairMap(m);
     bindTypeMap(m);
     bindVector(m);
     bindDoubleParameters(m);
-    
+
     bindBoundaryType(m);
     bindCommunicator(m);
     bindField(m);

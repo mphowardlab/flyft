@@ -3,15 +3,11 @@
 #include <algorithm>
 
 namespace flyft
-{
-
-Flux::Flux()
     {
-    }
 
-Flux::~Flux()
-    {
-    }
+Flux::Flux() {}
+
+Flux::~Flux() {}
 
 const TypeMap<std::shared_ptr<Field>>& Flux::getFluxes()
     {
@@ -44,7 +40,7 @@ void Flux::requestFluxBuffer(const std::string& type, int buffer_request)
 
 void Flux::setup(std::shared_ptr<GrandPotential> grand, std::shared_ptr<State> state)
     {
-    if (!validateConstraints(grand,state))
+    if (!validateConstraints(grand, state))
         {
         // ERROR: need constant N in "grand" potential
         }
@@ -52,16 +48,17 @@ void Flux::setup(std::shared_ptr<GrandPotential> grand, std::shared_ptr<State> s
     // request derivative buffers (don't sync yet though)
     for (const auto& t : state->getTypes())
         {
-        const auto buffer_request = determineBufferShape(state,t);
-        state->requestFieldBuffer(t,buffer_request);
-        grand->requestDerivativeBuffer(t,buffer_request);
+        const auto buffer_request = determineBufferShape(state, t);
+        state->requestFieldBuffer(t, buffer_request);
+        grand->requestDerivativeBuffer(t, buffer_request);
         }
 
     // match up flux fields to state
-    state->matchFields(fluxes_,buffer_requests_);
+    state->matchFields(fluxes_, buffer_requests_);
     }
 
-bool Flux::validateConstraints(std::shared_ptr<GrandPotential> grand, std::shared_ptr<State> state) const
+bool Flux::validateConstraints(std::shared_ptr<GrandPotential> grand,
+                               std::shared_ptr<State> state) const
     {
     bool valid = true;
     for (const auto& t : state->getTypes())
@@ -74,4 +71,4 @@ bool Flux::validateConstraints(std::shared_ptr<GrandPotential> grand, std::share
         }
     return valid;
     }
-}
+    } // namespace flyft

@@ -4,20 +4,17 @@
 #include <utility>
 
 namespace flyft
-{
+    {
 TrackedObject::Identifier TrackedObject::count = 0;
 
-TrackedObject::TrackedObject()
-    : id_(count++), token_(id_)
-    {}
+TrackedObject::TrackedObject() : id_(count++), token_(id_) {}
 
-TrackedObject::TrackedObject(const TrackedObject& /*other*/)
-    : id_(count++), token_(id_)
-    {}
+TrackedObject::TrackedObject(const TrackedObject& /*other*/) : id_(count++), token_(id_) {}
 
 TrackedObject::TrackedObject(TrackedObject&& other)
     : id_(std::move(other.id_)), token_(std::move(other.token_))
-    {}
+    {
+    }
 
 TrackedObject& TrackedObject::operator=(const TrackedObject& other)
     {
@@ -34,8 +31,7 @@ TrackedObject& TrackedObject::operator=(TrackedObject&& /*other*/)
     return *this;
     }
 
-TrackedObject::~TrackedObject()
-    {}
+TrackedObject::~TrackedObject() {}
 
 TrackedObject::Identifier TrackedObject::id() const
     {
@@ -47,20 +43,16 @@ TrackedObject::Token TrackedObject::token()
     return token_;
     }
 
-TrackedObject::Token::Token()
-    : Token(invalid_id)
-    {}
+TrackedObject::Token::Token() : Token(invalid_id) {}
 
-TrackedObject::Token::Token(TrackedObject::Identifier id)
-    : Token(id,0)
-    {}
+TrackedObject::Token::Token(TrackedObject::Identifier id) : Token(id, 0) {}
 
 TrackedObject::Token::Token(TrackedObject::Identifier id, uint64_t code)
     : id_(id), code_(code), dirty_(false)
-    {}
+    {
+    }
 
-TrackedObject::Token::~Token()
-    {}
+TrackedObject::Token::~Token() {}
 
 void TrackedObject::Token::commit()
     {
@@ -106,10 +98,7 @@ bool TrackedObject::Token::operator!=(const TrackedObject::Token& other) const
     return !(*this == other);
     }
 
-TrackedObject::Dependencies::Dependencies()
-    : object_map_changed_(false)
-    {
-    }
+TrackedObject::Dependencies::Dependencies() : object_map_changed_(false) {}
 
 void TrackedObject::Dependencies::add(TrackedObject* object)
     {
@@ -165,4 +154,4 @@ bool TrackedObject::Dependencies::changed()
     return result;
     }
 
-}
+    } // namespace flyft

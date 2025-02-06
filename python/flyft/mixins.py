@@ -1,9 +1,10 @@
 from . import mirror
 
+
 class CompositeMixin:
     @property
     def objects(self):
-        if not hasattr(self,'_objects'):
+        if not hasattr(self, "_objects"):
             self._objects = []
         return self._objects
 
@@ -39,9 +40,11 @@ class CompositeMixin:
         for obj in objects:
             self.append(obj)
 
+
 class IterativeAlgorithmMixin:
     max_iterations = mirror.Property()
     tolerance = mirror.Property()
+
 
 class FixedPointAlgorithmMixin(IterativeAlgorithmMixin):
     mix_parameter = mirror.Property()

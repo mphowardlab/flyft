@@ -8,25 +8,25 @@
 #include <memory>
 
 namespace flyft
-{
+    {
 
 class CompositeFunctional : public Functional, public CompositeMixin<Functional>
     {
     public:
-        CompositeFunctional();
+    CompositeFunctional();
 
-        void requestDerivativeBuffer(const std::string& type, int buffer_request) override;
-        int determineBufferShape(std::shared_ptr<State> state, const std::string& type) override;
+    void requestDerivativeBuffer(const std::string& type, int buffer_request) override;
+    int determineBufferShape(std::shared_ptr<State> state, const std::string& type) override;
 
-        bool addObject(std::shared_ptr<Functional> object);
-        bool removeObject(std::shared_ptr<Functional> object);
-        void clearObjects();
+    bool addObject(std::shared_ptr<Functional> object);
+    bool removeObject(std::shared_ptr<Functional> object);
+    void clearObjects();
 
     protected:
-        bool setup(std::shared_ptr<State> state, bool compute_value) override;
-        void _compute(std::shared_ptr<State> state, bool compute_value) override;
+    bool setup(std::shared_ptr<State> state, bool compute_value) override;
+    void _compute(std::shared_ptr<State> state, bool compute_value) override;
     };
 
-}
+    } // namespace flyft
 
 #endif // FLYFT_COMPOSITE_FUNCTIONAL_H_

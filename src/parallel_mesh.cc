@@ -3,7 +3,7 @@
 #include <stdexcept>
 
 namespace flyft
-{
+    {
 
 ParallelMesh::ParallelMesh(std::shared_ptr<Mesh> mesh, std::shared_ptr<Communicator> comm)
     {
@@ -16,21 +16,21 @@ ParallelMesh::ParallelMesh(std::shared_ptr<Mesh> mesh, std::shared_ptr<Communica
     coords_ = comm_->rank();
 
     // determine the mesh sites that each processor owns
-    const int floor_shape = full_mesh_->shape()/layout_.shape();
-    const int leftover = full_mesh_->shape() - layout_.shape()*floor_shape;
-    starts_ = std::vector<int>(layout_.size(),0);
-    ends_ = std::vector<int>(layout_.size(),0);
-    for (int idx=0; idx < layout_.shape(); ++idx)
+    const int floor_shape = full_mesh_->shape() / layout_.shape();
+    const int leftover = full_mesh_->shape() - layout_.shape() * floor_shape;
+    starts_ = std::vector<int>(layout_.size(), 0);
+    ends_ = std::vector<int>(layout_.size(), 0);
+    for (int idx = 0; idx < layout_.shape(); ++idx)
         {
         const int coord_idx = layout_(idx);
         if (idx < leftover)
             {
-            starts_[coord_idx] = idx*floor_shape+idx;
-            ends_[coord_idx] = starts_[coord_idx] + (floor_shape+1);
+            starts_[coord_idx] = idx * floor_shape + idx;
+            ends_[coord_idx] = starts_[coord_idx] + (floor_shape + 1);
             }
         else
             {
-            starts_[coord_idx] = idx*floor_shape+leftover;
+            starts_[coord_idx] = idx * floor_shape + leftover;
             ends_[coord_idx] = starts_[coord_idx] + floor_shape;
             }
         }
@@ -46,9 +46,7 @@ ParallelMesh::ParallelMesh(std::shared_ptr<Mesh> mesh, std::shared_ptr<Communica
     local_mesh_ = full_mesh_->slice(start, end);
     }
 
-ParallelMesh::~ParallelMesh()
-    {
-    }
+ParallelMesh::~ParallelMesh() {}
 
 std::shared_ptr<Communicator> ParallelMesh::getCommunicator()
     {
@@ -102,8 +100,8 @@ int ParallelMesh::findProcessor(int idx) const
         }
 
     // TODO: replace with binary search since vectors are sorted
-    int proc=-1;
-    for (int i=0; proc < 0 && i < layout_.shape(); ++i)
+    int proc = -1;
+    for (int i = 0; proc < 0 && i < layout_.shape(); ++i)
         {
         if (idx >= starts_[layout_(i)] && idx < ends_[layout_(i)])
             {
@@ -129,13 +127,13 @@ void ParallelMesh::startSync(std::shared_ptr<Field> field)
         return;
         }
 
-    // make sure field is not currently in flight before we do anything
-    #ifdef FLYFT_MPI
+// make sure field is not currently in flight before we do anything
+#ifdef FLYFT_MPI
     if (field_requests_.find(field->id()) != field_requests_.end())
         {
         throw std::runtime_error("Cannot sync field, data already in flight.");
         }
-    #endif
+#endif
 
     // check field shape
     const int shape = field->shape();
@@ -155,80 +153,88 @@ void ParallelMesh::startSync(std::shared_ptr<Field> field)
     const auto lower_bc = local_mesh_->lower_boundary_condition();
     const auto upper_bc = local_mesh_->upper_boundary_condition();
 
-    #ifdef FLYFT_MPI
+#ifdef FLYFT_MPI
     const int left = layout_(getProcessorCoordinatesByOffset(-1));
     const int right = layout_(getProcessorCoordinatesByOffset(1));
     std::vector<MPI_Request> requests;
     requests.reserve(4);
 
-    if (comm_->size() > 1 && (lower_bc==BoundaryType::periodic || lower_bc==BoundaryType::internal))
+    if (comm_->size() > 1
+        && (lower_bc == BoundaryType::periodic || lower_bc == BoundaryType::internal))
         {
         // receive left buffer from left (tag 0), right buffer from right (tag 1)
         MPI_Comm comm = comm_->get();
         const auto end = requests.size();
-        requests.resize(end+2);
-        MPI_Irecv(&f(-buffer_shape),buffer_shape,MPI_DOUBLE,left,0,comm,&requests[end]);
-        MPI_Isend(&f(0),buffer_shape,MPI_DOUBLE,left,1,comm,&requests[end+1]);
+        requests.resize(end + 2);
+        MPI_Irecv(&f(-buffer_shape), buffer_shape, MPI_DOUBLE, left, 0, comm, &requests[end]);
+        MPI_Isend(&f(0), buffer_shape, MPI_DOUBLE, left, 1, comm, &requests[end + 1]);
         }
     else
-    #endif
+#endif
         {
-        for(int idx = 0; idx < buffer_shape; ++idx)
+        for (int idx = 0; idx < buffer_shape; ++idx)
             {
             double value;
             if (lower_bc == BoundaryType::zero)
                 {
                 value = 0;
                 }
-            else if (lower_bc == BoundaryType::repeat)  
+            else if (lower_bc == BoundaryType::repeat)
                 {
                 value = f(0);
-                }    
+                }
             else if (lower_bc == BoundaryType::reflect)
                 {
-                value = f(1+idx);
+                value = f(1 + idx);
                 }
             else if (lower_bc == BoundaryType::periodic || lower_bc == BoundaryType::internal)
                 {
-                value = f(shape-1-idx);
+                value = f(shape - 1 - idx);
                 }
             else
                 {
                 throw std::runtime_error("Unknown boundary condition");
                 }
-            f(-1-idx) = value;
+            f(-1 - idx) = value;
             }
         }
 
-    #ifdef FLYFT_MPI
-    if(comm_->size() > 1 && (upper_bc == BoundaryType::periodic || upper_bc==BoundaryType::internal))
+#ifdef FLYFT_MPI
+    if (comm_->size() > 1
+        && (upper_bc == BoundaryType::periodic || upper_bc == BoundaryType::internal))
         {
         // send left edge to left (tag 1), right edge to right (tag 0)
         MPI_Comm comm = comm_->get();
         const auto end = requests.size();
-        requests.resize(end+2);
-        MPI_Irecv(&f(shape),buffer_shape,MPI_DOUBLE,right,1,comm,&requests[end]);
-        MPI_Isend(&f(shape-buffer_shape),buffer_shape,MPI_DOUBLE,right,0,comm,&requests[end+1]);
+        requests.resize(end + 2);
+        MPI_Irecv(&f(shape), buffer_shape, MPI_DOUBLE, right, 1, comm, &requests[end]);
+        MPI_Isend(&f(shape - buffer_shape),
+                  buffer_shape,
+                  MPI_DOUBLE,
+                  right,
+                  0,
+                  comm,
+                  &requests[end + 1]);
         }
     else
-    #endif
+#endif
         {
-        for(int idx = 0; idx < buffer_shape; ++idx)
+        for (int idx = 0; idx < buffer_shape; ++idx)
             {
             double value;
-            if(upper_bc == BoundaryType::zero)
+            if (upper_bc == BoundaryType::zero)
                 {
                 value = 0;
                 }
-            else if(upper_bc == BoundaryType::repeat)
+            else if (upper_bc == BoundaryType::repeat)
                 {
-                value = f(shape-1);
+                value = f(shape - 1);
                 }
-            else if(upper_bc == BoundaryType::reflect)
+            else if (upper_bc == BoundaryType::reflect)
                 {
-                value = f(shape-1-idx);
+                value = f(shape - 1 - idx);
                 }
-            else if(upper_bc == BoundaryType::periodic || upper_bc == BoundaryType::internal) 
+            else if (upper_bc == BoundaryType::periodic || upper_bc == BoundaryType::internal)
                 {
                 value = f(idx);
                 }
@@ -236,20 +242,19 @@ void ParallelMesh::startSync(std::shared_ptr<Field> field)
                 {
                 throw std::runtime_error("Unknown boundary condition");
                 }
-            f(shape+idx) = value;
+            f(shape + idx) = value;
             }
         }
 
-    #ifdef FLYFT_MPI
+#ifdef FLYFT_MPI
     if (requests.size() > 0)
         {
         field_requests_[field->id()] = requests;
         }
-    #endif    
+#endif
     // cache token
     field_tokens_[field->id()] = field->token();
     }
-    
 
 #ifdef FLYFT_MPI
 void ParallelMesh::endSync(std::shared_ptr<Field> field)
@@ -257,28 +262,28 @@ void ParallelMesh::endSync(std::shared_ptr<Field> field)
 void ParallelMesh::endSync(std::shared_ptr<Field> /*field*/)
 #endif
     {
-    #ifdef FLYFT_MPI
+#ifdef FLYFT_MPI
     // wait for communication to finish
     auto it = field_requests_.find(field->id());
     if (it != field_requests_.end())
         {
         auto requests = it->second;
-        MPI_Waitall(requests.size(),&requests[0],MPI_STATUSES_IGNORE);
+        MPI_Waitall(requests.size(), &requests[0], MPI_STATUSES_IGNORE);
         field_requests_.erase(it);
         }
-    #endif // FLYFT_MPI
+#endif // FLYFT_MPI
     }
 
 void ParallelMesh::endSyncAll()
     {
-    #ifdef FLYFT_MPI
+#ifdef FLYFT_MPI
     for (auto it = field_requests_.begin(); it != field_requests_.end(); /* no increment here */)
         {
         auto requests = it->second;
-        MPI_Waitall(requests.size(),&requests[0],MPI_STATUSES_IGNORE);
+        MPI_Waitall(requests.size(), &requests[0], MPI_STATUSES_IGNORE);
         field_requests_.erase(it++);
         }
-    #endif // FLYFT_MPI
+#endif // FLYFT_MPI
     }
 
 #ifdef FLYFT_MPI
@@ -289,15 +294,15 @@ std::shared_ptr<Field> ParallelMesh::gather(std::shared_ptr<Field> field, int /*
     {
     std::shared_ptr<Field> new_field;
 
-    #ifdef FLYFT_MPI
+#ifdef FLYFT_MPI
     if (comm_->size() > 1)
         {
         // determine number of elements sent by each rank
         std::vector<int> counts(comm_->size());
-        for (int idx=0; idx < layout_.shape(); ++idx)
+        for (int idx = 0; idx < layout_.shape(); ++idx)
             {
             const auto coord_idx = layout_(idx);
-            counts[coord_idx] = ends_[coord_idx]-starts_[coord_idx];
+            counts[coord_idx] = ends_[coord_idx] - starts_[coord_idx];
             }
 
         // send buffer is valid on all ranks
@@ -314,10 +319,18 @@ std::shared_ptr<Field> ParallelMesh::gather(std::shared_ptr<Field> field, int /*
             }
 
         // gather to the root rank
-        MPI_Gatherv(&f(0),f.size(),MPI_DOUBLE,recv,&counts[0],&starts_[0],MPI_DOUBLE,root,comm_->get());
+        MPI_Gatherv(&f(0),
+                    f.size(),
+                    MPI_DOUBLE,
+                    recv,
+                    &counts[0],
+                    &starts_[0],
+                    MPI_DOUBLE,
+                    root,
+                    comm_->get());
         }
     else
-    #endif
+#endif
         {
         new_field = field;
         }
@@ -325,4 +338,4 @@ std::shared_ptr<Field> ParallelMesh::gather(std::shared_ptr<Field> field, int /*
     return new_field;
     }
 
-}
+    } // namespace flyft

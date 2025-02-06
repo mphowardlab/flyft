@@ -1,15 +1,16 @@
 #include "flyft/exponential_wall_potential.h"
 
 namespace flyft
-{
+    {
 
 ExponentialWallPotential::ExponentialWallPotential(double origin, double normal)
-    : ExponentialWallPotential(std::make_shared<ConstantDoubleParameter>(origin),normal)
+    : ExponentialWallPotential(std::make_shared<ConstantDoubleParameter>(origin), normal)
     {
     }
 
-ExponentialWallPotential::ExponentialWallPotential(std::shared_ptr<DoubleParameter> origin, double normal)
-    : WallPotential(origin,normal)
+ExponentialWallPotential::ExponentialWallPotential(std::shared_ptr<DoubleParameter> origin,
+                                                   double normal)
+    : WallPotential(origin, normal)
     {
     compute_depends_.add(&epsilons_);
     compute_depends_.add(&kappas_);
@@ -46,13 +47,15 @@ const TypeMap<double>& ExponentialWallPotential::getShifts() const
     return shifts_;
     }
 
-ExponentialWallPotential::Function ExponentialWallPotential::makePotentialFunction(std::shared_ptr<State> state, const std::string& type)
+ExponentialWallPotential::Function
+ExponentialWallPotential::makePotentialFunction(std::shared_ptr<State> state,
+                                                const std::string& type)
     {
     const double x0 = origin_->evaluate(state) + shifts_(type);
     const auto normal = normal_->evaluate(state);
     const auto epsilon = epsilons_(type);
     const auto kappa = kappas_(type);
-    return Function(x0,normal,epsilon,kappa);
+    return Function(x0, normal, epsilon, kappa);
     }
 
-}
+    } // namespace flyft

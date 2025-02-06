@@ -2,12 +2,15 @@
 #define FLYFT_BOUNDARY_TYPE_H_
 
 namespace flyft
-{
-enum class BoundaryType
     {
-    periodic, zero, reflect, repeat, internal
-    };
-}    
+enum class BoundaryType
+{
+    periodic,
+    zero,
+    reflect,
+    repeat,
+    internal
+};
+    } // namespace flyft
 
-
-#endif //  FLYFT_BOUNDARY_TYPE_H_
+#endif // FLYFT_BOUNDARY_TYPE_H_

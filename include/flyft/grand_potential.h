@@ -11,51 +11,51 @@
 #include <string>
 
 namespace flyft
-{
+    {
 
 class GrandPotential : public Functional
     {
     public:
-        GrandPotential();
+    GrandPotential();
 
-        void requestDerivativeBuffer(const std::string& type, int buffer_request) override;
-        int determineBufferShape(std::shared_ptr<State> state, const std::string& type) override;
+    void requestDerivativeBuffer(const std::string& type, int buffer_request) override;
+    int determineBufferShape(std::shared_ptr<State> state, const std::string& type) override;
 
-        std::shared_ptr<IdealGasFunctional> getIdealGasFunctional();
-        std::shared_ptr<const IdealGasFunctional> getIdealGasFunctional() const;
-        void setIdealGasFunctional(std::shared_ptr<IdealGasFunctional> ideal);
+    std::shared_ptr<IdealGasFunctional> getIdealGasFunctional();
+    std::shared_ptr<const IdealGasFunctional> getIdealGasFunctional() const;
+    void setIdealGasFunctional(std::shared_ptr<IdealGasFunctional> ideal);
 
-        std::shared_ptr<Functional> getExcessFunctional();
-        std::shared_ptr<const Functional> getExcessFunctional() const;
-        void setExcessFunctional(std::shared_ptr<Functional> excess);
+    std::shared_ptr<Functional> getExcessFunctional();
+    std::shared_ptr<const Functional> getExcessFunctional() const;
+    void setExcessFunctional(std::shared_ptr<Functional> excess);
 
-        std::shared_ptr<ExternalPotential> getExternalPotential();
-        std::shared_ptr<const ExternalPotential> getExternalPotential() const;
-        void setExternalPotential(std::shared_ptr<ExternalPotential> external);
+    std::shared_ptr<ExternalPotential> getExternalPotential();
+    std::shared_ptr<const ExternalPotential> getExternalPotential() const;
+    void setExternalPotential(std::shared_ptr<ExternalPotential> external);
 
-        enum class Constraint
-            {
-            N,
-            mu
-            };
-        TypeMap<double>& getConstraints();
-        const TypeMap<double>& getConstraints() const;
+    enum class Constraint
+    {
+        N,
+        mu
+    };
+    TypeMap<double>& getConstraints();
+    const TypeMap<double>& getConstraints() const;
 
-        TypeMap<Constraint>& getConstraintTypes();
-        const TypeMap<Constraint>& getConstraintTypes() const;
+    TypeMap<Constraint>& getConstraintTypes();
+    const TypeMap<Constraint>& getConstraintTypes() const;
 
     protected:
-        bool setup(std::shared_ptr<State> state, bool compute_value) override;
-        void _compute(std::shared_ptr<State> state, bool compute_value) override;
+    bool setup(std::shared_ptr<State> state, bool compute_value) override;
+    void _compute(std::shared_ptr<State> state, bool compute_value) override;
 
     private:
-        std::shared_ptr<IdealGasFunctional> ideal_;
-        std::shared_ptr<Functional> excess_;
-        std::shared_ptr<ExternalPotential> external_;
-        TypeMap<double> constraints_;
-        TypeMap<Constraint> constraint_types_;
+    std::shared_ptr<IdealGasFunctional> ideal_;
+    std::shared_ptr<Functional> excess_;
+    std::shared_ptr<ExternalPotential> external_;
+    TypeMap<double> constraints_;
+    TypeMap<Constraint> constraint_types_;
     };
 
-}
+    } // namespace flyft
 
 #endif // FLYFT_GRAND_POTENTIAL_H_

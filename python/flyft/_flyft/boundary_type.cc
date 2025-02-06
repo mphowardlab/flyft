@@ -1,5 +1,6 @@
-#include "_flyft.h"
 #include "flyft/boundary_type.h"
+
+#include "_flyft.h"
 
 void bindBoundaryType(py::module_& m)
     {
@@ -8,7 +9,5 @@ void bindBoundaryType(py::module_& m)
         .value("periodic", BoundaryType::periodic)
         .value("zero", BoundaryType::zero)
         .value("reflect", BoundaryType::reflect)
-        .value("repeat", BoundaryType::repeat)
-        ;
+        .value("repeat", BoundaryType::repeat);
     }
-

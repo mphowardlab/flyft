@@ -9,23 +9,23 @@
 #include <string>
 
 namespace flyft
-{
+    {
 
 class IdealGasFunctional : public Functional
     {
     public:
-        IdealGasFunctional();
+    IdealGasFunctional();
 
-        TypeMap<double>& getVolumes();
-        const TypeMap<double>& getVolumes() const;
+    TypeMap<double>& getVolumes();
+    const TypeMap<double>& getVolumes() const;
 
     protected:
-        void _compute(std::shared_ptr<State> state, bool compute_value) override;
+    void _compute(std::shared_ptr<State> state, bool compute_value) override;
 
     private:
-        TypeMap<double> volumes_;
+    TypeMap<double> volumes_;
     };
 
-}
+    } // namespace flyft
 
 #endif // IDEAL_GAS_FUNCTIONAL_H_

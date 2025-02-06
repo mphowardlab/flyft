@@ -9,27 +9,27 @@
 #include <memory>
 
 namespace flyft
-{
+    {
 
 class RPYDiffusiveFlux : public Flux
     {
     public:
-        RPYDiffusiveFlux();
-        
-        TypeMap<double>& getDiameters();         
-        const TypeMap<double>& getDiameters() const;
-        
-        double getViscosity() const;
-        void setViscosity(double viscosity);
-    
+    RPYDiffusiveFlux();
+
+    TypeMap<double>& getDiameters();
+    const TypeMap<double>& getDiameters() const;
+
+    double getViscosity() const;
+    void setViscosity(double viscosity);
+
     protected:
-        void compute(std::shared_ptr<GrandPotential> grand, std::shared_ptr<State> state) override;
-        int determineBufferShape(std::shared_ptr<State> state, const std::string& type) override;
-    
+    void compute(std::shared_ptr<GrandPotential> grand, std::shared_ptr<State> state) override;
+    int determineBufferShape(std::shared_ptr<State> state, const std::string& type) override;
+
     private:
-        TypeMap<double> diameters_;
-        double viscosity_;
+    TypeMap<double> diameters_;
+    double viscosity_;
     };
-}
+    } // namespace flyft
 
 #endif // FLYFT_RPY_DIFFUSIVE_FLUX_H_
