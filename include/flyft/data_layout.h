@@ -18,7 +18,7 @@ class DataLayout
     explicit DataLayout(const std::vector<int>& shape);
 
     // Getter for the class
-    std::vector<int> operator()(const std::vector<int>& idx) const;
+    int operator()(const std::vector<int>& idx) const;
 
     // Setter for shape
     std::vector<int> shape() const;

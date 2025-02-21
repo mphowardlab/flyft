@@ -3,6 +3,9 @@
 
 #include "flyft/data_layout.h"
 
+#include <algorithm>
+#include <functional>
+
 namespace flyft
     {
 
@@ -23,6 +26,7 @@ class DataView
         using pointer = DataView::pointer;
         using reference = DataView::reference;
 
+        // Overloading the constructor of the iterator class
         Iterator() : Iterator(DataView()) {}
 
         explicit Iterator(const DataView& view) : Iterator(view, 0) {}
@@ -94,9 +98,10 @@ class DataView
         {
         }
 
-    reference operator()(int idx) const
+    reference operator()(const std::vector<int>& idx) const
         {
-        return data_[layout_(start_ + idx)];
+        std::transform(idx.begin(), idx.end(), start_, idx.begin(), std::plus<int>());
+        return data_[layout_(idx)];
         }
 
     int shape() const
@@ -136,6 +141,7 @@ class DataView
         }
 
     private:
+    /// @brief
     pointer data_;
     DataLayout layout_;
     int start_;
