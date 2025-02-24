@@ -5,16 +5,18 @@
 #include <type_traits>
 #include <vector>
 
+/*! \class DataLayout
+\brief Generates data structure for the custom data types used in the software.
+The class provides get and set functions for the array index and implements N-dimensional array
+mapping into one dimensional array using strided indexing scheme. */
+
 namespace flyft
     {
 class DataLayout
     {
-    //! DataLayout class generates the template for the custom data types used in the software
-    //! The class provides get and set functions for the array index and
-    //! implements bool operations for the data types
     public:
     DataLayout();
-    //! Constructor for the DataLayout
+    // Constructor for the DataLayout
     explicit DataLayout(const std::vector<int>& shape);
 
     // Getter for the class
@@ -23,7 +25,7 @@ class DataLayout
     // Setter for shape
     std::vector<int> shape() const;
     // Getter for shape
-    std::vector<int> size() const;
+    int size() const;
 
     bool operator==(const DataLayout& other) const;
     bool operator!=(const DataLayout& other) const;

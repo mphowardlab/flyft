@@ -6,6 +6,10 @@
 #include <algorithm>
 #include <functional>
 
+/*! \class DataView
+\brief Creates ability to view a certain section of the N-dimensional array
+*/
+
 namespace flyft
     {
 
@@ -100,8 +104,9 @@ class DataView
 
     reference operator()(const std::vector<int>& idx) const
         {
-        std::transform(idx.begin(), idx.end(), start_, idx.begin(), std::plus<int>());
-        return data_[layout_(idx)];
+        std::vector<int>& temp;
+        std::transform(idx.begin(), idx.end(), start_, temp.begin(), std::plus<int>());
+        return data_[layout_(temp)];
         }
 
     int shape() const
@@ -141,7 +146,6 @@ class DataView
         }
 
     private:
-    /// @brief
     pointer data_;
     DataLayout layout_;
     int start_;
