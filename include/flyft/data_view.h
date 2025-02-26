@@ -6,20 +6,21 @@
 #include <algorithm>
 #include <functional>
 
-/*! \class DataView
-\brief Creates ability to view a certain section of the N-dimensional array
-*/
-
 namespace flyft
     {
 
 template<typename T>
+//! DataView
+/*!
+ * Creates ability to view a certain section of the N-dimensional array
+ */
+
 class DataView
     {
     public:
-    using value_type = typename std::remove_reference<T>::type;
-    using pointer = value_type*;
-    using reference = value_type&;
+    using value_type = typename std::remove_reference<T>::type; // Extracts datatype
+    using pointer = value_type*;                                // Pointer to the datatype
+    using reference = value_type&;                              // Reference to the datatype
 
     class Iterator
         {
@@ -93,6 +94,7 @@ class DataView
         int current_;
         };
 
+    //! Overloading the constructor of the DataView class
     DataView() : DataView(nullptr, DataLayout()) {}
 
     DataView(pointer data, const DataLayout& layout) : DataView(data, layout, 0, layout.shape()) {}
@@ -102,6 +104,10 @@ class DataView
         {
         }
 
+    //! Mapping the N-dimensional index to 1D index
+    /*!
+     * \param idx Array of indices
+     */
     reference operator()(const std::vector<int>& idx) const
         {
         std::vector<int>& temp;
