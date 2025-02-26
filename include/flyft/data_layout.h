@@ -9,10 +9,10 @@ namespace flyft
     {
 //! DataLayout
 /*!
-Generates data structure for the custom data types used in the software.
-The class provides get and set functions for the array index and implements N-dimensional array
-mapping into one dimensional array using strided indexing scheme.
-*/
+ * Generates data structure for the custom data types used in the software.
+ * The class provides get and set functions for the array index and implements N-dimensional array
+ * mapping into one dimensional array using strided indexing scheme.
+ */
 class DataLayout
     {
     public:
