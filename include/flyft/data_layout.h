@@ -7,11 +7,11 @@
 
 namespace flyft
     {
-//! DataLayout
+//! Multidimensional array layout
 /*!
- * Generates data structure for the custom data types used in the software.
- * The class provides get and set functions for the array index and implements N-dimensional array
- * mapping into one dimensional array using strided indexing scheme.
+ * DataLayout maps an N-dimensional index to one-dimensional
+ * index using row-major ordering. Negative indexes are supported
+ * and interpreted as relative to the zero-index.
  */
 class DataLayout
     {
@@ -19,23 +19,36 @@ class DataLayout
     DataLayout();
     //! Constructor for the DataLayout
     /*!
-     * \param shape_ Shape of the index array
+     * \param shape_ Shape of the index array.
      */
     explicit DataLayout(const std::vector<int>& shape);
 
-    // Getter for the class
+    //! Map a multidimensional index to a one-dimensional index
+    /*!
+     * \param idx Multidimensional index.
+     * \return One-dimensional index.
+     *
+     * Row-major ordering is used.
+     */
     int operator()(const std::vector<int>& idx) const;
 
-    // Setter for shape
+    //! Shape of the layout in each dimension
     std::vector<int> shape() const;
-    // Getter for shape
+
+    //! Shape of the layout in each dimension
     int size() const;
 
+    //! Test if two layouts are equal
+    /*!
+     * \return True if the layouts have the same shape.
+     */
     bool operator==(const DataLayout& other) const;
+
+    //! Test if two layouts are not equal
     bool operator!=(const DataLayout& other) const;
 
     private:
-    std::vector<int> shape_;
+    std::vector<int> shape_; //!< Multidimensional shape of layout
     };
 
     } // namespace flyft

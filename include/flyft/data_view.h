@@ -10,9 +10,9 @@ namespace flyft
     {
 
 template<typename T>
-//! DataView
+//! Multidimensional array view
 /*!
- * Creates ability to view a certain section of the N-dimensional array
+ * DataView provides ability to view a certain section of the multidimensional array
  */
 
 class DataView
@@ -94,7 +94,14 @@ class DataView
         int current_;
         };
 
-    //! Overloading the constructor of the DataView class
+    //! Overloading the constructor
+    /*!
+     * \param data_ Pointer to the data.
+     * \param layout_ Layout of the data.
+     * \param start_ Start of the array.
+     * \param end_ End of the array.
+     */
+
     DataView() : DataView(nullptr, DataLayout()) {}
 
     DataView(pointer data, const DataLayout& layout) : DataView(data, layout, 0, layout.shape()) {}
@@ -104,9 +111,10 @@ class DataView
         {
         }
 
-    //! Mapping the N-dimensional index to 1D index
+    //! Map multi-dimensional array to one dimension
     /*!
-     * \param idx Array of indices
+     * \param idx Array of indices.
+     * \return One dimensional map of the multidimensional array.
      */
     reference operator()(const std::vector<int>& idx) const
         {
@@ -115,47 +123,66 @@ class DataView
         return data_[layout_(temp)];
         }
 
+    //! Shape of the one-dimensional array
     int shape() const
         {
         return end_ - start_;
         }
 
+    //! Number of elements in the one-dimensional array
     int size() const
         {
         return shape();
         }
 
+    //! Test if pointer to the data is not a null pointer
+    /*!
+     * \return True if pointer is not a null pointer.
+     */
     explicit operator bool() const
         {
         return (data_ != nullptr);
         }
 
+    //! Start point of the data
+    /*!
+     * \return data at index position 0.
+     */
     Iterator begin() const
         {
         return Iterator(*this, 0);
         }
 
+    //! End point of the data
+    /*!
+     * \return data at end of the array.
+     */
     Iterator end() const
         {
         return Iterator(*this, shape());
         }
 
+    //! Test if two views are equal
+    /*!
+     * \return True if the view have the same pointer, layout, start and end points.
+     */
     bool operator==(const DataView& other) const
         {
         return (data_ == other.data_ && layout_ == other.layout_ && start_ == other.start_
                 && end_ == other.end_);
         }
 
+    //! Test if two views are not equal
     bool operator!=(const DataView& other) const
         {
         return !(*this == other);
         }
 
     private:
-    pointer data_;
-    DataLayout layout_;
-    int start_;
-    int end_;
+    pointer data_;      //!< Pointer to the array
+    DataLayout layout_; //!< Multidimensional array layout
+    int start_;         //!< Start of the array
+    int end_;           //!< End of the array
     };
 
     } // namespace flyft

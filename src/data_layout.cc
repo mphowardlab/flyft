@@ -6,17 +6,12 @@
 namespace flyft
     {
 
-// Default constructor
 DataLayout::DataLayout() {}
 
-// Overloading DataLayout constructor
 DataLayout::DataLayout(const std::vector<int>& shape) : shape_(shape) {}
 
 int DataLayout::operator()(const std::vector<int>& idx) const
     {
-    /* Strided indexing scheme for converting
-    N dimensional array into one dimensional array*/
-
     int N = idx.size();
     int one_d_idx = 0;
     int stride = 1;
@@ -30,14 +25,12 @@ int DataLayout::operator()(const std::vector<int>& idx) const
     }
 
 std::vector<int> DataLayout::shape() const
-    // Setter for the shape of the data structure
     {
     return shape_;
     }
 
 int DataLayout::size() const
     {
-    // Get size of the array
     int N = shape_.size();
     int size = 1;
     for (int i = 0; i < N; ++i)
