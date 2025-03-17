@@ -9,7 +9,7 @@ namespace flyft
     {
 //! Multidimensional array layout
 /*!
- * DataLayout maps an N-dimensional index to one-dimensional
+ * DataLayout maps an N-dimensional index to a one-dimensional
  * index using row-major ordering. Negative indexes are supported
  * and interpreted as relative to the zero-index.
  */
