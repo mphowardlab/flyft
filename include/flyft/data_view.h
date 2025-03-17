@@ -121,15 +121,15 @@ class DataView
         {
         }
 
-    //! Map multi-dimensional array to one dimension
+    //! Reference to the referenced element of the data.
     /*!
-     * \param idx Array of indices.
-     * \return One dimensional map of the multidimensional array.
+     * \param idx Array of indices for the multiple dimensions
+     * \return reference to the referenced data
      */
     reference operator()(const std::vector<int>& idx) const
         {
         std::vector<int> temp;
-        std::transform(idx.begin(), idx.end(), start_, temp.begin(), std::plus<int>());
+        std::transform(idx.begin(), idx.end(), start_.begin(), temp.begin(), std::plus<int>());
         return data_[layout_(temp)];
         }
 
