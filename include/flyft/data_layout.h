@@ -19,7 +19,7 @@ class DataLayout
     DataLayout();
     //! Constructor for the DataLayout
     /*!
-     * \param shape_ Shape of the index array.
+     * \param shape Shape of the index array.
      */
     explicit DataLayout(const std::vector<int>& shape);
 
@@ -32,7 +32,7 @@ class DataLayout
      */
     int operator()(const std::vector<int>& idx) const;
 
-    //! Shape of the layout in each dimension
+    //! Total number of elements in the layout
     std::vector<int> shape() const;
 
     //! Shape of the layout in each dimension
