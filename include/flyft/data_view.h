@@ -14,7 +14,6 @@ template<typename T>
 /*!
  * DataView provides ability to view a certain section of the multidimensional array
  */
-
 class DataView
     {
     public:
@@ -94,19 +93,30 @@ class DataView
         int current_;
         };
 
-    //! Overloading the constructor
+    //! Empty constructor
+    /*!
+     * The default is a null pointer to a zero-size layout.
+     */
+    DataView() : DataView(nullptr, DataLayout()) {}
+
+    //! Constructor
+    /*!
+     * \param data_ Pointer to the data.
+     * \param layout_ Layout of the data.
+     */
+
+    DataView(pointer data, const DataLayout& layout) : DataView(data, layout, 0, layout.shape()) {}
+
+    //! Constructor
     /*!
      * \param data_ Pointer to the data.
      * \param layout_ Layout of the data.
      * \param start_ Start of the array.
      * \param end_ End of the array.
+     *
+     * Initializes the view of the multi-dimensional array.
      */
-
-    DataView() : DataView(nullptr, DataLayout()) {}
-
-    DataView(pointer data, const DataLayout& layout) : DataView(data, layout, 0, layout.shape()) {}
-
-    DataView(pointer data, const DataLayout& layout, int start, int end)
+    DataView(pointer data, const DataLayout& layout, std::vector<int> start, std::vector<int> end)
         : data_(data), layout_(layout), start_(start), end_(end)
         {
         }
@@ -118,26 +128,37 @@ class DataView
      */
     reference operator()(const std::vector<int>& idx) const
         {
-        std::vector<int>& temp;
+        std::vector<int> temp;
         std::transform(idx.begin(), idx.end(), start_, temp.begin(), std::plus<int>());
         return data_[layout_(temp)];
         }
 
-    //! Shape of the one-dimensional array
-    int shape() const
+    //! Shape of the multi-dimensional array
+    std::vector<int> shape() const
         {
-        return end_ - start_;
+        if (start_.size() != end_.size())
+            {
+            throw std::invalid_argument(
+                "Arrays must have the same size for element-wise subtraction.");
+            }
+
+        std::vector<int>& result(start_.size());
+        for (int i = 0; i < start_.size(); ++i)
+            {
+            result[i] = start_[i] - end_[i];
+            }
+        return result;
         }
 
-    //! Number of elements in the one-dimensional array
+    //! Number of elements in the multi-dimensional array
     int size() const
         {
-        return shape();
+        return std::accumulate(shape().begin(), shape().end(), 1, std::multiplies<int>());
         }
 
     //! Test if pointer to the data is not a null pointer
     /*!
-     * \return True if pointer is not a null pointer.
+     * \return DataView is not null if it is a view of valid data.
      */
     explicit operator bool() const
         {
@@ -179,10 +200,10 @@ class DataView
         }
 
     private:
-    pointer data_;      //!< Pointer to the array
-    DataLayout layout_; //!< Multidimensional array layout
-    int start_;         //!< Start of the array
-    int end_;           //!< End of the array
+    pointer data_;           //!< Pointer to the array
+    DataLayout layout_;      //!< Multidimensional array layout
+    std::vector<int> start_; //!< Start of the array
+    std::vector<int> end_;   //!< End of the array
     };
 
     } // namespace flyft
