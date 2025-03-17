@@ -17,7 +17,7 @@ class DataLayout
     {
     public:
     DataLayout();
-    //! Constructor for the DataLayout
+    //! Constructor
     /*!
      * \param shape Shape of the index array.
      */
@@ -32,10 +32,10 @@ class DataLayout
      */
     int operator()(const std::vector<int>& idx) const;
 
-    //! Total number of elements in the layout
+    //! Shape of the layout in each dimension
     std::vector<int> shape() const;
 
-    //! Shape of the layout in each dimension
+    //! Total number of elements in the layout
     int size() const;
 
     //! Test if two layouts are equal
