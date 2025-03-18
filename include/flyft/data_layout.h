@@ -2,6 +2,7 @@
 #define FLYFT_DATA_LAYOUT_H_
 
 #include <iterator>
+#include <numeric>
 #include <type_traits>
 #include <vector>
 

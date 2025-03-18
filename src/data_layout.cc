@@ -31,13 +31,7 @@ std::vector<int> DataLayout::shape() const
 
 int DataLayout::size() const
     {
-    int N = shape_.size();
-    int size = 1;
-    for (int i = 0; i < N; ++i)
-        {
-        size *= shape_[i];
-        }
-    return size;
+    return std::accumulate(shape_.begin(), shape_.end(), 1, std::multiplies<int>());
     }
 
 bool DataLayout::operator==(const DataLayout& other) const
