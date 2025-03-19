@@ -1,27 +1,37 @@
 #include "flyft/data_layout.h"
 
 #include <utility>
+#include <vector>
 
 namespace flyft
     {
 
-DataLayout::DataLayout() : shape_(0) {}
+DataLayout::DataLayout() {}
 
-DataLayout::DataLayout(int shape) : shape_(shape) {}
+DataLayout::DataLayout(const std::vector<int>& shape) : shape_(shape) {}
 
-int DataLayout::operator()(int idx) const
+int DataLayout::operator()(const std::vector<int>& idx) const
     {
-    return idx;
+    int N = idx.size();
+    int one_d_idx = 0;
+    int stride = 1;
+    for (int k = N - 1; k >= 0; --k)
+        {
+        one_d_idx += idx[k] * stride;
+        stride *= shape_[k];
+        }
+
+    return one_d_idx;
     }
 
-int DataLayout::shape() const
+std::vector<int> DataLayout::shape() const
     {
     return shape_;
     }
 
 int DataLayout::size() const
     {
-    return shape();
+    return std::accumulate(shape_.begin(), shape_.end(), 1, std::multiplies<int>());
     }
 
 bool DataLayout::operator==(const DataLayout& other) const
@@ -33,5 +43,4 @@ bool DataLayout::operator!=(const DataLayout& other) const
     {
     return !(*this == other);
     }
-
     } // namespace flyft
