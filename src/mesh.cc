@@ -5,18 +5,28 @@
 namespace flyft
     {
 
-Mesh::Mesh(double lower_bound,
-           double upper_bound,
-           int shape,
+Mesh::Mesh(std::vector<double> lower_bound,
+           std::vector<double> upper_bound,
+           std::vector<int> shape,
            BoundaryType lower_bc,
            BoundaryType upper_bc)
     : lower_(lower_bound), shape_(shape), lower_bc_(lower_bc), upper_bc_(upper_bc), start_(0)
     {
-    step_ = (upper_bound - lower_bound) / shape_;
+    std::vector<double> step_;
+    std::transform(upper_bound.begin(),
+                   upper_bound.end(),
+                   lower_bound.begin(),
+                   step_.begin(),
+                   [](int i, int j) { return i - j });
+    std::transform(step_.begin(),
+                   step_.end(),
+                   shape_.begin(),
+                   step_.begin(),
+                   std::divides<double>());
     validateBoundaryCondition();
     }
 
-std::shared_ptr<Mesh> Mesh::slice(int start, int end) const
+std::shared_ptr<Mesh> Mesh::slice(std::vector<int> start, std::vector<int> end) const
     {
     if (lower_bc_ == BoundaryType::internal || upper_bc_ == BoundaryType::internal)
         {
@@ -37,14 +47,28 @@ std::shared_ptr<Mesh> Mesh::slice(int start, int end) const
     return m;
     }
 
-double Mesh::center(int i) const
+std::vector<double> Mesh::center(std::vector<int> i) const
     {
-    return lower_ + static_cast<double>(start_ + i + 0.5) * step_;
+    std::vector<double> temp;
+    std::transform(i.begin(),
+                   i.end(),
+                   start_.begin(),
+                   temp.begin(),
+                   [](int i, int j) { return static_cast<double>(i + j + 0.5) * step_ });
+    std::transform(temp.begin(), temp.end(), lower_.begin(), temp.begin(), std::plus<int>());
+    return temp;
     }
 
-int Mesh::bin(double x) const
+std::vector<int> Mesh::bin(std::vector<double> x) const
     {
-    return static_cast<int>((x - lower_) / step_) - start_;
+    std::vector<int> temp;
+    std::transform(x.begin(),
+                   x.end(),
+                   lower_.begin(),
+                   temp.begin(),
+                   [](int i, int j) { return static_cast<int>((i - j) / step_) });
+    std::transform(temp.begin(), temp.end(), start_.begin(), temp.begin().std::minus<int>);
+    return temp;
     }
 
 double Mesh::lower_bound() const
@@ -52,8 +76,15 @@ double Mesh::lower_bound() const
     return lower_bound(0);
     }
 
-double Mesh::lower_bound(int i) const
+std::vector<double> Mesh::lower_bound(std::vector<int> i) const
     {
+    std::vector<double> temp;
+    std::transform(i.begin(),
+                   i.end(),
+                   start_.begin(),
+                   temp.begin(),
+                   [](int i, int j) { return static_cast<double>((i + j) * step_) });
+    std::transform(temp.begin(), temp.end(), start_.begin(), temp.begin().std::minus<double>);
     return lower_ + (start_ + i) * step_;
     }
 
@@ -72,12 +103,12 @@ double Mesh::L() const
     return asLength(shape_);
     }
 
-int Mesh::shape() const
+std::vector<int> Mesh::shape() const
     {
     return shape_;
     }
 
-double Mesh::step() const
+std::vector<double> Mesh::step() const
     {
     return step_;
     }
@@ -92,34 +123,34 @@ double Mesh::asLength(int shape) const
     return shape * step_;
     }
 
-double Mesh::integrateSurface(int idx, double j_lo, double j_hi) const
+double Mesh::integrateSurface(std::vector<int> idx, double j_lo, double j_hi) const
     {
     return area(idx) * j_lo - area(idx + 1) * j_hi;
     }
 
-double Mesh::integrateSurface(int idx, const DataView<double>& j) const
+double Mesh::integrateSurface(std::vector<int> idx, const DataView<double>& j) const
     {
     return integrateSurface(idx, j(idx), j(idx + 1));
     }
 
-double Mesh::integrateSurface(int idx, const DataView<const double>& j) const
+double Mesh::integrateSurface(std::vector<int> idx, const DataView<const double>& j) const
     {
-    return integrateSurface(idx, j(idx), j(idx + 1));
+    return integrateSurface(std::vector<int>, j(idx), j(idx + 1));
     }
 
-double Mesh::integrateVolume(int idx, double f) const
+double Mesh::integrateVolume(std::vector<int> idx, double f) const
     {
     return volume(idx) * f;
     }
 
-double Mesh::integrateVolume(int idx, const DataView<double>& f) const
+double Mesh::integrateVolume(std::vector<int> idx, const DataView<double>& f) const
     {
-    return integrateVolume(idx, f(idx));
+    return integrateVolume(std::vector<int> idx, f(idx));
     }
 
-double Mesh::integrateVolume(int idx, const DataView<const double>& f) const
+double Mesh::integrateVolume(std::vector<int> idx, const DataView<const double>& f) const
     {
-    return integrateVolume(idx, f(idx));
+    return integrateVolume(std::vector<int> idx, f(idx));
     }
 
 double Mesh::gradient(int idx, const DataView<double>& f) const
