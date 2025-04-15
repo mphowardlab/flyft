@@ -13,16 +13,10 @@ Mesh::Mesh(std::vector<double> lower_bound,
     : lower_(lower_bound), shape_(shape), lower_bc_(lower_bc), upper_bc_(upper_bc), start_(0)
     {
     std::vector<double> step_;
-    std::transform(upper_bound.begin(),
-                   upper_bound.end(),
-                   lower_bound.begin(),
-                   step_.begin(),
-                   [](int i, int j) { return i - j });
-    std::transform(step_.begin(),
-                   step_.end(),
-                   shape_.begin(),
-                   step_.begin(),
-                   std::divides<double>());
+    for (int idx = 0; idx < shape_.size(); ++idx)
+        {
+        step_.push_back((upper_bound[idx] - lower_bound[idx]) / shape_[idx]);
+        }
     validateBoundaryCondition();
     }
 
@@ -50,55 +44,54 @@ std::shared_ptr<Mesh> Mesh::slice(std::vector<int> start, std::vector<int> end) 
 std::vector<double> Mesh::center(std::vector<int> i) const
     {
     std::vector<double> temp;
-    std::transform(i.begin(),
-                   i.end(),
-                   start_.begin(),
-                   temp.begin(),
-                   [](int i, int j) { return static_cast<double>(i + j + 0.5) * step_ });
-    std::transform(temp.begin(), temp.end(), lower_.begin(), temp.begin(), std::plus<int>());
+    for (int idx; idx < shape_.size(); ++idx)
+        {
+        temp.push_back(lower_[idx] + static_cast<double>(start_[idx] + i[idx] + 0.5))
+        }
     return temp;
     }
 
 std::vector<int> Mesh::bin(std::vector<double> x) const
     {
     std::vector<int> temp;
-    std::transform(x.begin(),
-                   x.end(),
-                   lower_.begin(),
-                   temp.begin(),
-                   [](int i, int j) { return static_cast<int>((i - j) / step_) });
-    std::transform(temp.begin(), temp.end(), start_.begin(), temp.begin().std::minus<int>);
+    for (int idx; idx < shape_.size(); ++idx)
+        {
+        temp.push_back(static_cast<int>((x[idx] - lower_[idx]) / step_[idx]) - start_[idx])
+        }
     return temp;
     }
 
-double Mesh::lower_bound() const
+std::vector<double> Mesh::lower_bound() const
     {
-    return lower_bound(0);
+    std::vector<int> temp(shape_.size(), 0) return lower_bound(temp);
     }
 
 std::vector<double> Mesh::lower_bound(std::vector<int> i) const
     {
     std::vector<double> temp;
-    std::transform(i.begin(),
-                   i.end(),
-                   start_.begin(),
-                   temp.begin(),
-                   [](int i, int j) { return static_cast<double>((i + j) * step_) });
-    std::transform(temp.begin(), temp.end(), start_.begin(), temp.begin().std::minus<double>);
-    return lower_ + (start_ + i) * step_;
+    for (int idx; idx < shape_.size(); ++idx)
+        {
+        temp.push_back(lower_[idx] + (start_[idx] + i[idx]) * step_[idx]);
+        }
+    return temp
     }
 
-double Mesh::upper_bound() const
+std::vector<double> Mesh::upper_bound() const
     {
     return lower_bound(shape_);
     }
 
-double Mesh::upper_bound(int i) const
+std::vector<double> Mesh::upper_bound(std::vector<int> i) const
     {
-    return lower_bound(i + 1);
+    std::vector<double> temp;
+    for (int idx; idx < shape_.size(); ++idx)
+        {
+        temp.push_back(i[idx] + 1);
+        }
+    return lower_bound(temp);
     }
 
-double Mesh::L() const
+std::vector<double> Mesh::L() const
     {
     return asLength(shape_);
     }
@@ -113,14 +106,24 @@ std::vector<double> Mesh::step() const
     return step_;
     }
 
-int Mesh::asShape(double dx) const
+std::vector<int> Mesh::asShape(std::vector<double> dx) const
     {
-    return static_cast<int>(std::ceil(dx / step_));
+    std::vector<int> temp;
+    for (int idx = 0; idx < shape_.size(); ++idx)
+        {
+        temp.push_back(static_cast<int>(std::ceil(dx[idx] / step_[idx])));
+        }
+    return temp;
     }
 
-double Mesh::asLength(int shape) const
+std::vector<double> Mesh::asLength(std::vector<int> shape) const
     {
-    return shape * step_;
+    std::vector<int> temp;
+    for (int idx = 0; idx < shape_.size(); ++idx)
+        {
+        temp.push_back(shape[idx] * step_[idx]);
+        }
+    return temp;
     }
 
 double Mesh::integrateSurface(std::vector<int> idx, double j_lo, double j_hi) const
