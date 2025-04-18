@@ -11,7 +11,6 @@ Mesh::Mesh(std::vector<double> lower_bound,
            BoundaryType upper_bc)
     : lower_(lower_bound), shape_(shape), lower_bc_(lower_bc), upper_bc_(upper_bc), start_(0)
     {
-    std::vector<double> step_;
     for (int idx = 0; idx < shape_.size(); ++idx)
         {
         step_.push_back((upper_bound[idx] - lower_bound[idx]) / shape_[idx]);
