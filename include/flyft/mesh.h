@@ -93,14 +93,14 @@ class Mesh
      * \param i Multidimensional bin index
      * \return Volume of the bin
      */
-    virtual double volume(int i) const = 0;
+    virtual std::vector<double> volume(int i) const = 0;
 
     //! Get the bin for a coordinate
     /*!
      * \param x Coordinate position of the bin
      * \return Bin index
      */
-    std::vector<int> bin(double x) const;
+    std::vector<int> bin(const std::vector<double>& x) const;
 
     //! Length of the mesh
     /*!
@@ -142,6 +142,7 @@ class Mesh
     double integrateSurface(const std::vector<int>& idx, double j_lo, double j_hi) const;
     double integrateSurface(const std::vector<int>& idx, const DataView<double>& j) const;
     double integrateSurface(const std::vector<int>& idx, const DataView<const double>& j) const;
+
     //! Get the integral of the volume over the mesh
     /*!
      * \param idx Multidimensional index
@@ -185,33 +186,28 @@ class Mesh
     };
 
 template<typename T>
-typename std::remove_const<T>::type Mesh::interpolate(std::vector<double> x,
-                                                      const DataView<T>& f) const
+typename std::remove_const<T>::type Mesh::interpolate(double x, const DataView<T>& f) const
     {
-    std::vector<T> temp;
-    for (int k = 0; k < shape_.size(); ++k)
+    const auto idx = bin(x);
+    const auto x_c = center(idx);
+    double x_0, x_1;
+    typename std::remove_const<T>::type f_0, f_1;
+    if (x < x_c)
         {
-        const auto idx = bin(x[k]);
-        const auto x_c = center(idx);
-        double x_0, x_1;
-        typename std::remove_const<T>::type f_0, f_1;
-        if (x < x_c)
-            {
-            x_0 = center(idx - 1);
-            x_1 = x_c;
-            f_0 = f(idx - 1);
-            f_1 = f(idx);
-            }
-        else
-            {
-            x_0 = x_c;
-            x_1 = center(idx + 1);
-            f_0 = f(idx);
-            f_1 = f(idx + 1);
-            }
-        temp.push_back(f_0 + (x - x_0) * (f_1 - f_0) / (x_1 - x_0));
+        x_0 = center(idx - 1);
+        x_1 = x_c;
+        f_0 = f(idx - 1);
+        f_1 = f(idx);
         }
-    return temp;
+    else
+        {
+        x_0 = x_c;
+        x_1 = center(idx + 1);
+        f_0 = f(idx);
+        f_1 = f(idx + 1);
+        }
+
+    return f_0 + (x - x_0) * (f_1 - f_0) / (x_1 - x_0);
     }
 
     } // namespace flyft

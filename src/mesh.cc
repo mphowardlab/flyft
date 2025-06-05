@@ -48,7 +48,7 @@ std::vector<double> Mesh::center(const std::vector<int>& i) const
     std::vector<double> temp;
     for (int idx; idx < shape_.size(); ++idx)
         {
-        temp.push_back(lower_[idx] + static_cast<double>(start_[idx] + i[idx] + 0.5))
+        temp.push_back(lower_[idx] + static_cast<double>(start_[idx] + i[idx] + 0.5));
         }
     return temp;
     }
@@ -58,14 +58,15 @@ std::vector<int> Mesh::bin(const std::vector<double>& x) const
     std::vector<int> temp;
     for (int idx; idx < shape_.size(); ++idx)
         {
-        temp.push_back(static_cast<int>((x[idx] - lower_[idx]) / step_[idx]) - start_[idx])
+        temp.push_back(static_cast<int>((x[idx] - lower_[idx]) / step_[idx]) - start_[idx]);
         }
     return temp;
     }
 
 std::vector<double> Mesh::lower_bound() const
     {
-    std::vector<int> temp(shape_.size(), 0) return lower_bound(temp);
+    std::vector<int> temp(shape_.size(), 0);
+    return lower_bound(temp);
     }
 
 std::vector<double> Mesh::lower_bound(const std::vector<int>& i) const
