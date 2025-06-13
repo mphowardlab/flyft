@@ -33,6 +33,8 @@ class Mesh
          BoundaryType lower_bc,
          BoundaryType upper_bc);
 
+    virtual ~Mesh();
+
     //! Slice multidimensional index
     /*!
      * \param start Multidimensional start index.

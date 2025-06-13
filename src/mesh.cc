@@ -18,6 +18,8 @@ Mesh::Mesh(std::vector<double> lower_bound,
     validateBoundaryCondition();
     }
 
+Mesh::~Mesh() {}
+
 std::shared_ptr<Mesh> Mesh::slice(const std::vector<int>& start, const std::vector<int>& end) const
     {
     if (lower_bc_ == BoundaryType::internal || upper_bc_ == BoundaryType::internal)
