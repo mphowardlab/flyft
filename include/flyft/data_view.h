@@ -3,39 +3,43 @@
 
 #include "flyft/data_layout.h"
 
-#include <algorithm>
-#include <functional>
-
 namespace flyft
     {
 
-template<typename T>
-//! Multidimensional array view
+//! Accessor to a multidimensional array.
 /*!
- * DataView provides ability to view a certain section of the multidimensional array
+ * A Dataview interprets a pointer as a multidimensional array according to a particular DataLayout.
+ * It provides random access to elements by multi-index, as well as a forward iterator.
+ *
+ * The view can be scoped to a subset of only some of the valid multi-indexes. This is useful for
+ * accessing only the elements of the array that are of interest when the array is padded. When the
+ * view is scoped, negative indexes can be used and are interpreted relative to the starting
+ * multi-index of the scope. One use of negative indexes, in conjunction with padding, is to apply
+ * finite-difference stencils near edges without special-case handling. It is assumed that the
+ * resulting index is valid for the layout.
  */
+template<typename T>
 class DataView
     {
     public:
-    using value_type = typename std::remove_reference<T>::type; // Extracts datatype
-    using pointer = value_type*;                                // Pointer to the datatype
-    using reference = value_type&;                              // Reference to the datatype
+    using value_type = typename std::remove_reference<T>::type; //<! Data type
+    using pointer = value_type*;                                //<! Pointer to data type
+    using reference = value_type&;                              //<! Reference to data type
 
     class Iterator
         {
         public:
-        using iterator_category = std::bidirectional_iterator_tag;
-        using difference_type = int;
-        using value_type = DataView::value_type;
-        using pointer = DataView::pointer;
-        using reference = DataView::reference;
+        using value_type = DataView::value_type; //!< Data type
+        using pointer = DataView::pointer;       //!< Pointer to data type
+        using reference = DataView::reference;   //!< Reference to data type
 
-        // Overloading the constructor of the iterator class
+        //! Empty constructor
         Iterator() : Iterator(DataView()) {}
 
+        //! Construct from view
         explicit Iterator(const DataView& view) : Iterator(view, 0) {}
 
-        Iterator(const DataView& view, int current) : view_(view), current_(current) {}
+        Iterator(const DataView& view, size_t current) : view_(view), current_(current) {}
 
         reference operator*() const
             {
@@ -65,19 +69,6 @@ class DataView
             return tmp;
             }
 
-        Iterator& operator--()
-            {
-            --current_;
-            return *this;
-            }
-
-        Iterator operator--(int)
-            {
-            Iterator tmp(*this);
-            --current_;
-            return tmp;
-            }
-
         bool operator==(const Iterator& other) const
             {
             return (get() == other.get());
@@ -90,62 +81,67 @@ class DataView
 
         private:
         DataView view_;
-        int current_;
+        size_t current_flat_index;
         };
 
-    //! Empty constructor
-    /*!
-     * The default is a null pointer to a zero-size layout.
-     */
-    DataView() : DataView(nullptr, DataLayout()) {}
+    //! Empty constructor.
+    DataView() : data_(nullptr), layout_(DataLayout()), start_(nullptr), end_(nullptr) {}
 
-    //! Constructor
+    //! Constructor.
+    /*!
+     * \param data Pointer to the data.
+     * \param layout Layout of the data.
+     */
+    DataView(pointer data, const DataLayout& layout)
+        : data_(data), layout_(layout), start_(nullptr), end_(nullptr)
+        {
+        }
+
+    //! Scoped-view constructor.
     /*!
      * \param data_ Pointer to the data.
      * \param layout_ Layout of the data.
+     * \param start_ Lower bound of multidimensional indexes within scope.
+     * \param end_ Upper bound of multidimensional indexes within scope.
      */
-
-    DataView(pointer data, const DataLayout& layout) : DataView(data, layout, 0, layout.shape()) {}
-
-    //! Constructor
-    /*!
-     * \param data_ Pointer to the data.
-     * \param layout_ Layout of the data.
-     * \param start_ Start of the array.
-     * \param end_ End of the array.
-     *
-     * Initializes the view of the multi-dimensional array.
-     */
-    DataView(pointer data, const DataLayout& layout, std::vector<int> start, std::vector<int> end)
+    DataView(pointer data, const DataLayout& layout, const int* start, const int* end)
         : data_(data), layout_(layout), start_(start), end_(end)
         {
         }
 
-    //! Reference to the referenced element of the data.
+    // non-copyable, non-movable
+    DataView(const DataView<T>& other) = delete;
+    DataView& operator=(const DataView<T>& other) = delete;
+    DataView(const DataView<T>&& other) = delete;
+    DataView& operator=(const DataView<T>&& other) = delete;
+
+    //! Destructor.
+    ~DataView() {}
+
+    //! Access an element of the data at a given multidimensional index.
     /*!
-     * \param idx Array of indices for the multiple dimensions
-     * \return reference to the referenced data
+     * \param multi_index Multidimensional index to access.
+     * \return Data element.
      */
-    reference operator()(const std::vector<int>& idx) const
+    reference operator()(const int* multi_index) const
         {
-        std::vector<int> temp;
-        std::transform(idx.begin(), idx.end(), start_.begin(), temp.begin(), std::plus<int>());
-        return data_[layout_(temp)];
+        return data_[layout_(multi_index, start_)];
         }
 
+    //! Number of dimensions.
+    char num_dimensions() const
+        {
+        return layout_.num_dimensions();
+        }
+
+#if 0
     //! Shape of the multi-dimensional array
     std::vector<int> shape() const
         {
-        if (start_.size() != end_.size())
+        std::vector<int>& result(layout_.num_dimensions());
+        for (char dim = 0; dim < layout_.num_dimensions(); ++dim)
             {
-            throw std::invalid_argument(
-                "Arrays must have the same size for element-wise subtraction.");
-            }
-
-        std::vector<int>& result(start_.size());
-        for (int i = 0; i < start_.size(); ++i)
-            {
-            result[i] = start_[i] - end_[i];
+            result[i] = end_[dim] - start_[dim];
             }
         return result;
         }
@@ -155,10 +151,11 @@ class DataView
         {
         return std::accumulate(shape().begin(), shape().end(), 1, std::multiplies<int>());
         }
+#endif
 
-    //! Test if pointer to the data is not a null pointer
+    //! Test if view is not null
     /*!
-     * \return DataView is not null if it is a view of valid data.
+     * \returns True if data pointer being viewed is not null.
      */
     explicit operator bool() const
         {
@@ -183,27 +180,11 @@ class DataView
         return Iterator(*this, shape());
         }
 
-    //! Test if two views are equal
-    /*!
-     * \return True if the view have the same pointer, layout, start and end points.
-     */
-    bool operator==(const DataView& other) const
-        {
-        return (data_ == other.data_ && layout_ == other.layout_ && start_ == other.start_
-                && end_ == other.end_);
-        }
-
-    //! Test if two views are not equal
-    bool operator!=(const DataView& other) const
-        {
-        return !(*this == other);
-        }
-
     private:
-    pointer data_;           //!< Pointer to the array
-    DataLayout layout_;      //!< Multidimensional array layout
-    std::vector<int> start_; //!< Start of the array
-    std::vector<int> end_;   //!< End of the array
+    pointer data_;      //!< Pointer to the array
+    DataLayout layout_; //!< Multidimensional array layout
+    int* start_;        //!< Start of scoped view
+    int* end_;          //!< End of scoped view
     };
 
     } // namespace flyft
