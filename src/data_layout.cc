@@ -5,37 +5,37 @@
 namespace flyft
     {
 
-DataLayout::DataLayout() : shape_(nullptr), num_dimensions_(0), size_(0) {}
+DataLayout::DataLayout() : num_dimensions_(0), shape_(nullptr), size_(0) {}
 
-DataLayout::DataLayout(const int* shape, char num_dimensions)
+DataLayout::DataLayout(char num_dimensions, const int* shape)
     {
-    reset(shape, num_dimensions);
+    reset(num_dimensions, shape);
     }
 
 DataLayout::DataLayout(const DataLayout& other)
     {
-    reset(other.shape_, other.num_dimensions_);
+    reset(other.num_dimensions_, other.shape_);
     }
 
 DataLayout& DataLayout::operator=(const DataLayout& other)
     {
     if (this != &other)
         {
-        reset(other.shape_, other.num_dimensions_);
+        reset(other.num_dimensions_, other.shape_);
         }
     return *this;
     }
 
 DataLayout::DataLayout(const DataLayout&& other)
-    : shape_(std::move(other.shape_)), num_dimensions_(std::move(other.num_dimensions_)),
+    : num_dimensions_(std::move(other.num_dimensions_)), shape_(std::move(other.shape_)),
       size_(std::move(other.size_))
     {
     }
 
 DataLayout& DataLayout::operator=(const DataLayout&& other)
     {
-    shape_ = std::move(other.shape_);
     num_dimensions_ = std::move(other.num_dimensions_);
+    shape_ = std::move(other.shape_);
     size_ = std::move(other.size_);
     return *this;
     }
@@ -126,14 +126,14 @@ void DataLayout::operator()(int* multi_index, size_t flat_index, const int* offs
         }
     }
 
-const int* DataLayout::shape() const
-    {
-    return shape_;
-    }
-
 char DataLayout::num_dimensions() const
     {
     return num_dimensions_;
+    }
+
+const int* DataLayout::shape() const
+    {
+    return shape_;
     }
 
 size_t DataLayout::size() const
@@ -173,14 +173,15 @@ bool DataLayout::operator!=(const DataLayout& other) const
     return !(*this == other);
     }
 
-void DataLayout::reset(const int* shape, char num_dimensions)
+void DataLayout::reset(char num_dimensions, const int* shape)
     {
     if (shape && num_dimensions > 0)
         {
         // free shape if it is allocated but the wrong size
         if (shape_ && num_dimensions_ != num_dimensions)
             {
-            delete shape_;
+            delete[] shape_;
+            shape_ = nullptr;
             }
 
         // (re-)allocate shape memory if needed
@@ -202,7 +203,8 @@ void DataLayout::reset(const int* shape, char num_dimensions)
         {
         if (shape_)
             {
-            delete shape_;
+            delete[] shape_;
+            shape_ = nullptr;
             }
         num_dimensions_ = 0;
         size_ = 0;

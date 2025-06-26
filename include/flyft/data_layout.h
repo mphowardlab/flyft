@@ -22,10 +22,10 @@ class DataLayout
 
     //! Constructor
     /*!
-     * \param shape Shape of the array.
      * \param num_dimensions Number of dimensions.
+     * \param shape Number of elements per dimension.
      */
-    DataLayout(const int* shape, char num_dimensions);
+    DataLayout(char num_dimensions, const int* shape);
 
     //! Copy constructor
     DataLayout(const DataLayout& other);
@@ -74,11 +74,11 @@ class DataLayout
      */
     void operator()(int* multi_index, size_t flat_index, const int* offset) const;
 
-    //! Shape of each dimension.
-    const int* shape() const;
-
     //! Number of dimensions.
     char num_dimensions() const;
+
+    //! Number of elements per dimension.
+    const int* shape() const;
 
     //! Total number of elements.
     size_t size() const;
@@ -90,12 +90,12 @@ class DataLayout
     bool operator!=(const DataLayout& other) const;
 
     private:
-    int* shape_;          //!< Shape of array along each dimension.
     char num_dimensions_; //!< Number of dimensions.
+    int* shape_;          //!< Number of elements per dimension.
     size_t size_;         //!< Total number of elements.
 
     //! Reset shape and dimensionality of layout
-    void reset(const int* shape, char num_dimensions);
+    void reset(char num_dimensions, const int* shape);
     };
 
     } // namespace flyft
