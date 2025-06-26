@@ -1,55 +1,101 @@
 #ifndef FLYFT_DATA_LAYOUT_H_
 #define FLYFT_DATA_LAYOUT_H_
 
-#include <iterator>
-#include <numeric>
-#include <type_traits>
-#include <vector>
+#include <stddef.h>
 
 namespace flyft
     {
-//! Multidimensional array layout
+
+//! Memory layout of a multidimensional array.
 /*!
- * DataLayout maps an N-dimensional index to a one-dimensional
- * index using row-major ordering. Negative indexes are supported
- * and interpreted as relative to the zero-index.
+ * A multidimensional array has a number of dimensions \a N. Its shape is the number of elements
+ * along each dimension, and its size is the total number of elements (product of the shape). An
+ * element of the array can be accessed by a multi-index, which is a length \a N array. The array is
+ * layed out contiguously in one-dimensional memory using generalized row-major ordering, meaning
+ * that the first index is the "slowest" varying and the last index is the "fastest" varying.
  */
 class DataLayout
     {
     public:
+    //! Empty constructor
     DataLayout();
+
     //! Constructor
     /*!
-     * \param shape Shape of the index array.
+     * \param shape Shape of the array.
+     * \param num_dimensions Number of dimensions.
      */
-    explicit DataLayout(const std::vector<int>& shape);
+    DataLayout(const int* shape, char num_dimensions);
 
-    //! Map a multidimensional index to a one-dimensional index
+    //! Copy constructor
+    DataLayout(const DataLayout& other);
+
+    //! Copy assignment operator
+    DataLayout& operator=(const DataLayout& other);
+
+    //! Move constructor
+    DataLayout(const DataLayout&& other);
+
+    //! Move assignment operator
+    DataLayout& operator=(const DataLayout&& other);
+
+    //! Destructor
+    ~DataLayout();
+
+    //! Map a multidimensional index to a one-dimensional index.
     /*!
-     * \param idx Multidimensional index.
+     * \param multi_index Multidimensional index.
+     * \return One-dimensional index.
+     */
+    size_t operator()(const int* multi_index) const;
+
+    //! Map a multidimensional index offset by another into a one-dimensional index.
+    /*!
+     * \param multi_index Multidimensional index.
+     * \param offset Offset for multidimensional index.
      * \return One-dimensional index.
      *
-     * Row-major ordering is used.
+     * The total multidimensional index is assumed to be valid.
      */
-    int operator()(const std::vector<int>& idx) const;
+    size_t operator()(const int* multi_index, const int* offset) const;
 
-    //! Shape of the layout in each dimension
-    std::vector<int> shape() const;
-
-    //! Total number of elements in the layout
-    int size() const;
-
-    //! Test if two layouts are equal
+    //! Map a one-dimensional index to a multidimensional index.
     /*!
-     * \return True if the layouts have the same shape.
+     * \param multi_index Multidimensional index.
+     * \param flat_index One-dimensional index.
      */
+    void operator()(int* multi_index, size_t flat_index) const;
+
+    //! Map a one-dimensional index to a multidimensional index offset.
+    /*!
+     * \param multi_index Multidimensional index.
+     * \param flat_index One-dimensional index.
+     * \param offset Offset for multidimensional index.
+     */
+    void operator()(int* multi_index, size_t flat_index, const int* offset) const;
+
+    //! Shape of each dimension.
+    const int* shape() const;
+
+    //! Number of dimensions.
+    char num_dimensions() const;
+
+    //! Total number of elements.
+    size_t size() const;
+
+    //! Test if two layouts are equal.
     bool operator==(const DataLayout& other) const;
 
-    //! Test if two layouts are not equal
+    //! Test if two layouts are not equal.
     bool operator!=(const DataLayout& other) const;
 
     private:
-    std::vector<int> shape_; //!< Multidimensional shape of layout
+    int* shape_;          //!< Shape of array along each dimension.
+    char num_dimensions_; //!< Number of dimensions.
+    size_t size_;         //!< Total number of elements.
+
+    //! Reset shape and dimensionality of layout
+    void reset(const int* shape, char num_dimensions);
     };
 
     } // namespace flyft
