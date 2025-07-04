@@ -3,6 +3,8 @@
 
 #include "flyft/data_layout.h"
 
+#include <type_traits>
+
 namespace flyft
     {
 
@@ -43,7 +45,7 @@ class DataView
         Iterator(const DataView& view, int* current) : view_(view)
             {
             current_ = new int[view_.num_dimensions()];
-            for (char dim = 0; dim < view_.num_dimensions(); ++dim)
+            for (int dim = 0; dim < view_.num_dimensions(); ++dim)
                 {
                 current_[dim] = (current) ? current[dim] : 0;
                 }
@@ -91,7 +93,7 @@ class DataView
         Iterator& operator++()
             {
             // increment the multi-index of the last dimension by 1
-            char dim = view_.num_dimensions() - 1;
+            int dim = view_.num_dimensions() - 1;
             ++current_[dim];
 
             // then, carry forward
@@ -133,7 +135,7 @@ class DataView
         start_ = new int[layout_.num_dimensions()];
         shape_ = new int[layout_.num_dimensions()];
         const auto layout_shape = layout._shape();
-        for (char dim = 0; dim < layout_.num_dimensions(); ++dim)
+        for (int dim = 0; dim < layout_.num_dimensions(); ++dim)
             {
             start_[dim] = 0;
             shape_[dim] = layout_shape[dim];
@@ -152,7 +154,7 @@ class DataView
         {
         start_ = new int[layout_.num_dimensions()];
         shape_ = new int[layout_.num_dimensions()];
-        for (char dim = 0; dim < layout_.num_dimensions(); ++dim)
+        for (int dim = 0; dim < layout_.num_dimensions(); ++dim)
             {
             start_[dim] = start[dim];
             shape_[dim] = shape[dim];
@@ -183,7 +185,7 @@ class DataView
         }
 
     //! Number of dimensions.
-    char num_dimensions() const
+    int num_dimensions() const
         {
         return layout_.num_dimensions();
         }
@@ -201,7 +203,7 @@ class DataView
         if (shape_)
             {
             size = 1;
-            for (char dim = 0; dim < layout_.num_dimensions(); ++dim)
+            for (int dim = 0; dim < layout_.num_dimensions(); ++dim)
                 {
                 size *= shape_[dim];
                 }

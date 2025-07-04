@@ -25,7 +25,7 @@ class DataLayout
      * \param num_dimensions Number of dimensions.
      * \param shape Number of elements per dimension.
      */
-    DataLayout(char num_dimensions, const int* shape);
+    DataLayout(int num_dimensions, const int* shape);
 
     //! Copy constructor
     DataLayout(const DataLayout& other);
@@ -75,7 +75,7 @@ class DataLayout
     void operator()(int* multi_index, size_t flat_index, const int* offset) const;
 
     //! Number of dimensions.
-    char num_dimensions() const;
+    int num_dimensions() const;
 
     //! Number of elements per dimension.
     const int* shape() const;
@@ -90,12 +90,12 @@ class DataLayout
     bool operator!=(const DataLayout& other) const;
 
     private:
-    char num_dimensions_; //!< Number of dimensions.
-    int* shape_;          //!< Number of elements per dimension.
-    size_t size_;         //!< Total number of elements.
+    int num_dimensions_; //!< Number of dimensions.
+    int* shape_;         //!< Number of elements per dimension.
+    size_t size_;        //!< Total number of elements.
 
     //! Reset shape and dimensionality of layout
-    void reset(char num_dimensions, const int* shape);
+    void reset(int num_dimensions, const int* shape);
     };
 
     } // namespace flyft

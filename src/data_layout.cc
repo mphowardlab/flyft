@@ -7,7 +7,7 @@ namespace flyft
 
 DataLayout::DataLayout() : num_dimensions_(0), shape_(nullptr), size_(0) {}
 
-DataLayout::DataLayout(char num_dimensions, const int* shape)
+DataLayout::DataLayout(int num_dimensions, const int* shape)
     {
     reset(num_dimensions, shape);
     }
@@ -53,7 +53,7 @@ size_t DataLayout::operator()(const int* multi_index) const
         // multiply out using row-major ordering
         flat_index = 0;
         size_t stride = 1;
-        for (char dim = num_dimensions_ - 1; dim >= 0; --dim)
+        for (int dim = num_dimensions_ - 1; dim >= 0; --dim)
             {
             flat_index += multi_index[dim] * stride;
             stride *= shape_[dim];
@@ -81,7 +81,7 @@ size_t DataLayout::operator()(const int* multi_index, const int* offset) const
         // multiply out using row-major ordering
         flat_index = 0;
         size_t stride = 1;
-        for (char dim = num_dimensions_ - 1; dim >= 0; --dim)
+        for (int dim = num_dimensions_ - 1; dim >= 0; --dim)
             {
             flat_index += (offset[dim] + multi_index[dim]) * stride;
             stride *= shape_[dim];
@@ -101,7 +101,7 @@ void DataLayout::operator()(int* multi_index, size_t flat_index) const
         // repeatedly floor divide the flat index by stride associated with it
         size_t idx = flat_index;
         size_t stride = size_;
-        for (char dim = 0; dim < num_dimensions_ - 1; ++dim)
+        for (int dim = 0; dim < num_dimensions_ - 1; ++dim)
             {
             stride /= shape_[dim];
             multi_index[dim] = idx / stride;
@@ -119,14 +119,14 @@ void DataLayout::operator()(int* multi_index, size_t flat_index, const int* offs
     this->operator()(multi_index, flat_index);
     if (offset)
         {
-        for (char dim = 0; dim < num_dimensions_ - 1; ++dim)
+        for (int dim = 0; dim < num_dimensions_ - 1; ++dim)
             {
             multi_index[dim] -= offset[dim];
             }
         }
     }
 
-char DataLayout::num_dimensions() const
+int DataLayout::num_dimensions() const
     {
     return num_dimensions_;
     }
@@ -150,7 +150,7 @@ bool DataLayout::operator==(const DataLayout& other) const
         // then, shape must match along all dimensions
         if (shape_ && other.shape_)
             {
-            for (char i = 0; i < num_dimensions_; ++i)
+            for (int i = 0; i < num_dimensions_; ++i)
                 {
                 if (shape_[i] != other.shape_[i])
                     {
@@ -173,7 +173,7 @@ bool DataLayout::operator!=(const DataLayout& other) const
     return !(*this == other);
     }
 
-void DataLayout::reset(char num_dimensions, const int* shape)
+void DataLayout::reset(int num_dimensions, const int* shape)
     {
     if (shape && num_dimensions > 0)
         {
@@ -193,7 +193,7 @@ void DataLayout::reset(char num_dimensions, const int* shape)
         // always copy shape values and recompute size
         num_dimensions_ = num_dimensions;
         size_ = 1;
-        for (char i = 0; i < num_dimensions; ++i)
+        for (int i = 0; i < num_dimensions; ++i)
             {
             shape_[i] = shape[i];
             size_ *= shape[i];
