@@ -1,136 +1,321 @@
 #include "flyft/mesh.h"
 
+#include <assert.h>
 #include <cmath>
 
 namespace flyft
     {
-Mesh::Mesh(std::vector<double> lower_bound,
-           std::vector<double> upper_bound,
-           std::vector<int> shape,
+Mesh::Mesh(int num_orientation_dim,
+           int* shape,
+           double lower_bound,
+           double upper_bound,
            BoundaryType lower_bc,
            BoundaryType upper_bc)
-    : lower_(lower_bound), shape_(shape), lower_bc_(lower_bc), upper_bc_(upper_bc), start_(0)
+    : num_orientation_dim_(num_orientation_dim), num_dim_(num_position_dim_ + num_orientation_dim_),
+      start_(0), lower_bc_(lower_bc), upper_bc_(upper_bc)
     {
-    for (int idx = 0; idx < shape_.size(); ++idx)
+    allocate();
+
+    // copy position information
+    assert(num_position_dim_ == 1);
+    shape_[0] = shape[0];
+    lower_[0] = lower_bound;
+    step_[0] = (upper_bound - lower_bound) / shape[0];
+
+    // copy angle bounds
+    double angle_lower_bounds[3] {0, 0, 0};
+    double angle_upper_bounds[3] {2 * M_PI, M_PI, 2 * M_PI};
+    for (int dim = num_position_dim_; dim < num_dim_; ++dim)
         {
-        step_.push_back((upper_bound[idx] - lower_bound[idx]) / shape_[idx]);
+        shape_[dim] = shape_[dim];
+        lower_[dim] = angle_lower_bounds[dim - num_position_dim_];
+        step_[dim] = (angle_upper_bounds[dim - num_position_dim_] - lower_[dim]) / shape_[dim];
         }
-    validateBoundaryCondition();
     }
 
-Mesh::~Mesh() {}
-
-std::shared_ptr<Mesh> Mesh::slice(const std::vector<int>& start, const std::vector<int>& end) const
+Mesh::Mesh(const Mesh& other)
+    : num_orientation_dim_(other.num_orientation_dim_), num_dim_(other.num_dim_),
+      start_(other.start_), lower_bc_(other.lower_bc_), upper_bc_(other.upper_bc_)
     {
-    if (lower_bc_ == BoundaryType::internal || upper_bc_ == BoundaryType::internal)
+    allocate();
+    for (int dim = 0; dim < num_dim_; ++dim)
         {
-        throw std::runtime_error("Cannot slice a Mesh more than once.");
+        shape_[dim] = other.shape_[dim];
+        lower_[dim] = other.lower_[dim];
+        step_[dim] = other.step_[dim];
         }
+    }
 
-    auto m = clone();
-    for (int idx = 0; idx < start.size(); ++idx)
+Mesh& Mesh::operator=(const Mesh& other)
+    {
+    if (this != &other)
         {
-        m->start_[idx] = start[idx];
-        m->shape_[idx] = end[idx] - start[idx];
-        if (start[idx] > 0)
+        num_orientation_dim_ = other.num_orientation_dim_;
+        num_dim_ = other.num_dim_;
+        lower_bc_ = other.lower_bc_;
+        upper_bc_ = other.upper_bc_;
+        start_ = other.start_;
+
+        allocate();
+        for (int dim = 0; dim < num_dim_; ++dim)
             {
-            m->lower_bc_ = BoundaryType::internal;
+            shape_[dim] = other.shape_[dim];
+            lower_[dim] = other.lower_[dim];
+            step_[dim] = other.step_[dim];
             }
-        if (end < shape_)
-            {
-            m->upper_bc_ = BoundaryType::internal;
-            }
+        }
+    return *this;
+    }
+
+Mesh::Mesh(const Mesh&& other)
+    : num_orientation_dim_(std::move(other.num_orientation_dim_)),
+      num_dim_(std::move(other.num_dim_)), shape_(std::move(other.shape_)),
+      start_(std::move(other.start_)), lower_(std::move(other.lower_)),
+      step_(std::move(other.step_)), lower_bc_(std::move(other.lower_bc_)),
+      upper_bc_(std::move(other.upper_bc_))
+
+    {
+    }
+
+Mesh& Mesh::operator=(const Mesh&& other)
+    {
+    num_orientation_dim_ = std::move(other.num_orientation_dim_);
+    num_dim_ = std::move(other.num_dim_);
+    shape_ = std::move(other.shape_);
+    start_ = std::move(other.start_);
+    lower_ = std::move(other.lower_);
+    step_ = std::move(other.step_);
+    lower_bc_ = std::move(other.lower_bc_);
+    upper_bc_ = std::move(other.upper_bc_);
+    return *this;
+    }
+
+Mesh::~Mesh()
+    {
+    delete[] shape_;
+    delete[] lower_;
+    delete[] step_;
+    }
+
+std::shared_ptr<Mesh> Mesh::slice(int start, int end) const
+    {
+    auto m = clone();
+
+    assert(num_position_dim_ == 1);
+    m->start_ = start;
+    m->shape_[0] = end - start;
+    if (start > 0)
+        {
+        m->lower_bc_ = BoundaryType::internal;
+        }
+    if (end < shape_[0])
+        {
+        m->upper_bc_ = BoundaryType::internal;
         }
 
     return m;
     }
 
-std::vector<double> Mesh::center(const std::vector<int>& i) const
+void Mesh::cell_lower_bound(double* coordinate, const int* cell) const
     {
-    std::vector<double> temp;
-    for (int idx; idx < shape_.size(); ++idx)
+    cell_position_lower_bound(coordinate, cell);
+    cell_orientation_lower_bound(coordinate + num_position_dim_, cell);
+    }
+
+double Mesh::cell_lower_bound(int dimension, int index) const
+    {
+    if (dimension < num_position_dim_)
         {
-        temp.push_back(lower_[idx] + static_cast<double>(start_[idx] + i[idx] + 0.5));
+        assert(num_position_dim_ == 1);
+        return lower_[0] + (start_ + index) * step_[0];
         }
-    return temp;
-    }
-
-std::vector<int> Mesh::bin(const std::vector<double>& x) const
-    {
-    std::vector<int> temp;
-    for (int idx; idx < shape_.size(); ++idx)
+    else
         {
-        temp.push_back(static_cast<int>((x[idx] - lower_[idx]) / step_[idx]) - start_[idx]);
+        return lower_[dimension] + index * step_[dimension];
         }
-    return temp;
     }
 
-std::vector<double> Mesh::lower_bound() const
+void Mesh::cell_position_lower_bound(double* coordinate, const int* cell) const
     {
-    std::vector<int> temp(shape_.size(), 0);
-    return lower_bound(temp);
+    assert(num_position_dim_ == 1);
+    coordinate[0] = cell_lower_bound(0, cell[0]);
     }
 
-std::vector<double> Mesh::lower_bound(const std::vector<int>& i) const
+void Mesh::cell_orientation_lower_bound(double* coordinate, const int* cell) const
     {
-    std::vector<double> temp;
-    for (int idx; idx < shape_.size(); ++idx)
+    for (int orientation_dim = 0; orientation_dim < num_orientation_dim_; ++orientation_dim)
         {
-        temp.push_back(lower_[idx] + (start_[idx] + i[idx]) * step_[idx]);
+        coordinate[orientation_dim]
+            = cell_lower_bound(num_position_dim_ + orientation_dim, cell[orientation_dim]);
         }
-    return temp
     }
 
-std::vector<double> Mesh::upper_bound() const
+void Mesh::cell_center(double* coordinate, const int* cell) const
     {
-    return lower_bound(shape_);
+    cell_position_center(coordinate, cell);
+    cell_orientation_center(coordinate + num_position_dim_, cell);
     }
 
-std::vector<double> Mesh::upper_bound(const std::vector<int>& i) const
+double Mesh::cell_center(int dimension, int index) const
     {
-    std::vector<double> temp;
-    for (int idx; idx < shape_.size(); ++idx)
+    if (dimension < num_position_dim_)
         {
-        temp.push_back(i[idx] + 1);
+        assert(num_position_dim_ == 1);
+        return lower_[0] + (start_ + index + 0.5) * step_[0];
         }
-    return lower_bound(temp);
+    else
+        {
+        return lower_[dimension] + (index + 0.5) * step_[dimension];
+        }
     }
 
-std::vector<double> Mesh::L() const
+void Mesh::cell_position_center(double* coordinate, const int* cell) const
     {
-    return asLength(shape_);
+    assert(num_position_dim_ == 1);
+    coordinate[0] = cell_center(0, cell[0]);
     }
 
-std::vector<int> Mesh::shape() const
+void Mesh::cell_orientation_center(double* coordinate, const int* cell) const
+    {
+    for (int orientation_dim = 0; orientation_dim < num_orientation_dim_; ++orientation_dim)
+        {
+        coordinate[orientation_dim]
+            = cell_center(num_position_dim_ + orientation_dim, cell[orientation_dim]);
+        }
+    }
+
+void Mesh::cell_upper_bound(double* coordinate, const int* cell) const
+    {
+    cell_position_upper_bound(coordinate, cell);
+    cell_orientation_upper_bound(coordinate + num_position_dim_, cell);
+    }
+
+double Mesh::cell_upper_bound(int dimension, int index) const
+    {
+    if (dimension < num_position_dim_)
+        {
+        assert(num_position_dim_ == 1);
+        return lower_[0] + (start_ + index + 1) * step_[0];
+        }
+    else
+        {
+        return lower_[dimension] + (index + 1) * step_[dimension];
+        }
+    }
+
+void Mesh::cell_position_upper_bound(double* coordinate, const int* cell) const
+    {
+    assert(num_position_dim_ == 1);
+    coordinate[0] = cell_upper_bound(0, cell[0]);
+    }
+
+void Mesh::cell_orientation_upper_bound(double* coordinate, const int* cell) const
+    {
+    for (int orientation_dim = 0; orientation_dim < num_orientation_dim_; ++orientation_dim)
+        {
+        coordinate[orientation_dim]
+            = cell_upper_bound(num_position_dim_ + orientation_dim, cell[orientation_dim]);
+        }
+    }
+
+double Mesh::cell_volume(const int* cell) const
+    {
+    return cell_position_volume(cell) * cell_orientation_volume(cell);
+    }
+
+double Mesh::cell_orientation_volume(const int* cell) const
+    {
+    // start with integral being zero in case no orientation coordinates
+    double V = 0;
+
+    // alpha integral is step size
+    if (num_orientation_dim_ >= 1)
+        {
+        V = step_[num_position_dim_ + 0];
+        }
+
+    // beta integral is -cos(beta)
+    if (num_orientation_dim_ >= 2)
+        {
+        const int beta_dim = num_position_dim_ + 1;
+        const double beta_0 = cell_lower_bound(beta_dim, cell[beta_dim]);
+        const double beta_1 = cell_upper_bound(beta_dim, cell[beta_dim]);
+        V *= (std::cos(beta_0) - std::cos(beta_1));
+        }
+
+    // gamma integral is step size
+    if (num_orientation_dim_ == 3)
+        {
+        V *= step_[num_position_dim_ + 2];
+        }
+
+    return V;
+    }
+
+void Mesh::compute_cell(int* cell, const double* coordinate) const
+    {
+    for (int dim = 0; dim < num_dim_; ++dim)
+        {
+        cell[dim] = static_cast<int>((coordinate[dim] - lower_[dim]) / step_[dim]);
+        }
+
+    // shift position coordinate
+    assert(num_position_dim_ == 1);
+    cell[0] -= start_;
+    }
+
+void Mesh::length_as_shape(int* shape, const double* length) const
+    {
+    for (int dim = 0; dim < num_dim_; ++dim)
+        {
+        shape[dim] = static_cast<int>(std::ceil(length[dim] / step_[dim]));
+        }
+    }
+
+void Mesh::shape_as_length(double* length, const int* shape) const
+    {
+    for (int dim = 0; dim < num_dim_; ++dim)
+        {
+        length[dim] = shape[dim] * step_[dim];
+        }
+    }
+
+int Mesh::num_position_coordinates() const
+    {
+    return num_position_dim_;
+    }
+
+int Mesh::num_orientation_coordinates() const
+    {
+    return num_orientation_dim_;
+    }
+
+int Mesh::num_coordinates() const
+    {
+    return num_dim_;
+    }
+
+const int* Mesh::shape() const
     {
     return shape_;
     }
 
-std::vector<double> Mesh::step() const
+const double* Mesh::step() const
     {
     return step_;
     }
 
-std::vector<int> Mesh::asShape(const std::vector<double>& dx) const
+BoundaryType Mesh::lower_boundary_condition() const
     {
-    std::vector<int> temp;
-    for (int idx = 0; idx < shape_.size(); ++idx)
-        {
-        temp.push_back(static_cast<int>(std::ceil(dx[idx] / step_[idx])));
-        }
-    return temp;
+    return lower_bc_;
     }
 
-std::vector<double> Mesh::asLength(const std::vector<int>& shape) const
+BoundaryType Mesh::upper_boundary_condition() const
     {
-    std::vector<int> temp;
-    for (int idx = 0; idx < shape_.size(); ++idx)
-        {
-        temp.push_back(shape[idx] * step_[idx]);
-        }
-    return temp;
+    return upper_bc_;
     }
 
+#if 0
 double Mesh::integrateSurface(const std::vector<int>& idx, double j_lo, double j_hi) const
     {
     return area(idx) * j_lo - area(idx + 1) * j_hi;
@@ -144,21 +329,6 @@ double Mesh::integrateSurface(const std::vector<int>& idx, const DataView<double
 double Mesh::integrateSurface(const std::vector<int>& idx, const DataView<const double>& j) const
     {
     return integrateSurface(const std::vector<int>& idx, j(idx), j(idx + 1));
-    }
-
-double Mesh::integrateVolume(std::vector<int> idx, double f) const
-    {
-    return volume(idx) * f;
-    }
-
-double Mesh::integrateVolume(const std::vector<int>& idx, const DataView<double>& f) const
-    {
-    return integrateVolume(const std::vector<int>& idx, f(idx));
-    }
-
-double Mesh::integrateVolume(const std::vector<int>& idx, const DataView<const double>& f) const
-    {
-    return integrateVolume(const std::vector<int>& idx, f(idx));
     }
 
 double Mesh::gradient(int idx, const DataView<double>& f) const
@@ -186,12 +356,18 @@ double Mesh::gradient(int idx, const DataView<const double>& f) const
         return gradient(idx, f(idx - 1), f(idx));
         }
     }
+#endif
 
 bool Mesh::operator==(const Mesh& other) const
     {
-    return (typeid(*this) == typeid(other) && lower_ == other.lower_ && shape_ == other.shape_
-            && lower_bc_ == other.lower_bc_ && upper_bc_ == other.upper_bc_
-            && start_ == other.start_);
+    bool is_same = (typeid(*this) == typeid(other) && num_position_dim_ == other.num_position_dim_
+                    && num_orientation_dim_ == other.num_orientation_dim_ && start_ == other.start_
+                    && lower_bc_ == other.lower_bc_ && upper_bc_ == other.upper_bc_);
+    for (int dim = 0; dim < num_dim_ && is_same; ++dim)
+        {
+        is_same |= (shape_[dim] == other.shape_[dim] && lower_[dim] == other.lower_[dim]);
+        }
+    return is_same;
     }
 
 bool Mesh::operator!=(const Mesh& other) const
@@ -199,24 +375,26 @@ bool Mesh::operator!=(const Mesh& other) const
     return !(*this == other);
     }
 
-BoundaryType Mesh::lower_boundary_condition() const
+bool Mesh::validate_boundary_conditions() const
     {
-    return lower_bc_;
+    bool invalid
+        = ((upper_bc_ == BoundaryType::periodic
+            && !(lower_bc_ == BoundaryType::periodic || lower_bc_ == BoundaryType::internal))
+           || (lower_bc_ == BoundaryType::periodic
+               && !(upper_bc_ == BoundaryType::periodic || upper_bc_ == BoundaryType::internal)));
+    return !invalid;
     }
 
-BoundaryType Mesh::upper_boundary_condition() const
+void Mesh::allocate()
     {
-    return upper_bc_;
+    delete[] shape_;
+    shape_ = new int[num_dim_];
+
+    delete[] lower_;
+    lower_ = new double[num_dim_];
+
+    delete[] step_;
+    step_ = new double[num_dim_];
     }
 
-void Mesh::validateBoundaryCondition() const
-    {
-    if ((upper_bc_ == BoundaryType::periodic
-         && !(lower_bc_ == BoundaryType::periodic || lower_bc_ == BoundaryType::internal))
-        || (lower_bc_ == BoundaryType::periodic
-            && !(upper_bc_ == BoundaryType::periodic || upper_bc_ == BoundaryType::internal)))
-        {
-        throw std::invalid_argument("Both boundaries must be periodic if one is.");
-        }
-    }
     } // namespace flyft

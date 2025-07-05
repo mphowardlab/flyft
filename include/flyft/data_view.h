@@ -4,6 +4,7 @@
 #include "flyft/data_layout.h"
 
 #include <type_traits>
+#include <utility>
 
 namespace flyft
     {
@@ -134,7 +135,7 @@ class DataView
         {
         start_ = new int[layout_.num_dimensions()];
         shape_ = new int[layout_.num_dimensions()];
-        const auto layout_shape = layout._shape();
+        const auto layout_shape = layout_.shape();
         for (int dim = 0; dim < layout_.num_dimensions(); ++dim)
             {
             start_[dim] = 0;

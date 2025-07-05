@@ -8,134 +8,231 @@
 
 namespace flyft
     {
-//! Multidimensional mesh
+//! Mesh
 /*!
- * Multidimensional mesh maps N-dimensional indexing for
- * the anistropic particles into one-dimensional flux.
+ * A mesh is a discretized coordinate space. It has one position coordinate and may optionally have
+ * one, two, or three orientation coordinates. The position coordinate is a symmetry of a standard
+ * three-dimensional coordinate system (e.g., Cartesian or spherical).
+ *
+ * The orientation coordinates are body-fixed Euler angles defined using the Z-X-Z convention for
+ * the body's principal axes. The bounds of these angles are [0, 2pi), [0, pi], and [0, 2pi],
+ * respectively.
  */
 class Mesh
     {
     public:
-    //! No default constructor
+    // No default constructor
     Mesh() = delete;
 
     //! Constructor
     /*!
-     * \param lower_bound Lower bound of the N-dimensional mesh.
-     * \param upper_bound Upper bound of the N-dimensional mesh.
-     * \param shape Shape of the index array.
-     * \param lower_bc Boundary condition of the lower bound.
-     * \param upper_bc Boundary condition of the upper bound.
+     * \param num_orientation_dim Number of orientation coordinates.
+     * \param shape Number of cells along each dimension.
+     * \param lower_bound Lower bound of the mesh.
+     * \param upper_bound Upper bound of the mesh.
+     * \param lower_bc Boundary condition at position coordinate lower bound.
+     * \param upper_bc Boundary condition at position coordinate upper bound.
      */
-    Mesh(double lower_bound,
+    Mesh(int num_orientation_dim,
+         int* shape,
+         double lower_bound,
          double upper_bound,
-         int shape,
          BoundaryType lower_bc,
          BoundaryType upper_bc);
 
+    //! Copy constructor.
+    Mesh(const Mesh& other);
+
+    //! Copy assignment operator.
+    Mesh& operator=(const Mesh& other);
+
+    //! Move constructor.
+    Mesh(const Mesh&& other);
+
+    //! Move assignment operator.
+    Mesh& operator=(const Mesh&& other);
+
     virtual ~Mesh();
 
-    //! Slice multidimensional index
+    //! Slice mesh by position coordinate.
     /*!
-     * \param start Multidimensional start index.
-     * \param end Multidimensional end index.
-     * \return One-dimensional index.
+     * \param start First position index to include.
+     * \param end First position index to exclude.
+     * \return Slice of original mesh.
      *
+     * A mesh may not be sliced more than once.
      */
-    std::shared_ptr<Mesh> slice(const std::vector<int>& start, const std::vector<int>& end) const;
+    std::shared_ptr<Mesh> slice(int start, int end) const;
 
-    //! Get position on the mesh, defined as center of bin
+    //! Calculate lower bound of cell.
     /*!
-     * \param i Multidimensional bin index
-     * \return Center of the multidimensional bin
+     * \param coordinate Lower bound of cell.
+     * \param cell Cell multi-index.
      */
-    std::vector<double> center(const std::vector<int>& i) const;
+    void cell_lower_bound(double* coordinate, const int* cell) const;
 
-    //! Lower bound of entire mesh
+    //! Calculate lower bound of cell in a given dimension.
     /*!
-     * \return Lower bound of the multidimensional mesh
+     * \param dimension Dimension of coordinate.
+     * \param index Cell index in given dimension.
+     * \returns Lower bound of cell in specified dimension.
      */
-    std::vector<double> lower_bound() const;
+    double cell_lower_bound(int dimension, int index) const;
 
-    //! Get lower bound of bin
+    //! Calculate lower bound of cell in position space.
     /*!
-     * \param i Multidimensional bin index
-     * \return Lower bound of the multidimensional bin
+     * \param coordinate Lower bound of cell in position space.
+     * \param cell Cell multi-index.
      */
-    std::vector<double> lower_bound(const std::vector<int>& i) const;
+    void cell_position_lower_bound(double* coordinate, const int* cell) const;
 
-    //! Upper bound of entire mesh
+    //! Calculate lower bound of cell in orientation space.
     /*!
-     * \return Upper bound of the multidimensional mesh
+     * \param coordinate Lower bound of cell in orientation space.
+     * \param cell Cell multi-index.
      */
-    std::vector<double> upper_bound() const;
+    void cell_orientation_lower_bound(double* coordinate, const int* cell) const;
 
-    //! Get upper bound of bin
+    //! Calculate center of cell.
     /*!
-     * \param i Multidimensional bin index
-     * \return Upper bound of the multidimensional bin
+     * \param coordinate Center of cell.
+     * \param cell Cell multi-index.
      */
-    std::vector<double> upper_bound(const std::vector<int>& i) const;
+    void cell_center(double* coordinate, const int* cell) const;
 
+    //! Calculate center of cell in a given dimension.
+    /*!
+     * \param dimension Dimension of coordinate.
+     * \param index Cell index in given dimension.
+     * \returns Center of cell in specified dimension.
+     */
+    double cell_center(int dimension, int index) const;
+
+    //! Calculate center of cell in position space.
+    /*!
+     * \param coordinate Center of cell in position space.
+     * \param cell Cell multi-index.
+     */
+    void cell_position_center(double* coordinate, const int* cell) const;
+
+    //! Calculate center of cell in orientation space.
+    /*!
+     * \param coordinate Center of cell in orientation space.
+     * \param cell Cell multi-index.
+     */
+    void cell_orientation_center(double* coordinate, const int* cell) const;
+
+    //! Calculate upper bound of cell.
+    /*!
+     * \param coordinate Upper bound of cell.
+     * \param cell Cell multi-index.
+     */
+    void cell_upper_bound(double* coordinate, const int* cell) const;
+
+    //! Calculate upper bound of cell in a given dimension.
+    /*!
+     * \param dimension Dimension of coordinate.
+     * \param index Cell index in given dimension.
+     * \returns upper bound of cell in specified dimension.
+     */
+    double cell_upper_bound(int dimension, int index) const;
+
+    //! Calculate upper bound of cell in position space.
+    /*!
+     * \param coordinate Upper bound of cell in position space.
+     * \param cell Cell multi-index.
+     */
+    void cell_position_upper_bound(double* coordinate, const int* cell) const;
+
+    //! Calculate upper bound of cell in orientation space.
+    /*!
+     * \param coordinate Upper bound of cell in orientation space.
+     * \param cell Cell multi-index.
+     */
+    void cell_orientation_upper_bound(double* coordinate, const int* cell) const;
+
+#if 0
     //! Get surface area of lower edge of bin
     /*!
      * \param i Multidimensional bin index
      * \return Upper bound of the multidimensional bin
      */
     virtual double area(int i) const = 0;
+#endif
 
-    //! Get volume of mesh
+    //! Calculate volume of cell.
     /*!
-     * \return Volume of the mesh
+     * \param cell Cell multi-index.
+     * \return Volume of cell.
+     *
+     * When orientation coordinates are present, the cell volume is a hypervolume over position and
+     * orientation space.
      */
-    virtual double volume() const = 0;
+    double cell_volume(const int* cell) const;
 
-    //! Get volume of bin
+    //! Calculate volume of cell in position space.
     /*!
-     * \param i Multidimensional bin index
-     * \return Volume of the bin
+     * \param cell Cell multi-index.
+     * \return Volume of cell in position space.
+     *
+     * The position coordinates reflect symmetries of the three-dimensional coordinate system, so
+     * this quantity is always a volume regardless of the number of coordinates.
      */
-    virtual std::vector<double> volume(int i) const = 0;
+    virtual double cell_position_volume(const int* cell) const = 0;
 
-    //! Get the bin for a coordinate
+    //! Calculate volume of cell in orientation space.
     /*!
-     * \param x Coordinate position of the bin
-     * \return Bin index
+     * \param cell Cell multi-index.
+     * \return Volume of cell in orientation space.
+     *
+     * Orientation coordinates are only present as required, so this volume is actually a solid
+     * angle over valid coordinates. It is zero if there are no orientation coordinates.
      */
-    std::vector<int> bin(const std::vector<double>& x) const;
+    double cell_orientation_volume(const int* cell) const;
 
-    //! Length of the mesh
+    //! Calculate the cell that contains a coordinate.
     /*!
-     * \return Length of the mesh
+     * \param cell Cell multi-index.
+     * \param coordinate Coordinate.
      */
-    std::vector<double> L() const;
+    void compute_cell(int* cell, const double* coordinate) const;
 
-    //! Shape of the mesh
-    std::vector<int> shape() const;
+    //! Convert a length to a number of cells.
+    /*!
+     * \param shape Number of cells per dimension.
+     * \param length Length per dimension.
+     */
+    void length_as_shape(int* shape, const double* length) const;
 
-    //! Step size of the mesh
-    std::vector<double> step() const;
+    //! Convert a shape to a length.
+    /*!
+     * \param length Length per dimension.
+     * \param shape Number of cells per dimension.
+     */
+    void shape_as_length(double* length, const int* shape) const;
 
-    //! Boundary condition on lower bound of mesh
+    //! Number of position coordinates.
+    int num_position_coordinates() const;
+
+    //! Number of orientation coordinates.
+    int num_orientation_coordinates() const;
+
+    //! Total number of coordinates.
+    int num_coordinates() const;
+
+    //! Number of cells per dimension.
+    const int* shape() const;
+
+    //! Size of cell per dimension.
+    const double* step() const;
+
+    //! Boundary condition at position coordinate lower bound.
     BoundaryType lower_boundary_condition() const;
 
-    //! Boundary condition on upper bound of mesh
+    //! Boundary condition at position coordinate upper bound.
     BoundaryType upper_boundary_condition() const;
 
-    //! Get the start index of the mesh
-    /*!
-     * \param dx Step size of the mesh
-     * \return Start index of the mesh
-     */
-    std::vector<int> asShape(const std::vector<double>& dx) const;
-
-    //! Get the length of the mesh
-    /*!
-     * \param shape Shape of the mesh
-     * \return Length of the mesh
-     */
-    std::vector<double> asLength(const std::vector<int>& shape) const;
-
+#if 0
     //! Get the integral of the surface over the mesh
     /*!
      * \param shape Shape of the mesh
@@ -144,17 +241,37 @@ class Mesh
     double integrateSurface(const std::vector<int>& idx, double j_lo, double j_hi) const;
     double integrateSurface(const std::vector<int>& idx, const DataView<double>& j) const;
     double integrateSurface(const std::vector<int>& idx, const DataView<const double>& j) const;
+#endif
 
-    //! Get the integral of the volume over the mesh
+    //! Integrate function over cell volume.
     /*!
-     * \param idx Multidimensional index
-     * \param f Function to integrate
-     * \return Integral of the function over the mesh
+     * \param cell Cell multi-index.
+     * \param f Discretized function to integrate.
+     * \return Integral of the function over the cell volume.
+     *
+     * The integration is performed using a simple midpoint method.
      */
-    double integrateVolume(const std::vector<int>& idx, double f) const;
-    double integrateVolume(const std::vector<int>& idx, const DataView<double>& f) const;
-    double integrateVolume(const std::vector<int>& idx, const DataView<const double>& f) const;
+    template<class T>
+    double integrate_cell_volume(const int* cell, const T& f) const
+        {
+        return cell_volume(cell) * f(cell);
+        }
 
+    //! Integrate function over cell orientation volume.
+    /*!
+     * \param cell Cell multi-index.
+     * \param f Discretized function to integrate.
+     * \return Integral of the function over the cell orientation volume.
+     *
+     * The integration is performed using a simple midpoint method.
+     */
+    template<class T>
+    double integrate_cell_orientation_volume(const int* cell, const T& f) const
+        {
+        return cell_orientation_volume(cell) * f(cell);
+        }
+
+#if 0
     //! Interpolate a function on the mesh
     /*!
      * \param x Coordinate position of the bin
@@ -170,23 +287,42 @@ class Mesh
     virtual double gradient(const std::vector<int>& idx, double f_lo, double f_hi) const = 0;
     double gradient(const std::vector<int>& idx, const DataView<const double>& f) const;
     double gradient(const std::vector<int>& idx, const DataView<double>& f) const;
+#endif
 
+    //! Check if two meshes are equivalent.
+    /*!
+     * The meshes are identical if they have the same type, same numbers of coordinates, same
+     * coordinate space, same shape, and same boundary conditions.
+     */
     bool operator==(const Mesh& other) const;
+
+    //! Check if two meshes are not equivalent.
     bool operator!=(const Mesh& other) const;
 
-    protected:
-    std::vector<double> lower_;
-    std::vector<int> shape_;   //!< Shape of the mesh
-    BoundaryType lower_bc_;    //!< Boundary condition of the lower bound
-    BoundaryType upper_bc_;    //!< Boundary condition of the upper bound
-    std::vector<double> step_; //!< Spacing between mesh points
-    std::vector<int> start_;
+    //! Check if boundary conditions are valid.
+    virtual bool validate_boundary_conditions() const;
 
-    void validateBoundaryCondition() const;
+    protected:
+    const int num_position_dim_ = 1; //!< Number of position coordinates
+    int num_orientation_dim_;        //!< Number of orientation coordinates
+    int num_dim_;                    //!< Total number of coordinates
+    int* shape_;                     //!< Shape of the mesh
+    int start_;                      //!< First index in mesh
+
+    double* lower_; //!< Lower bounds of coordinates
+    double* step_;  //!< Spacing between mesh points
+
+    BoundaryType lower_bc_; //!< Boundary condition of the lower bound
+    BoundaryType upper_bc_; //!< Boundary condition of the upper bound
 
     virtual std::shared_ptr<Mesh> clone() const = 0;
+
+    private:
+    //! Allocate per dimension memory.
+    void allocate();
     };
 
+#if 0
 template<typename T>
 typename std::remove_const<T>::type Mesh::interpolate(double x, const DataView<T>& f) const
     {
@@ -211,6 +347,7 @@ typename std::remove_const<T>::type Mesh::interpolate(double x, const DataView<T
 
     return f_0 + (x - x_0) * (f_1 - f_0) / (x_1 - x_0);
     }
+#endif
 
     } // namespace flyft
 

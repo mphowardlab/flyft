@@ -10,19 +10,13 @@ namespace flyft
 class SphericalMesh : public Mesh
     {
     public:
-    SphericalMesh(double lower_bound,
-                  double upper_bound,
-                  int shape,
-                  BoundaryType lower_bc,
-                  BoundaryType upper_bc);
+    // double area(int i) const override;
+    double cell_position_volume(const int* cell) const override;
+    // double gradient(int idx, double f_lo, double f_hi) const override;
 
-    double area(int i) const override;
-    double volume() const override;
-    double volume(int i) const override;
-    double gradient(int idx, double f_lo, double f_hi) const override;
+    bool validate_boundary_conditions() const override;
 
     protected:
-    void validateBoundaryCondition() const;
     std::shared_ptr<Mesh> clone() const override;
     };
     } // namespace flyft
