@@ -28,7 +28,7 @@ class ParallelMesh
     int getProcessorShape() const;
     int getProcessorCoordinates() const;
     int getProcessorCoordinatesByOffset(int offset) const;
-    int findProcessor(int idx) const;
+    int findProcessor(const int* cell) const;
 
     void sync(std::shared_ptr<Field> field);
     void startSync(std::shared_ptr<Field> field);
@@ -38,12 +38,11 @@ class ParallelMesh
     std::shared_ptr<Field> gather(std::shared_ptr<Field> field, int root) const;
 
     private:
-    std::shared_ptr<Communicator> comm_;
-    DataLayout layout_;
-    int coords_;
+    std::shared_ptr<Communicator> comm_; //!< Communicator
 
     std::shared_ptr<Mesh> full_mesh_;
     std::shared_ptr<Mesh> local_mesh_;
+
     std::vector<int> starts_;
     std::vector<int> ends_;
 

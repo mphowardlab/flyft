@@ -52,6 +52,7 @@ class Mesh
     //! Move assignment operator.
     Mesh& operator=(const Mesh&& other);
 
+    //! Destructor
     virtual ~Mesh();
 
     //! Slice mesh by position coordinate.
