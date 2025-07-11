@@ -70,6 +70,21 @@ std::shared_ptr<const Mesh> ParallelMesh::full() const
     return full_mesh_;
     }
 
+int ParallelMesh::num_position_coordinates() const
+    {
+    return full_mesh_->num_position_coordinates();
+    }
+
+int ParallelMesh::num_orientation_coordinates() const
+    {
+    return full_mesh_->num_orientation_coordinates();
+    }
+
+int ParallelMesh::num_coordinates() const
+    {
+    return full_mesh_->num_coordinates();
+    }
+
 int ParallelMesh::getProcessorShape() const
     {
     return comm_->size();

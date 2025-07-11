@@ -86,6 +86,9 @@ class DataArray : public TrackedObject
      */
     const T& operator()(const int* multi_index) const;
 
+    //! Number of dimensions.
+    int num_dimensions() const;
+
     //! Number of elements per dimension.
     const int* shape() const;
 
@@ -187,6 +190,12 @@ const T& DataArray<T, N>::operator()(const int* multi_index) const
     {
     assert(multi_index);
     return const_view()(multi_index);
+    }
+
+template<typename T, int N>
+int DataArray<T, N>::num_dimensions() const
+    {
+    return layout_.num_dimensions();
     }
 
 template<typename T, int N>
@@ -307,7 +316,7 @@ void DataArray<T, N>::reshape(int num_dimensions, const int* shape, const int* b
 template<typename T, int N>
 void DataArray<T, N>::setBuffer(const int* buffer_shape)
     {
-    reshape(shape_, buffer_shape);
+    reshape(layout_.num_dimensions(), shape_, buffer_shape);
     }
 
 template<typename T, int N>

@@ -1,41 +1,42 @@
 add_library(flyft SHARED
-    boublik_hard_sphere_functional.cc
-    brownian_diffusive_flux.cc
+    # boublik_hard_sphere_functional.cc
+    # brownian_diffusive_flux.cc
     cartesian_mesh.cc
-    composite_external_potential.cc
-    composite_flux.cc
-    composite_functional.cc
+    # composite_external_potential.cc
+    # composite_flux.cc
+    # composite_functional.cc
     communicator.cc
-    crank_nicolson_integrator.cc
+    # crank_nicolson_integrator.cc
     data_layout.cc
-    explicit_euler_integrator.cc
-    exponential_wall_potential.cc
-    external_potential.cc
-    flux.cc
-    fourier_transform.cc
-    functional.cc
-    grand_potential.cc
-    grid_interpolator.cc
-    hard_wall_potential.cc
-    harmonic_wall_potential.cc
-    ideal_gas_functional.cc
-    implicit_euler_integrator.cc
-    integrator.cc
-    lennard_jones_93_wall_potential.cc
-    linear_potential.cc
+    data_view.cc
+    # explicit_euler_integrator.cc
+    # exponential_wall_potential.cc
+    # external_potential.cc
+    # flux.cc
+    # fourier_transform.cc
+    # functional.cc
+    # grand_potential.cc
+    # grid_interpolator.cc
+    # hard_wall_potential.cc
+    # harmonic_wall_potential.cc
+    # ideal_gas_functional.cc
+    # implicit_euler_integrator.cc
+    # integrator.cc
+    # lennard_jones_93_wall_potential.cc
+    # linear_potential.cc
     mesh.cc
     parallel_mesh.cc
-    picard_iteration.cc
-    rosenfeld_fmt.cc
-    rpy_diffusive_flux.cc
-    solver.cc
+    # picard_iteration.cc
+    # rosenfeld_fmt.cc
+    # rpy_diffusive_flux.cc
+    # solver.cc
     spherical_mesh.cc
     state.cc
-    three_dimensional_index.cc
+    # three_dimensional_index.cc
     tracked_object.cc
-    virial_expansion.cc
-    white_bear.cc
-    white_bear_mark_ii.cc
+    # virial_expansion.cc
+    # white_bear.cc
+    # white_bear_mark_ii.cc
     )
 
 target_include_directories(
