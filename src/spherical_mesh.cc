@@ -5,57 +5,41 @@
 
 namespace flyft
     {
-SphericalMesh::SphericalMesh(double lower_bound,
-                             double upper_bound,
-                             int shape,
-                             BoundaryType lower_bc,
-                             BoundaryType upper_bc)
-    : Mesh(lower_bound, upper_bound, shape, lower_bc, upper_bc)
-    {
-    validateBoundaryCondition();
-    }
 
 std::shared_ptr<Mesh> SphericalMesh::clone() const
     {
     return std::make_shared<SphericalMesh>(*this);
     }
 
+#if 0
 double SphericalMesh::area(int i) const
     {
     const double r = lower_bound(i);
     return 4. * M_PI * r * r;
     }
+#endif
 
-double SphericalMesh::volume() const
+double SphericalMesh::cell_position_volume(const int* cell) const
     {
-    const double rlo = lower_bound();
-    const double rhi = upper_bound();
-    return (4. * M_PI / 3.) * (rhi * rhi * rhi - rlo * rlo * rlo);
-    }
-
-double SphericalMesh::volume(int i) const
-    {
-    const double r_out = upper_bound(i);
-    const double r_in = lower_bound(i);
+    const double r_in = cell_lower_bound(0, cell[0]);
+    const double r_out = cell_upper_bound(0, cell[0]);
     return (4. * M_PI / 3.) * (r_out * r_out * r_out - r_in * r_in * r_in);
     }
 
+#if 0
 double SphericalMesh::gradient(int /*i*/, double f_lo, double f_hi) const
     {
     return (f_hi - f_lo) / (step_);
     }
+#endif
 
-void SphericalMesh::validateBoundaryCondition() const
+bool SphericalMesh::validate_boundary_conditions() const
     {
-    Mesh::validateBoundaryCondition();
+    bool invalid = !Mesh::validate_boundary_conditions();
 
-    if (lower_bc_ == BoundaryType::periodic || upper_bc_ == BoundaryType::periodic)
-        {
-        throw std::invalid_argument("Periodic boundary conditions invalid in spherical geometry");
-        }
-    else if (upper_bc_ == BoundaryType::reflect)
-        {
-        throw std::invalid_argument("Reflect boundary condition invalid for upper boundary");
-        }
+    invalid |= (lower_bc_ == BoundaryType::periodic || upper_bc_ == BoundaryType::periodic);
+    invalid |= (upper_bc_ == BoundaryType::reflect);
+
+    return !invalid;
     }
     } // namespace flyft

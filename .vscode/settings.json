@@ -106,5 +106,5 @@
         "__bits": "cpp",
         "__verbose_abort": "cpp"
     },
-    "cmake.configureOnOpen": true
+    "cmake.configureOnOpen": false
 }

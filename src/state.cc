@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <stdexcept>
 
 namespace flyft
     {
@@ -16,7 +17,7 @@ State::State(std::shared_ptr<ParallelMesh> mesh, const std::vector<std::string>&
     {
     for (const auto& t : types_)
         {
-        fields_[t] = std::make_shared<Field>(mesh_->local()->shape());
+        fields_[t] = std::make_shared<Field>(mesh_->num_coordinates(), mesh_->local()->shape());
         depends_.add(fields_[t].get());
         }
     }
@@ -27,7 +28,9 @@ State::State(const State& other)
     for (const auto& t : types_)
         {
         auto other_field = other.fields_(t);
-        fields_[t] = std::make_shared<Field>(other_field->shape(), other_field->buffer_shape());
+        fields_[t] = std::make_shared<Field>(other_field->num_dimensions(),
+                                             other_field->shape(),
+                                             other_field->buffer_shape());
         std::copy(other_field->const_full_view().begin(),
                   other_field->const_full_view().end(),
                   fields_[t]->full_view().begin());
@@ -51,10 +54,13 @@ State& State::operator=(const State& other)
         time_ = other.time_;
 
         // match field types and buffer shapes
-        TypeMap<int> buffers;
+        TypeMap<std::vector<int>> buffers;
         for (const auto& t : types_)
             {
-            buffers[t] = other.fields_(t)->buffer_shape();
+            const int num_coords = mesh_->full()->num_coordinates();
+            const auto other_buffer = other.fields_(t)->buffer_shape();
+            buffers[t].resize(num_coords);
+            std::copy(other_buffer, other_buffer + num_coords, buffers[t].begin());
             }
         other.matchFields(fields_, buffers);
 
@@ -122,7 +128,7 @@ int State::getTypeIndex(const std::string& type) const
     const auto it = std::find(types_.begin(), types_.end(), type);
     if (it == types_.end())
         {
-        // error: type not found
+        throw std::invalid_argument("Type not found");
         }
     return (it - types_.begin());
     }
@@ -142,9 +148,9 @@ std::shared_ptr<const Field> State::getField(const std::string& type) const
     return fields_(type);
     }
 
-void State::requestFieldBuffer(const std::string& type, int buffer_request)
+void State::requestFieldBuffer(const std::string& type, const std::vector<int>& buffer_request)
     {
-    fields_(type)->requestBuffer(buffer_request);
+    fields_(type)->requestBuffer(buffer_request.data());
     }
 
 TypeMap<std::shared_ptr<Field>> State::gatherFields(int rank) const
@@ -164,67 +170,33 @@ std::shared_ptr<Field> State::gatherField(const std::string& type, int rank) con
 
 void State::syncFields()
     {
-    syncFields(fields_);
+    startSyncFields();
+    endSyncFields();
     }
 
 void State::startSyncFields()
     {
-    startSyncFields(fields_);
+    for (auto it = fields_.cbegin(); it != fields_.cend(); ++it)
+        {
+        mesh_->startSync(it->second);
+        }
     }
 
 void State::endSyncFields()
     {
-    endSyncFields(fields_);
-    }
-
-void State::syncFields(const TypeMap<std::shared_ptr<Field>>& fields) const
-    {
-    startSyncFields(fields);
-    endSyncFields(fields);
-    }
-
-void State::startSyncFields(const TypeMap<std::shared_ptr<Field>>& fields) const
-    {
-    for (auto it = fields.cbegin(); it != fields.cend(); ++it)
+    for (auto it = fields_.cbegin(); it != fields_.cend(); ++it)
         {
-        if (std::find(types_.begin(), types_.end(), it->first) == types_.end())
-            {
-            // ERROR: types do not match
-            }
-        else
-            {
-            mesh_->startSync(it->second);
-            }
+        mesh_->endSync(it->second);
         }
-    }
-
-void State::endSyncFields(const TypeMap<std::shared_ptr<Field>>& fields) const
-    {
-    for (auto it = fields.cbegin(); it != fields.cend(); ++it)
-        {
-        if (std::find(types_.begin(), types_.end(), it->first) == types_.end())
-            {
-            // ERROR: types do not match
-            }
-        else
-            {
-            mesh_->endSync(it->second);
-            }
-        }
-    }
-
-void State::endSyncAll() const
-    {
-    mesh_->endSyncAll();
     }
 
 void State::matchFields(TypeMap<std::shared_ptr<Field>>& fields) const
     {
-    matchFields(fields, TypeMap<int>());
+    matchFields(fields, TypeMap<std::vector<int>>());
     }
 
 void State::matchFields(TypeMap<std::shared_ptr<Field>>& fields,
-                        const TypeMap<int>& buffer_requests) const
+                        const TypeMap<std::vector<int>>& buffer_requests) const
     {
     // purge stored types that are not in the state
     for (auto it = fields.cbegin(); it != fields.cend(); /* no increment here */)
@@ -247,7 +219,8 @@ void State::matchFields(TypeMap<std::shared_ptr<Field>>& fields,
         bool has_type = (fields.find(t) != fields.end());
 
         // determine buffer request, preserving buffer if type already exists but no request is made
-        int buffer_request;
+        const auto num_dimensions = mesh_->full()->num_coordinates();
+        std::vector<int> buffer_request(num_dimensions, 0);
         auto it = buffer_requests.find(t);
         if (it != buffer_requests.cend())
             {
@@ -255,21 +228,20 @@ void State::matchFields(TypeMap<std::shared_ptr<Field>>& fields,
             }
         else if (has_type)
             {
-            buffer_request = fields[t]->buffer_shape();
-            }
-        else
-            {
-            buffer_request = 0;
+            const auto buffer_shape = fields[t]->buffer_shape();
+            std::copy(buffer_shape, buffer_shape + num_dimensions, buffer_request.begin());
             }
 
         // make sure field exists and has the right shape
         if (!has_type)
             {
-            fields[t] = std::make_shared<Field>(mesh_->local()->shape(), buffer_request);
+            fields[t] = std::make_shared<Field>(num_dimensions,
+                                                mesh_->local()->shape(),
+                                                buffer_request.data());
             }
         else
             {
-            fields[t]->reshape(mesh_->local()->shape(), buffer_request);
+            fields[t]->reshape(num_dimensions, mesh_->local()->shape(), buffer_request.data());
             }
         }
     }

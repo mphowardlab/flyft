@@ -76,11 +76,9 @@ endif()
 foreach(file IN LISTS FLYFT_PY_SOURCES)
     add_custom_command(
         OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${file}
-        COMMAND ${CMAKE_COMMAND} -E copy
-            ${CMAKE_CURRENT_LIST_DIR}/${file}
-            ${CMAKE_CURRENT_BINARY_DIR}/${file}
         DEPENDS ${file}
-        POST_BUILD
+        COMMAND ${CMAKE_COMMAND}
+        ARGS -E copy ${CMAKE_CURRENT_LIST_DIR}/${file} ${CMAKE_CURRENT_BINARY_DIR}/${file}
         COMMENT "Copying flyft/${file}"
         )
 endforeach()
