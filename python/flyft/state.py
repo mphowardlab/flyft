@@ -124,7 +124,8 @@ class Fields(mirror.Mapping):
 class Mesh(mirror.Mirror, mirrorclass=_flyft.Mesh):
     r"""Base class for computational meshes.
 
-    `Mesh` discretizes the domain for the density field. It sets up and provides information regarding
+    `Mesh` discretizes the domain for the density field. It sets up and
+    provides information regarding
     mesh points, mesh volumes, and geometry boundaries.
 
     Attributes

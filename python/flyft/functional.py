@@ -16,7 +16,8 @@ class Functional(mirror.Mirror, mirrorclass=_flyft.Functional):
     Attributes
     ----------
     derivatives : Fields
-        Functional derivatives (chemical potential contributions) for each particle type.
+        Functional derivatives (chemical potential contributions) for each
+        particle type.
     value : float
         Total free energy contribution from this functional.
     """
@@ -108,7 +109,9 @@ class GrandPotential(Functional, mirrorclass=_flyft.GrandPotential):
     contributions to form the complete grand potential functional:
 
     .. math::
-        \\Omega[\\rho] = F_{\\text{ideal}}[\\rho] + F_{\\text{excess}}[\\rho] + \\int V_{\\text{ext}}(\\mathbf{r}) \\rho(\\mathbf{r}) d\\mathbf{r}
+        \\Omega[\\rho] = F_{\\text{ideal}}[\\rho] + F_{\\text{excess}}[\\rho]
+                        + \\int V_{\\text{ext}}(\\mathbf{r})
+                        \\rho(\\mathbf{r}) d\\mathbf{r}
 
     where :math:`F_{\\text{ideal}}` is the ideal gas contribution,
     :math:`F_{\\text{excess}}` represents particle interactions, and
@@ -146,7 +149,8 @@ class GrandPotential(Functional, mirrorclass=_flyft.GrandPotential):
         ideal = flyft.functional.IdealGas()
         excess = flyft.functional.WhiteBear()
         external = flyft.external.HardWall(origin=0.0, normal=1.0)
-        grand = flyft.functional.GrandPotential(ideal=ideal, excess=excess, external=external)
+        grand = flyft.functional.GrandPotential(ideal=ideal, excess=excess,
+                                                external=external)
 
     """
 
@@ -189,7 +193,9 @@ class IdealGas(Functional, mirrorclass=_flyft.IdealGasFunctional):
     Implements the ideal gas free energy functional:
 
     .. math::
-        F_{\\text{ideal}}[\\rho] = k_B T \\int \\rho(\\mathbf{r}) \\left[ \\ln(\\rho(\\mathbf{r}) v) - 1 \\right] d\\mathbf{r}
+        F_{\\text{ideal}}[\\rho] = k_B T \\int \\rho(\\mathbf{r}) \\left[
+                                \\ln(\\rho(\\mathbf{r}) v) - 1 \\right]
+                                d\\mathbf{r}
 
     where :math:`\\rho(\\mathbf{r})` is the density field, :math:`v` is the
     molecular volume, :math:`k_B` is Boltzmann's constant, and :math:`T`
@@ -258,7 +264,8 @@ class VirialExpansion(Functional, mirrorclass=_flyft.VirialExpansion):
     free energy using virial coefficients:
 
     .. math::
-        F_{\\text{excess}}[\\rho] = k_B T \\int \\left[ B_2 \\rho^2 + B_3 \\rho^3 + \\ldots \\right] d\\mathbf{r}
+        F_{\\text{excess}}[\\rho] = k_B T \\int \\left[B_2 \\rho^2 +
+                                    B_3 \\rho^3 + \\ldots \\right] d\\mathbf{r}
 
     where :math:`B_n` are the virial coefficients.
 

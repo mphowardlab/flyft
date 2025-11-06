@@ -55,7 +55,8 @@ class BrownianDiffusiveFlux(Flux, mirrorclass=_flyft.BrownianDiffusiveFlux):
     potential and external potentials. The flux is given by:
 
     .. math::
-        \\mathbf{J} = -D \\left( \\nabla \\rho + \\rho \\nabla \\mu_{\\text{ex}} + \\rho \\nabla V \\right)
+        \\mathbf{J} = -D \\left( \\nabla \\rho + \\rho \\nabla \\mu_{\\text{ex}}
+                                + \\rho \\nabla V \\right)
 
     where :math:`D` is the diffusivity, :math:`\\rho` is the density,
     :math:`\\mu_{\\text{ex}}` is the excess chemical potential, and :math:`V`
@@ -82,20 +83,24 @@ class BrownianDiffusiveFlux(Flux, mirrorclass=_flyft.BrownianDiffusiveFlux):
 
 
 class RPYDiffusiveFlux(Flux, mirrorclass=_flyft.RPYDiffusiveFlux):
-    """Rotne-Prager-Yamakawa (RPY) diffusive flux with hydrodynamic interactions.
+    """Rotne-Prager-Yamakawa (RPY) diffusive flux with hydrodynamic
+    interactions.
 
     Computes particle flux including hydrodynamic interactions between particles
-    using the Rotne-Prager-Yamakawa mobility tensor for hard spheres. For particles
-    i and j separated by distance r > d (where d = (a_i + a_j)):
+    using the Rotne-Prager-Yamakawa mobility tensor for hard spheres.
+    For particles i and j separated by distance r > d (where d = (a_i + a_j)):
 
     .. math::
-        \\mathbf{M}_{ij} = \\frac{1}{8\\pi\\eta r} \\left[\\left(1 + \\frac{a_i^2+a_j^2}{3r^2}\\right)\\mathbf{I}
-                                                          + \\left(1 - \\frac{a_i^2+ a_j^2}{r^2}\\right)\\hat{\\mathbf{r}}\\hat{\\mathbf{r}} \\right]
+        \\mathbf{M}_{ij} = \\frac{1}{8\\pi\\eta r} \\left[\\left(1
+                            + \\frac{a_i^2+a_j^2}{3r^2}\\right)\\mathbf{I}
+                            + \\left(1 -
+                            \\frac{a_i^2+ a_j^2}{r^2}\\right)\\mathbf{r}}
+                                                          \\mathbf{r} \\right]
 
-    where :math:`\\eta` is the fluid viscosity, :math:`a_i` and :math:`a_j` are the
-    particle radii, :math:`r` is the distance between particles, :math:`\\mathbf{I}`
-    is the identity tensor, and :math:`\\hat{\\mathbf{r}}` is the unit vector connecting
-    the particle centers.
+    where :math:`\\eta` is the fluid viscosity, :math:`a_i` and :math:`a_j`
+    are the particle radii, :math:`r` is the distance between particles,
+    :math:`\\mathbf{I}` is the identity tensor, and :math:`\\mathbf{r}`
+    is the unit vector connecting the particle centers.
 
     Attributes
     ----------
@@ -194,7 +199,8 @@ class CrankNicolsonIntegrator(
     that averages the flux at the current and next timesteps:
 
     .. math::
-        \\rho^{n+1} = \\rho^n + \\frac{\\Delta t}{2} \\left( F[\\rho^n] + F[\\rho^{n+1}] \\right)
+        \\rho^{n+1} = \\rho^n + \\frac{\\Delta t}{2} \\left( F[\\rho^n] +
+                                                        F[\\rho^{n+1}] \\right)
 
     where :math:`F[\\rho]` represents the flux evaluation. Since this is an
     implicit method, it requires iterative solution at each timestep.
