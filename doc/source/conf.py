@@ -7,8 +7,6 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 import datetime
-import os
-import sys
 
 project = "flyft"
 year = datetime.date.today().year
