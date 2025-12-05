@@ -20,7 +20,7 @@ time evolution of density profiles in various geometries.
 .. toctree::
    :maxdepth: 2
    :caption: Reference
-   
+
    ./api
 
 .. toctree::
@@ -28,4 +28,3 @@ time evolution of density profiles in various geometries.
     :caption: Additional information
 
     ./license
-

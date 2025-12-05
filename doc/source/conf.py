@@ -10,10 +10,10 @@ import datetime
 import os
 import sys
 
-project = 'flyft'
+project = "flyft"
 year = datetime.date.today().year
 copyright = f"2021-{year}, Auburn University"
-author = 'Michael P. Howard'
+author = "Michael P. Howard"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -31,9 +31,8 @@ extensions = [
     "myst_parser",
 ]
 
-templates_path = ['_templates']
+templates_path = ["_templates"]
 exclude_patterns = []
-
 
 
 # -- Options for HTML output -------------------------------------------------
@@ -74,4 +73,3 @@ intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
     "numpy": ("https://numpy.org/doc/stable", None),
 }
-

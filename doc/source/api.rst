@@ -15,26 +15,26 @@ Excess free-energy functional
 =============================
 
 Depending on the required accuracy and density of the system, different
-free-energy functionals can be employed. 
+free-energy functionals can be employed.
 
 .. autosummary::
     :nosignatures:
     :toctree: generated/
-    
+
         flyft.functional.IdealGas
         flyft.functional.VirialExpansion
         flyft.functional.BoublikHardSphere
         flyft.functional.RosenfeldFMT
-        
+
 External free-energy functional
 ===============================
 
-Depending on the required 
+Depending on the required
 
 .. autosummary::
     :nosignatures:
     :toctree: generated/
-    
+
         flyft.external.LinearPotential
         flyft.external.HardWall
         flyft.external.HarmonicWall
@@ -50,7 +50,7 @@ fluids. These include:
 .. autosummary::
     :nosignatures:
     :toctree: generated/
-    
+
         flyft.dynamics.BrownianDiffusiveFlux
         flyft.dynamics.CompositeFlux
         flyft.dynamics.RPYDiffusiveFlux

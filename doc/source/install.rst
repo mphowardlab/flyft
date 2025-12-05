@@ -7,12 +7,12 @@ Building from source
 
 ``flyft`` currently can only be installed from source.
 
-Before installing ``flyft``, the pre-requisite software should be installed. 
+Before installing ``flyft``, the pre-requisite software should be installed.
 
     * `CMake (version > 3.18) <https://cmake.org/cmake/help/latest/#>`__
     * `FFTW <https://www.fftw.org/>`__
 
-    
+
 First, clone the repository from GitHub:
 
 .. code:: bash
@@ -34,7 +34,7 @@ Create a virtual environment in the `build` directory and activate it
     conda create -p ./env python=3.11
     conda activate ./env
 
-Now, install the packages required for building ``flyft`` and can be installed using the 
+Now, install the packages required for building ``flyft`` and can be installed using the
 requirements file
 
 .. code:: bash
@@ -51,19 +51,19 @@ Finally, to install ``flyft``, run the following command from the `build` direct
 
 .. note::
 
-    Before running `make install`, make sure the `CMAKE_INSTALL_PREFIX` environment variable 
-    points to your conda environment. Check it by going to the build directory 
-    and run the following command: 
-    
+    Before running `make install`, make sure the `CMAKE_INSTALL_PREFIX` environment variable
+    points to your conda environment. Check it by going to the build directory
+    and run the following command:
+
     .. code:: bash
 
         ccmake ..
-    
+
     `CMAKE_INSTALL_PREFIX` variable should have the path of the site packages directory of your conda
-    environment. 
-    
-    You can find the path of the site packages directory by running the following command 
-    
+    environment.
+
+    You can find the path of the site packages directory by running the following command
+
     .. code:: bash
 
         python -c "import site; print(site.getsitepackages()[0])"
@@ -79,5 +79,5 @@ You can build the documentation from source with:
 .. code:: bash
 
     cd doc
-    pip install -r doc/requirements.txt 
+    pip install -r doc/requirements.txt
     make html
