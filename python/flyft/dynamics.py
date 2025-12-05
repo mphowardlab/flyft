@@ -4,23 +4,14 @@ from .state import Fields
 
 
 class Flux(mirror.Mirror, mirrorclass=_flyft.Flux):
-    """Base class for computing particle fluxes.
-
-    `Flux` computes the flux of particles for different confining geometries.
-    The flux is used by integrators to update density fields over time.
-
-    All flux classes must implement the `compute` method to calculate fluxes
-    for all particle types in the system.
-    """
-
     compute = mirror.Method()
     fluxes = mirror.WrappedProperty(Fields)
 
 
 class CompositeFlux(Flux, CompositeMixin, mirrorclass=_flyft.CompositeFlux):
-    """Composite flux combining multiple flux components.
+    r"""Composite flux combining multiple flux components.
 
-    A `CompositeFlux` allows combining multiple flux objects into a single
+    `CompositeFlux` allows combining multiple flux objects into a single
     flux calculation.
 
     Parameters
@@ -48,18 +39,17 @@ class CompositeFlux(Flux, CompositeMixin, mirrorclass=_flyft.CompositeFlux):
 
 
 class BrownianDiffusiveFlux(Flux, mirrorclass=_flyft.BrownianDiffusiveFlux):
-    """Brownian diffusive flux for particle transport.
+    r"""Brownian diffusive flux for particle transport.
 
-    Computes particle flux due to Brownian diffusion, including both ideal
-    (Fickian) diffusion and contributions from gradients in the excess chemical
-    potential and external potentials. The flux is given by:
+    Computes particle flux with free-draining hydrodynamics. The flux is given by:
 
     .. math::
-        \\mathbf{J} = -D \\left( \\nabla \\rho + \\rho \\nabla \\mu_{\\text{ex}}
-                                + \\rho \\nabla V \\right)
 
-    where :math:`D` is the diffusivity, :math:`\\rho` is the density,
-    :math:`\\mu_{\\text{ex}}` is the excess chemical potential, and :math:`V`
+        \mathbf{j_{\rm BD}} = -D\rho(\mathbf{r}, t) \nabla_{\mathbf{r}}
+        \frac{\delta\mathcal{F}(\mathbf{r}, t)}{\delta \rho(\mathbf{r}, t)}
+
+    where :math:`D` is the diffusivity, :math:`\rho` is the density,
+    :math:`\mu_{\text{ex}}` is the excess chemical potential, and :math:`V`
     is the external potential.
 
     Attributes
@@ -83,24 +73,12 @@ class BrownianDiffusiveFlux(Flux, mirrorclass=_flyft.BrownianDiffusiveFlux):
 
 
 class RPYDiffusiveFlux(Flux, mirrorclass=_flyft.RPYDiffusiveFlux):
-    """Rotne-Prager-Yamakawa (RPY) diffusive flux with hydrodynamic
+    r"""Rotne-Prager-Yamakawa (RPY) diffusive flux with hydrodynamic
     interactions.
 
     Computes particle flux including hydrodynamic interactions between particles
-    using the Rotne-Prager-Yamakawa mobility tensor for hard spheres.
-    For particles i and j separated by distance r > d (where d = (a_i + a_j)):
-
-    .. math::
-        \\mathbf{M}_{ij} = \\frac{1}{8\\pi\\eta r} \\left[\\left(1
-                            + \\frac{a_i^2+a_j^2}{3r^2}\\right)\\mathbf{I}
-                            + \\left(1 -
-                            \\frac{a_i^2+ a_j^2}{r^2}\\right)\\mathbf{r}}
-                                                          \\mathbf{r} \\right]
-
-    where :math:`\\eta` is the fluid viscosity, :math:`a_i` and :math:`a_j`
-    are the particle radii, :math:`r` is the distance between particles,
-    :math:`\\mathbf{I}` is the identity tensor, and :math:`\\mathbf{r}`
-    is the unit vector connecting the particle centers.
+    using the Rotne-Prager-Yamakawa mobility tensor for hard spheres. The flux
+    is given by:
 
     Attributes
     ----------
@@ -127,7 +105,7 @@ class RPYDiffusiveFlux(Flux, mirrorclass=_flyft.RPYDiffusiveFlux):
 
 
 class Integrator(mirror.Mirror, mirrorclass=_flyft.Integrator):
-    """Base class for time integration of density fields.
+    r"""Base class for time integration of density fields.
 
     An `Integrator` advances the system state in time by applying fluxes
     computed from the grand potential and current state. It supports both
@@ -149,6 +127,7 @@ class Integrator(mirror.Mirror, mirrorclass=_flyft.Integrator):
         Error tolerance for adaptive timestep control.
     adapt_minimum : float
         Minimum allowed timestep for adaptive control.
+
     """
 
     advance = mirror.Method()
@@ -192,7 +171,7 @@ class Integrator(mirror.Mirror, mirrorclass=_flyft.Integrator):
 class CrankNicolsonIntegrator(
     Integrator, FixedPointAlgorithmMixin, mirrorclass=_flyft.CrankNicolsonIntegrator
 ):
-    """Crank-Nicolson time integrator with second-order accuracy.
+    r"""Crank-Nicolson time integrator with second-order accuracy.
 
     Implements the Crank-Nicolson scheme, which is second-order accurate in time
     and unconditionally stable. The scheme uses an implicit trapezoidal rule
@@ -236,7 +215,7 @@ class CrankNicolsonIntegrator(
 
 
 class ExplicitEulerIntegrator(Integrator, mirrorclass=_flyft.ExplicitEulerIntegrator):
-    """Explicit Euler time integrator with first-order accuracy.
+    r"""Explicit Euler time integrator with first-order accuracy.
 
     Implements the explicit (forward) Euler method, which is first-order
     accurate in time and conditionally stable. The scheme uses the current
@@ -261,12 +240,6 @@ class ExplicitEulerIntegrator(Integrator, mirrorclass=_flyft.ExplicitEulerIntegr
 
         integrator = flyft.dynamics.ExplicitEulerIntegrator(timestep=0.001)
 
-    Note
-    ----
-    The explicit Euler method has stability constraints that depend on the
-    diffusivity and mesh spacing. Typically, the timestep must satisfy
-    :math:`\\Delta t < \\Delta x^2 / (2D)` where :math:`\\Delta x` is the
-    mesh spacing and :math:`D` is the diffusivity.
     """
 
     def __init__(self, timestep):
@@ -318,6 +291,7 @@ class ImplicitEulerIntegrator(
     The implicit Euler method is unconditionally stable, allowing larger
     timesteps than explicit methods. However, it requires solving a nonlinear
     system at each timestep, which can be computationally expensive.
+
     """
 
     def __init__(self, timestep, mix_parameter, max_iterations, tolerance):

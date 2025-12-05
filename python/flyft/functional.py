@@ -233,9 +233,6 @@ class RosenfeldFMT(Functional, mirrorclass=_flyft.RosenfeldFMT):
     accurate description of hard sphere correlations and excluded volume
     effects using weighted densities based on fundamental measures.
 
-    The Rosenfeld functional is particularly accurate for inhomogeneous
-    hard sphere systems and forms the basis for more advanced FMT
-    functionals like White Bear.
 
     Attributes
     ----------
@@ -261,13 +258,14 @@ class VirialExpansion(Functional, mirrorclass=_flyft.VirialExpansion):
     """Virial expansion functional for weakly interacting systems.
 
     Implements a virial expansion functional that approximates the excess
-    free energy using virial coefficients:
+    free energy using virial coefficients. In this case the second order virial
+    expansion is considered:
 
     .. math::
-        F_{\\text{excess}}[\\rho] = k_B T \\int \\left[B_2 \\rho^2 +
-                                    B_3 \\rho^3 + \\ldots \\right] d\\mathbf{r}
 
-    where :math:`B_n` are the virial coefficients.
+        F^{\rm{ex}}[\rho] = k_B T 4 \\eta
+
+    where, :math:`\\eta` is the volume fraction of the system.
 
     Attributes
     ----------
