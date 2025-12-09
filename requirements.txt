@@ -1,4 +1,0 @@
-numpy
-pytest
-pytest_lazy_fixtures
-packaging
