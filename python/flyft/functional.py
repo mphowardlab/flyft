@@ -188,16 +188,17 @@ class GrandPotential(Functional, mirrorclass=_flyft.GrandPotential):
 
 
 class IdealGas(Functional, mirrorclass=_flyft.IdealGasFunctional):
-    """Ideal gas functional for non-interacting particles.
+    r"""Ideal gas functional for non-interacting particles.
 
     Implements the ideal gas free energy functional:
 
     .. math::
-        F_{\\text{ideal}}[\\rho] = k_B T \\int \\rho(\\mathbf{r}) \\left[
-                                \\ln(\\rho(\\mathbf{r}) v) - 1 \\right]
-                                d\\mathbf{r}
 
-    where :math:`\\rho(\\mathbf{r})` is the density field, :math:`v` is the
+        \mathcal{F}_{\mathrm{ideal}}[\rho] = k_B T \int \rho(\mathbf{r}) \left[
+                                \ln(\rho(\mathbf{r}) v) - 1 \right]
+                                d\mathbf{r}
+
+    where :math:`\rho(\mathbf{r})` is the density field, :math:`v` is the
     molecular volume, :math:`k_B` is Boltzmann's constant, and :math:`T`
     is temperature.
 
@@ -226,7 +227,7 @@ class IdealGas(Functional, mirrorclass=_flyft.IdealGasFunctional):
 
 
 class RosenfeldFMT(Functional, mirrorclass=_flyft.RosenfeldFMT):
-    """Rosenfeld fundamental measure theory functional for hard spheres.
+    r"""Rosenfeld fundamental measure theory functional for hard spheres.
 
     Implements the original Rosenfeld fundamental measure theory (FMT)
     functional for hard sphere systems. This functional provides an
@@ -255,7 +256,7 @@ class RosenfeldFMT(Functional, mirrorclass=_flyft.RosenfeldFMT):
 
 
 class VirialExpansion(Functional, mirrorclass=_flyft.VirialExpansion):
-    """Virial expansion functional for weakly interacting systems.
+    r"""Virial expansion functional for weakly interacting systems.
 
     Implements a virial expansion functional that approximates the excess
     free energy using virial coefficients. In this case the second order virial
@@ -263,9 +264,9 @@ class VirialExpansion(Functional, mirrorclass=_flyft.VirialExpansion):
 
     .. math::
 
-        F^{\rm{ex}}[\rho] = k_B T 4 \\eta
+        \mathcal{F}^{\mathrm{ex}}(\rho) = k_B T\,4 \eta
 
-    where, :math:`\\eta` is the volume fraction of the system.
+    where, :math:`\eta` is the volume fraction of the system.
 
     Attributes
     ----------

@@ -80,6 +80,12 @@ class RPYDiffusiveFlux(Flux, mirrorclass=_flyft.RPYDiffusiveFlux):
     using the Rotne-Prager-Yamakawa mobility tensor for hard spheres. The flux
     is given by:
 
+    .. math::
+
+        \mathbf{j_{\rm RPY}} = - \int d\mathbf{y} \rho^{(2)}(\mathbf{x},\mathbf{y})
+        \,{\mathbf{M}}^{(2)} (\mathbf{x}-\mathbf{y})\cdot\nabla_{\mathbf{y}}
+        \frac{\delta \mathcal{F}}{\delta\rho(\mathbf{y})}
+
     Attributes
     ----------
     diameters : dict
@@ -178,8 +184,9 @@ class CrankNicolsonIntegrator(
     that averages the flux at the current and next timesteps:
 
     .. math::
-        \\rho^{n+1} = \\rho^n + \\frac{\\Delta t}{2} \\left( F[\\rho^n] +
-                                                        F[\\rho^{n+1}] \\right)
+
+        \rho^{n+1} = \rho^n + \frac{\Delta t}{2} \left( F[\rho^n] +
+                                                        F[\rho^{n+1}] \right)
 
     where :math:`F[\\rho]` represents the flux evaluation. Since this is an
     implicit method, it requires iterative solution at each timestep.

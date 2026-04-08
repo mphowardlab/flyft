@@ -22,19 +22,21 @@ class PicardIteration(Solver, mirrorclass=_flyft.PicardIteration):
     to solve the equilibrium condition in density functional theory:
 
     .. math::
-        \\rho_{i}^{j+1}(\\mathbf{r}) = (1-\\alpha) \\rho_i^{j}(\\mathbf{r})
-                                        + \\alpha \\rho_i^{j}(\\mathbf{r})
 
-    where :math:`\\alpha` is the mixing parameter,
-    :math:`\\rho_i^{j+1}(\\mathbf{r})` is the new density field
-    value, and :math:`\\rho_i^{j}(\\mathbf{r})` is the current estimate of the
+        \rho_i^{j+1}(\mathbf{r}) = (1-\alpha) \rho_i^{j}(\mathbf{r})
+                                        + \alpha \rho_i^{j}(\mathbf{r})
+
+    where :math:`\alpha` is the mixing parameter,
+    :math:`\rho_i^{j+1}(\mathbf{r})` is the new density field
+    value, and :math:`\rho_i^{j}(\mathbf{r})` is the current estimate of the
     density field which is given by:
 
     .. math::
-        \\rho_i^{j}(\\mathbf{r}) = \rho^i_{bulk}\\exp\\left(\\beta
-                                    \\frac{\\delta F_{ex}}{\\delta
-                                    \\rho_i(\\mathbf{r})} -
-                                    \\beta V_{ext,i}(\\mathbf{r})\\right)
+
+        \rho_i^{j}(\mathbf{r}) = \rho^i_{bulk}\exp\left(\beta
+                                    \frac{\delta F_{ex}}{\delta
+                                    \rho_i(\mathbf{r})} -
+                                    \beta V_{ext,i}(\mathbf{r})\right)
 
     The mixing parameter controls convergence stability: smaller values provide
     better stability but slower convergence, while larger values converge
@@ -58,8 +60,8 @@ class PicardIteration(Solver, mirrorclass=_flyft.PicardIteration):
     tolerance : float
         Convergence tolerance.
 
-    Example
-    -------
+    Examples
+    --------
     Create a Picard iteration solver:
 
     .. code-block:: python
