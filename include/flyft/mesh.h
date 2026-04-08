@@ -13,6 +13,7 @@ class Mesh
     {
     public:
     Mesh() = delete;
+    virtual ~Mesh() = default;
     Mesh(double lower_bound,
          double upper_bound,
          int shape,
