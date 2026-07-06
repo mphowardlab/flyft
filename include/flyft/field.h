@@ -21,7 +21,7 @@ class GenericField : public TrackedObject
     using ConstantIterator = typename ConstantView::Iterator;
 
     GenericField() = delete;
-    explicit GenericField(int shape) : GenericField(shape, 0) {}
+    explicit GenericField(int shape) : GenericField(shape, 0) { }
     GenericField(int shape, int buffer_shape)
         : data_(nullptr), shape_(0), buffer_shape_(0), layout_(0)
         {

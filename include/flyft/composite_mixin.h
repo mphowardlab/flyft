@@ -9,7 +9,7 @@ template<typename T>
 class CompositeMixin
     {
     public:
-    CompositeMixin() {}
+    CompositeMixin() { }
 
     bool addObject(std::shared_ptr<T> object)
         {

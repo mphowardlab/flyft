@@ -1,6 +1,5 @@
-import numpy as np
-
 import flyft
+import numpy as np
 
 L = 50.0
 dx = 0.2
