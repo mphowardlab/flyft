@@ -20,7 +20,7 @@ Communicator::Communicator(MPI_Comm comm, int root) : comm_(comm), root_(root)
     }
 #endif // FLYFT_MPI
 
-Communicator::~Communicator() {}
+Communicator::~Communicator() { }
 
 #ifdef FLYFT_MPI
 MPI_Comm Communicator::get() const

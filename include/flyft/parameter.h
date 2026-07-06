@@ -14,9 +14,9 @@ template<typename T>
 class Parameter : public TrackedObject
     {
     public:
-    Parameter() {}
+    Parameter() { }
 
-    virtual ~Parameter() {}
+    virtual ~Parameter() { }
 
     virtual T operator()(std::shared_ptr<State> state) = 0;
 
@@ -31,7 +31,7 @@ template<typename T>
 class ConstantParameter : public Parameter<T>
     {
     public:
-    ConstantParameter(T value) : value_(value) {}
+    ConstantParameter(T value) : value_(value) { }
 
     T operator()(std::shared_ptr<State> /*state*/) override
         {

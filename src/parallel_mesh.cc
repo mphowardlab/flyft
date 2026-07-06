@@ -46,7 +46,7 @@ ParallelMesh::ParallelMesh(std::shared_ptr<Mesh> mesh, std::shared_ptr<Communica
     local_mesh_ = full_mesh_->slice(start, end);
     }
 
-ParallelMesh::~ParallelMesh() {}
+ParallelMesh::~ParallelMesh() { }
 
 std::shared_ptr<Communicator> ParallelMesh::getCommunicator()
     {

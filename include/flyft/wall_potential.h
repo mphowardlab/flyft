@@ -13,7 +13,7 @@ namespace flyft
 class WallPotentialFunction
     {
     public:
-    WallPotentialFunction(double origin, double normal) : origin_(origin), normal_(normal) {}
+    WallPotentialFunction(double origin, double normal) : origin_(origin), normal_(normal) { }
 
     protected:
     double origin_;
