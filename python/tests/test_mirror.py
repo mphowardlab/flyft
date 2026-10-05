@@ -1,6 +1,5 @@
-import pytest
-
 import flyft.mirror
+import pytest
 
 
 class _A:

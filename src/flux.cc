@@ -5,9 +5,9 @@
 namespace flyft
     {
 
-Flux::Flux() {}
+Flux::Flux() { }
 
-Flux::~Flux() {}
+Flux::~Flux() { }
 
 const TypeMap<std::shared_ptr<Field>>& Flux::getFluxes()
     {

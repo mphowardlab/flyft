@@ -1,7 +1,6 @@
+import flyft
 import numpy as np
 import pytest
-
-import flyft
 
 
 def f_ex(B, rho):

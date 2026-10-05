@@ -5,7 +5,7 @@
 namespace flyft
     {
 
-CompositeFunctional::CompositeFunctional() {}
+CompositeFunctional::CompositeFunctional() { }
 
 bool CompositeFunctional::setup(std::shared_ptr<State> state, bool compute_value)
     {

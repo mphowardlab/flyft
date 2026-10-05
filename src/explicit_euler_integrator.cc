@@ -5,7 +5,7 @@
 namespace flyft
     {
 
-ExplicitEulerIntegrator::ExplicitEulerIntegrator(double timestep) : Integrator(timestep) {}
+ExplicitEulerIntegrator::ExplicitEulerIntegrator(double timestep) : Integrator(timestep) { }
 
 void ExplicitEulerIntegrator::step(std::shared_ptr<Flux> flux,
                                    std::shared_ptr<GrandPotential> grand,
