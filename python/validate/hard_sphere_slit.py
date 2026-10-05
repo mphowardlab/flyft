@@ -1,6 +1,5 @@
-import numpy as np
-
 import flyft
+import numpy as np
 
 L = 16.0
 diameters = {"A": 1.0}

@@ -15,7 +15,8 @@ namespace flyft
 class LinearPotentialFunction
     {
     public:
-    LinearPotentialFunction(double x0, double y0, double slope) : x0_(x0), y0_(y0), slope_(slope) {}
+    LinearPotentialFunction(double x0, double y0, double slope)
+        : x0_(x0), y0_(y0), slope_(slope) { }
 
     double operator()(double x) const
         {

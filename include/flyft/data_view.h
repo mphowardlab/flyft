@@ -23,11 +23,11 @@ class DataView
         using pointer = DataView::pointer;
         using reference = DataView::reference;
 
-        Iterator() : Iterator(DataView()) {}
+        Iterator() : Iterator(DataView()) { }
 
-        explicit Iterator(const DataView& view) : Iterator(view, 0) {}
+        explicit Iterator(const DataView& view) : Iterator(view, 0) { }
 
-        Iterator(const DataView& view, int current) : view_(view), current_(current) {}
+        Iterator(const DataView& view, int current) : view_(view), current_(current) { }
 
         reference operator*() const
             {
@@ -85,9 +85,9 @@ class DataView
         int current_;
         };
 
-    DataView() : DataView(nullptr, DataLayout()) {}
+    DataView() : DataView(nullptr, DataLayout()) { }
 
-    DataView(pointer data, const DataLayout& layout) : DataView(data, layout, 0, layout.shape()) {}
+    DataView(pointer data, const DataLayout& layout) : DataView(data, layout, 0, layout.shape()) { }
 
     DataView(pointer data, const DataLayout& layout, int start, int end)
         : data_(data), layout_(layout), start_(start), end_(end)
