@@ -1,6 +1,7 @@
-import flyft
 import numpy as np
 import pytest
+
+import flyft
 
 from .test_ideal_gas import mu_ig
 from .test_rosenfeld_fmt import muex_py
