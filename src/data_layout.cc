@@ -5,9 +5,9 @@
 namespace flyft
     {
 
-DataLayout::DataLayout() : shape_(0) {}
+DataLayout::DataLayout() : shape_(0) { }
 
-DataLayout::DataLayout(int shape) : shape_(shape) {}
+DataLayout::DataLayout(int shape) : shape_(shape) { }
 
 int DataLayout::operator()(int idx) const
     {

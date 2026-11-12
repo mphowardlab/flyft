@@ -3,7 +3,7 @@
 namespace flyft
     {
 
-Solver::Solver() {}
+Solver::Solver() { }
 
-Solver::~Solver() {}
+Solver::~Solver() { }
     } // namespace flyft

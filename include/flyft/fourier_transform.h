@@ -45,10 +45,10 @@ class FourierTransform
     FourierTransform& operator=(FourierTransform&&) = delete;
 
     enum Space
-    {
+        {
         RealSpace,
         ReciprocalSpace
-    };
+        };
 
     void transform();
 

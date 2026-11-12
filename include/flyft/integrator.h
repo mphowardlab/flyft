@@ -58,8 +58,7 @@ class Integrator
     virtual void step(std::shared_ptr<Flux> flux,
                       std::shared_ptr<GrandPotential> grand,
                       std::shared_ptr<State> state,
-                      double timestep)
-        = 0;
+                      double timestep) = 0;
 
     virtual int getLocalErrorExponent() const = 0;
     };

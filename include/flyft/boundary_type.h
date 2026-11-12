@@ -4,13 +4,13 @@
 namespace flyft
     {
 enum class BoundaryType
-{
+    {
     periodic,
     zero,
     reflect,
     repeat,
     internal
-};
+    };
     } // namespace flyft
 
 #endif // FLYFT_BOUNDARY_TYPE_H_
