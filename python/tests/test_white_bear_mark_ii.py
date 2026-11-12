@@ -1,6 +1,7 @@
-import flyft
 import numpy as np
 import pytest
+
+import flyft
 
 
 def fex_cs(eta, v):

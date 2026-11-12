@@ -1,5 +1,6 @@
-import flyft
 import pytest
+
+import flyft
 
 
 def test_init(state):
