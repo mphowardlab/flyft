@@ -107,10 +107,10 @@ class RosenfeldFMT : public Functional
     void setupComplexField(std::unique_ptr<ComplexField>& kfield);
 
     enum struct ConvolutionType
-    {
+        {
         cartesian,
         spherical
-    };
+        };
     ConvolutionType getConvolutionType(std::shared_ptr<const Mesh> mesh) const;
 
     std::shared_ptr<Field> tmp_r_field_;

@@ -34,10 +34,10 @@ class GrandPotential : public Functional
     void setExternalPotential(std::shared_ptr<ExternalPotential> external);
 
     enum class Constraint
-    {
+        {
         N,
         mu
-    };
+        };
     TypeMap<double>& getConstraints();
     const TypeMap<double>& getConstraints() const;
 

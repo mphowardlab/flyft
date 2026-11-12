@@ -12,7 +12,7 @@ Integrator::Integrator(double timestep)
     setTimestep(timestep);
     }
 
-Integrator::~Integrator() {}
+Integrator::~Integrator() { }
 
 bool Integrator::advance(std::shared_ptr<Flux> flux,
                          std::shared_ptr<GrandPotential> grand,

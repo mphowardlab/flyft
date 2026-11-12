@@ -5,7 +5,7 @@
 namespace flyft
     {
 
-CompositeExternalPotential::CompositeExternalPotential() {}
+CompositeExternalPotential::CompositeExternalPotential() { }
 
 bool CompositeExternalPotential::setup(std::shared_ptr<State> state, bool compute_value)
     {

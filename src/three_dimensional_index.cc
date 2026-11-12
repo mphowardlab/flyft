@@ -2,9 +2,9 @@
 
 namespace flyft
     {
-ThreeDimensionalIndex::ThreeDimensionalIndex() : nx_(0), ny_(0), nz_(0) {}
+ThreeDimensionalIndex::ThreeDimensionalIndex() : nx_(0), ny_(0), nz_(0) { }
 
-ThreeDimensionalIndex::ThreeDimensionalIndex(int nx, int ny, int nz) : nx_(nx), ny_(ny), nz_(nz) {}
+ThreeDimensionalIndex::ThreeDimensionalIndex(int nx, int ny, int nz) : nx_(nx), ny_(ny), nz_(nz) { }
 
 int ThreeDimensionalIndex::operator()(int i, int j, int k) const
     {

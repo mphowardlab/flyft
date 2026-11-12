@@ -5,9 +5,9 @@
 namespace flyft
     {
 
-Functional::Functional() : value_(std::nan("")) {}
+Functional::Functional() : value_(std::nan("")) { }
 
-Functional::~Functional() {}
+Functional::~Functional() { }
 
 Functional::Token Functional::compute(std::shared_ptr<State> state, bool compute_value)
     {

@@ -3,7 +3,7 @@
 namespace flyft
     {
 
-ExternalPotential::ExternalPotential() {}
+ExternalPotential::ExternalPotential() { }
 
 bool ExternalPotential::setup(std::shared_ptr<State> state, bool compute_value)
     {

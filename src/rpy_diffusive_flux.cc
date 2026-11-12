@@ -7,7 +7,7 @@
 namespace flyft
     {
 
-RPYDiffusiveFlux::RPYDiffusiveFlux() : viscosity_(1.0) {}
+RPYDiffusiveFlux::RPYDiffusiveFlux() : viscosity_(1.0) { }
 
 void RPYDiffusiveFlux::compute(std::shared_ptr<GrandPotential> grand, std::shared_ptr<State> state)
     {
